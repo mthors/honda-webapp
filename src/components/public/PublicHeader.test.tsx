@@ -86,3 +86,4 @@ describe('PublicHeader component', () => {
     expect(toggleButton).toHaveAttribute('aria-expanded', 'false');
   });
 });
+
