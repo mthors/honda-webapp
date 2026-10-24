@@ -11,10 +11,12 @@ export const dealershipCopy = {
     name: 'Honda Mega Persada Mandiri',
     tagline: 'Dealer Resmi Sepeda Motor Honda',
     officialBadge: 'Dealer Resmi Honda',
-    addressPlaceholder: 'Jl. Raya Sidoarjo No. 123, Sidoarjo, Jawa Timur',
+    addressPlaceholder: 'Jl. Raya Sidoarjo No. 123, Sidoarjo, Jawa Timur (Konfirmasi Alamat)',
     operatingHours: 'Senin - Sabtu: 08:00 - 17:00 WIB | Minggu: 09:00 - 15:00 WIB',
     phone: '(031) 894-1234',
     email: 'info@megapersada.co.id',
+    corporateDisclaimer:
+      'Honda Mega Persada Mandiri adalah dealer resmi sepeda motor Honda. Website ini merupakan media informasi dan showroom digital dealer lokal, bukan website resmi korporat PT Astra Honda Motor (AHM).',
   },
   nav: {
     home: 'Beranda',
@@ -23,13 +25,16 @@ export const dealershipCopy = {
     promotions: 'Promo',
     aboutContact: 'Tentang & Kontak',
     adminLogin: 'Portal Staf',
+    menuButtonOpen: 'Buka menu navigasi',
+    menuButtonClose: 'Tutup menu navigasi',
+    quickLinks: 'Navigasi Cepat',
   },
   hero: {
     headline: 'Digital Showroom Honda Mega Persada Mandiri',
     subheadline:
       'Temukan sepeda motor Honda impian Anda dengan harga OTR lokal terverifikasi, promo resmi dealer, dan layanan konsultasi pembelian terpercaya.',
     primaryCta: 'Lihat Daftar Motor',
-    secondaryCta: 'Hubungi Sales',
+    secondaryCta: 'Konsultasi Sales',
   },
   catalog: {
     title: 'Katalog Sepeda Motor Honda',
@@ -47,11 +52,33 @@ export const dealershipCopy = {
     specifications: 'Spesifikasi Utama',
     availableColors: 'Pilihan Warna',
     noPriceAvailable: 'Hubungi dealer untuk konfirmasi harga terbaru.',
+    placeholderTitle: 'Katalog Sepeda Motor Honda',
+    placeholderNotice:
+      'Katalog lengkap model motor Honda, varian tipe, dan galeri pilihan warna sedang dalam tahap persiapan dan akan tersedia pada rilis Milestone 3.',
   },
   pricing: {
-    title: 'Daftar Harga OTR',
+    title: 'Daftar Harga OTR Sidoarjo & Sekitarnya',
     disclaimer:
       'Harga OTR (On The Road) yang tercantum merupakan estimasi wilayah dealer dan dapat berubah sewaktu-waktu. Silakan konfirmasi ketersediaan unit dan rincian harga dengan tim sales kami.',
+    placeholderTitle: 'Daftar Harga OTR Resmi',
+    placeholderNotice:
+      'Daftar rincian harga OTR lokal yang berlaku efektif sedang diselaraskan dengan data dealer dan akan aktif pada rilis Milestone 4.',
+  },
+  promotions: {
+    title: 'Promo & Penawaran Spesial',
+    placeholderTitle: 'Promo Resmi Dealer',
+    placeholderNotice:
+      'Informasi promo cashback, voucher potongan harga, dan program promo musiman dealer akan hadir pada rilis Milestone 4.',
+  },
+  contact: {
+    title: 'Hubungi Dealer Kami',
+    subtitle:
+      'Tim konsultan Honda Mega Persada Mandiri siap membantu kebutuhan informasi dan pembelian sepeda motor Anda.',
+    whatsappTitle: 'Layanan WhatsApp Sales',
+    whatsappDescription:
+      'Dapatkan respons cepat mengenai spesifikasi unit, ketersediaan warna, dan simulasi pembelian.',
+    showroomLocation: 'Lokasi Dealer & Showroom',
+    operatingHoursTitle: 'Jam Layanan Showroom',
   },
   inquiry: {
     title: 'Konsultasi Pembelian',
@@ -85,10 +112,12 @@ export const dealershipCopy = {
     archived: 'Diarsipkan',
     featured: 'Unggulan',
     newModel: 'Model Baru',
+    verified: 'Harga Terverifikasi',
   },
   common: {
     currencySymbol: 'Rp',
     contactSales: 'Hubungi Sales',
+    backToHome: 'Kembali ke Beranda',
     back: 'Kembali',
     close: 'Tutup',
     save: 'Simpan',
@@ -96,6 +125,7 @@ export const dealershipCopy = {
     loading: 'Memuat data...',
     notFound: 'Halaman tidak ditemukan',
     serverError: 'Terjadi kendala pada sistem. Silakan coba kembali beberapa saat lagi.',
+    copyrightNotice: 'Hak Cipta Dilindungi.',
   },
 } as const;
 
