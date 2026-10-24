@@ -37,3 +37,7 @@ Thumbs.db
 # Local tooling & caches
 .codegraph/
 .eslintcache
+
+# Agent rules antislop
+/.agents
+AGENTS.md

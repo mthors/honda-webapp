@@ -1,0 +1,52 @@
+@import 'tailwindcss';
+
+@theme {
+  /* Brand and Accent Tokens from DESIGN.md */
+  --color-primary: #e61b33;
+  --color-primary-hover: #e72233;
+  --color-canvas: #ffffff;
+  --color-surface-alt: #282828;
+  --color-on-primary: #ffffff;
+  --color-ink: #282828;
+  --color-body: #4f4f4f;
+  --color-muted: #727272;
+  --color-hairline: #dbdbdb;
+  --color-neutral-1: #000000;
+  --color-neutral-2: #efefef;
+  --color-neutral-3: #3c3c3c;
+
+  /* Semantic Status Tokens (Accessible additions for form & state feedback) */
+  --color-status-error: #dc2626;
+  --color-status-success: #16a34a;
+  --color-status-warning: #d97706;
+
+  /* Typography */
+  --font-manrope:
+    var(--font-manrope), -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+
+  /* Border Radius: 0px sharp corners for cards/containers, 10px pill for buttons */
+  --radius-none: 0px;
+  --radius-xs: 2px;
+  --radius-sm: 4px;
+  --radius-md: 10px;
+  --radius-full: 9999px;
+}
+
+:root {
+  --background: #ffffff;
+  --foreground: #282828;
+}
+
+body {
+  background-color: var(--background);
+  color: var(--foreground);
+  font-family: var(
+    --font-manrope,
+    -apple-system,
+    BlinkMacSystemFont,
+    'Segoe UI',
+    Roboto,
+    sans-serif
+  );
+  -webkit-font-smoothing: antialiased;
+}
