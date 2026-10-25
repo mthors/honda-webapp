@@ -114,6 +114,23 @@ export const dealershipCopy = {
     newModel: 'Model Baru',
     verified: 'Harga Terverifikasi',
   },
+  adminAuth: {
+    title: 'Masuk Portal Administrator',
+    subtitle: 'Akses khusus staf resmi Honda Mega Persada Mandiri',
+    emailLabel: 'Alamat Email',
+    emailPlaceholder: 'nama@megapersada.co.id',
+    passwordLabel: 'Kata Sandi',
+    passwordPlaceholder: 'Masukkan kata sandi Anda',
+    submitButton: 'Masuk ke Portal',
+    submittingButton: 'Memproses...',
+    signOutButton: 'Keluar',
+    dashboardTitle: 'Dasbor Administrator',
+    dashboardSubtitle:
+      'Selamat datang di panel pengelolaan digital showroom Honda Mega Persada Mandiri.',
+    unauthorizedError: 'Akun Anda tidak memiliki izin administrator atau sedang dinonaktifkan.',
+    invalidCredentialsError: 'Alamat email atau kata sandi tidak sesuai.',
+    unexpectedError: 'Terjadi kesalahan sistem saat mencoba masuk. Silakan coba kembali.',
+  },
   common: {
     currencySymbol: 'Rp',
     contactSales: 'Hubungi Sales',

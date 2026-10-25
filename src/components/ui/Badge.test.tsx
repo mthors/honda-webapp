@@ -23,4 +23,3 @@ describe('Badge component', () => {
     expect(badge).toHaveClass('text-status-error');
   });
 });
-

@@ -44,4 +44,3 @@ export const Card: React.FC<CardProps> = ({
     </div>
   );
 };
-
