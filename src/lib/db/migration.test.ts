@@ -139,3 +139,52 @@ describe('Database Migration & RLS Security Validation', () => {
     );
   });
 });
+
+describe('Security Hardening Migration (20261025000002_harden_table_privileges.sql)', () => {
+  const hardeningPath = path.resolve(
+    process.cwd(),
+    'supabase/migrations/20261025000002_harden_table_privileges.sql'
+  );
+  const hardeningSql = fs.readFileSync(hardeningPath, 'utf-8');
+  // Strip comments to test executable SQL statements directly
+  const executableSql = hardeningSql.replace(/--.*$/gm, '');
+
+  it('revokes all table privileges from public, anon, authenticated, and service_role on sensitive tables', () => {
+    expect(executableSql).toMatch(
+      /revoke\s+all\s+on\s+table\s+public\.staff_profiles\s+from\s+public,\s*anon,\s*authenticated,\s*service_role;/i
+    );
+    expect(executableSql).toMatch(
+      /revoke\s+all\s+on\s+table\s+public\.leads\s+from\s+public,\s*anon,\s*authenticated,\s*service_role;/i
+    );
+    expect(executableSql).toMatch(
+      /revoke\s+all\s+on\s+table\s+public\.audit_logs\s+from\s+public,\s*anon,\s*authenticated,\s*service_role;/i
+    );
+  });
+
+  it('grants required CRUD privileges to authenticated and service_role on staff_profiles and leads without truncate', () => {
+    expect(executableSql).toMatch(
+      /grant\s+select,\s*insert,\s*update,\s*delete\s+on\s+table\s+public\.staff_profiles\s+to\s+authenticated,\s*service_role;/i
+    );
+    expect(executableSql).toMatch(
+      /grant\s+select,\s*insert,\s*update,\s*delete\s+on\s+table\s+public\.leads\s+to\s+authenticated,\s*service_role;/i
+    );
+    // Explicitly verify truncate is not granted to any role
+    expect(executableSql).not.toMatch(
+      /grant\s+[^;]*truncate[^;]*on\s+table\s+public\.(?:staff_profiles|leads)/i
+    );
+  });
+
+  it('strictly limits audit_logs privileges to select and insert for authenticated and service_role', () => {
+    expect(executableSql).toMatch(
+      /revoke\s+all\s+on\s+table\s+public\.audit_logs\s+from\s+public,\s*anon,\s*authenticated,\s*service_role;/i
+    );
+    expect(executableSql).toMatch(
+      /grant\s+select,\s*insert\s+on\s+table\s+public\.audit_logs\s+to\s+authenticated,\s*service_role;/i
+    );
+    // Ensure no broad or modifying grant is given to audit_logs
+    expect(executableSql).not.toMatch(/grant\s+all\s+on\s+table\s+public\.audit_logs/i);
+    expect(executableSql).not.toMatch(
+      /grant\s+[^;]*(?:update|delete|truncate)[^;]*on\s+table\s+public\.audit_logs/i
+    );
+  });
+});

@@ -10,6 +10,7 @@ playwright-report
 package-lock.json
 *.db
 next-env.d.ts
+supabase/.temp
 
 # Preserve existing project documentation untouched
 *.md
