@@ -2,18 +2,21 @@
 
 ## 1. Roles and permissions
 
-V1 can use a single protected `admin` role to keep operations simple.
+V1 uses a single protected `admin` role across Honda Satrya Dealer Group to keep operations simple. Dealership-specific accounts and branch-specific permissions are explicitly excluded.
 
 | Capability | Admin |
 |---|---:|
 | Manage categories, models, variants, colors and images | Yes |
 | Manage local OTR prices | Yes |
 | Manage banners and promotions | Yes |
-| Manage dealership settings | Yes |
+| Manage group settings | Yes |
 | View inquiry records | Yes |
 | Download inquiry Excel workbook | Yes |
 | Manage staff accounts | Optional; only if needed |
+| Dealership-specific accounts / branch permissions | Not in V1 |
+| Branch management CRUD | Not in V1 |
 | Credit simulation configuration | Not in V1 |
+| Automatic dealership assignment / routing | Not in V1 |
 | Lead assignment/status/notes pipeline | Not in V1 |
 
 Enforce permissions server-side. Downloaded spreadsheets contain personal data and must be handled securely.
@@ -56,13 +59,13 @@ Enforce permissions server-side. Downloaded spreadsheets contain personal data a
 7.  Ensure scheduled/expired content is not shown publicly.
 
 ## 5. Inquiry handling workflow (V1)
-1. Visitor submits the inquiry form.
-2. Server validates the fields and saves the inquiry.
-3. Inquiry appears in a protected admin list.
-4. Authorized admin downloads the inquiry list as an Excel (`.xlsx`) file.
-5. Staff follows up outside the system using the exported data and the dealership's normal process.
+1. Customer submits the inquiry form on the website, including their city/regency location.
+2. Server validates the fields and saves the inquiry securely.
+3. Inquiry appears in the protected administrator portal.
+4. Authorized sales administrator reviews submitted inquiries and exports the list to Excel (`.xlsx`) when needed.
+5. Sales administrator manually identifies the appropriate nearby dealership based on the customer's submitted location and forwards the inquiry outside the system.
 
-V1 intentionally does not include assignment, status changes, internal notes, follow-up reminders, or sales conversion tracking. Add these only if the owner requests them after reviewing the first release.
+This human workflow remains intentionally manual in V1. Explicit exclusions: no automatic dealership assignment, no automated lead routing/forwarding, no branch-specific notifications, and no CRM sales pipeline.
 
 ## 6. Basic admin dashboard
 

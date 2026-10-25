@@ -2,20 +2,20 @@
 
 ## 1. Design direction
 
-Use `design.md` as the project's visual authority. Aim for a premium,
-clean, product-first Honda dealership experience inspired by Astra
-Honda's navigation, generous whitespace, large motorcycle photography,
+Use `DESIGN.md` as the project's visual authority. Aim for a premium,
+clean, product-first Honda motorcycle experience for **Honda Satrya Dealer Group**
+inspired by Astra Honda's navigation, generous whitespace, large motorcycle photography,
 category browsing and prominent price/CTA patterns.
 
 Do not reproduce Astra Honda's exact page source, full layouts
-pixel-for-pixel, copy, image assets, or claim the dealer site is
-operated by AHM. Use dealership-approved logos/assets and a distinct
-dealer identity.
+pixel-for-pixel, copy, image assets, or claim the site is
+operated by AHM. Use authorized dealer group assets and a distinct
+Honda Satrya Dealer Group identity.
 
 ## 2. Public navigation
 
-Suggested header: - Logo/dealer identity - Motor - Daftar Harga -
-Promo - Simulasi Kredit - Tentang Dealer / Hubungi - Primary CTA:
+Suggested header: - Logo/group identity - Motor - Daftar Harga -
+Promo - Tentang & Kontak - Primary CTA:
 WhatsApp / Tanya Sales
 
 No article, discussion, comment, chat or community navigation.
@@ -28,10 +28,10 @@ No article, discussion, comment, chat or community navigation.
 3.  Featured/new motorcycles.
 4.  Browse by category.
 5.  Current promotions.
-6.  Why buy from this dealer (only verified benefits).
-7.  Local area/service coverage if supplied by owner.
+6.  Why buy from Honda Satrya Dealer Group (only verified benefits; group-wide showcase).
+7.  Applicable area coverage if supplied by owner (no public dealership directory or branch detail pages in V1).
 8.  Contact/WhatsApp CTA.
-9.  Footer with address, hours, privacy policy and social links.
+9.  Footer with group contact info, hours, privacy policy and social links.
 
 Admin should control banner order, status, active date window and CTA.
 If no banner is active, show a designed fallback rather than an empty
@@ -90,9 +90,8 @@ section.
 
 -   Full name (required).
 -   WhatsApp number (required).
--   Email (optional unless the dealership specifically needs it).
--   City/regency (required; allow Indonesian place names such as
-    Sidoarjo).
+-   Email (optional unless the business specifically needs it).
+-   City/regency (required; Indonesian place names such as Sidoarjo). Used by the sales administrator to determine the appropriate nearby dealership.
 -   District/subdistrict (optional).
 -   Motorcycle model (prefilled when submitted from a product page).
 -   Variant/type (filtered by selected model).
@@ -115,10 +114,10 @@ section.
 
 ### Example WhatsApp message
 
-"Hi, saya baru mengirim pertanyaan melalui website \[Dealer\].
+"Hi, saya baru mengirim pertanyaan melalui website Honda Satrya Dealer Group.
 Referensi: \[LEAD-REFERENCE\]. Saya tertarik dengan \[MODEL\] varian
 \[VARIANT\], warna \[COLOR\]. Mohon informasi lebih lanjut." Use a
-dealer-configured number; URL-encode the message.
+group-configured number; URL-encode the message.
 
 ## 9. Credit simulation (out of scope for V1)
 

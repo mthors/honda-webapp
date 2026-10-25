@@ -9,9 +9,9 @@ const manrope = Manrope({
 });
 
 export const metadata: Metadata = {
-  title: 'Honda Mega Persada Mandiri — Dealer Resmi Motor Honda',
+  title: 'Honda Satrya Dealer Group — Dealer Resmi Motor Honda',
   description:
-    'Digital Showroom resmi Honda Mega Persada Mandiri. Informasi katalog motor Honda, harga OTR lokal terverifikasi, promo resmi dealer, dan layanan konsultasi pembelian.',
+    'Digital Showroom resmi Honda Satrya Dealer Group. Informasi katalog motor Honda, harga OTR lokal terverifikasi, promo resmi dealer, dan layanan konsultasi pembelian.',
 };
 
 export default function RootLayout({

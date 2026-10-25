@@ -8,9 +8,9 @@ import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 
 export const metadata: Metadata = {
-  title: 'Katalog Sepeda Motor Honda — Honda Mega Persada Mandiri',
+  title: 'Katalog Sepeda Motor Honda — Honda Satrya Dealer Group',
   description:
-    'Daftar lini sepeda motor Honda resmi: Matic, Sport, Cub, dan EV di dealer Honda Mega Persada Mandiri.',
+    'Daftar lini sepeda motor Honda resmi: Matic, Sport, Cub, dan EV di dealer Honda Satrya Dealer Group.',
 };
 
 export default function MotorCatalogPage() {

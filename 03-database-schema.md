@@ -263,12 +263,11 @@ A singleton row or a table of typed settings. - `id uuid primary key` -
     secrets in audit metadata.
 
 ## 3. V1 inquiry export
-In V1, the admin interface needs a basic inquiry table and an authorized `.xlsx` download. Export columns should include lead reference, submission date/time, name, WhatsApp, email, city/regency, model, variant/type, preferred color, message, source page and privacy-consent timestamp. Do not include internal secrets or unnecessary personal data. No lead status pipeline, assignments, or notes are required.
+In V1, the admin interface needs a basic inquiry table and an authorized `.xlsx` download. Export columns should include lead reference, submission date/time, name, WhatsApp, email, city/regency, district, model, variant/type, preferred color, message, source page and privacy-consent timestamp. The customer location (`city` and optional `district`) enables the sales administrator to identify the appropriate nearby dealership and manually forward the lead. Do not include internal secrets or unnecessary personal data. No lead status pipeline, automated routing, or internal notes are required.
 
 ## 4. Optional/future tables
 
--   `branches` if there are multiple outlets with distinct contact
-    details/prices.
+-   `branches` — Note: Explicitly excluded from V1. Honda Satrya Dealer Group operates multiple dealerships, but V1 is a group-wide showcase without branch management CRUD, public branch profiles, or branch-specific accounts.
 -   `cities` if location normalization and reporting becomes important.
 -   `lead_sources` if marketing attribution requires a controlled
     taxonomy.

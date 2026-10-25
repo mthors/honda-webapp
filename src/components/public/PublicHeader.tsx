@@ -45,7 +45,7 @@ export const PublicHeader: React.FC = () => {
   const whatsappNumber = process.env.NEXT_PUBLIC_DEALER_WHATSAPP;
   const whatsappUrl = whatsappNumber
     ? `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(
-        'Halo Honda Mega Persada Mandiri, saya ingin berkonsultasi mengenai motor Honda.'
+        'Halo Honda Satrya Dealer Group, saya ingin berkonsultasi mengenai motor Honda.'
       )}`
     : '/hubungi';
 
@@ -69,7 +69,7 @@ export const PublicHeader: React.FC = () => {
             onClick={() => setIsMenuOpen(false)}
           >
             <span className="text-lg sm:text-2xl font-bold tracking-tight text-ink font-manrope">
-              HONDA <span className="text-primary">MEGA PERSADA MANDIRI</span>
+              HONDA <span className="text-primary">SATRYA DEALER GROUP</span>
             </span>
             <span className="text-[11px] sm:text-xs text-muted font-normal">
               {dealershipCopy.dealer.tagline}

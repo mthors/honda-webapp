@@ -3,7 +3,7 @@ import { dealershipCopy } from './id';
 
 describe('dealershipCopy', () => {
   it('contains the authorized dealership identity name', () => {
-    expect(dealershipCopy.dealer.name).toBe('Honda Mega Persada Mandiri');
+    expect(dealershipCopy.dealer.name).toBe('Honda Satrya Dealer Group');
   });
 
   it('includes mandatory corporate disclaimer text', () => {
@@ -30,6 +30,6 @@ describe('dealershipCopy', () => {
     expect(dealershipCopy.inquiry.fullNameLabel).toBeTruthy();
     expect(dealershipCopy.inquiry.whatsappLabel).toBeTruthy();
     expect(dealershipCopy.inquiry.privacyConsent).toBeTruthy();
-    expect(dealershipCopy.inquiry.privacyConsent).toContain('Honda Mega Persada Mandiri');
+    expect(dealershipCopy.inquiry.privacyConsent).toContain('Honda Satrya Dealer Group');
   });
 });

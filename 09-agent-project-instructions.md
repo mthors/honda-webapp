@@ -2,7 +2,7 @@
 
 ## Mission
 
-Build the Honda Mega Persada Mandiri dealership-owned Honda motorcycle digital showroom inspired by
+Build the Honda Satrya Dealer Group Honda motorcycle digital showroom inspired by
 the information architecture and visual quality of
 https://www.astra-honda.com/, using this repository's `design.md` as the
 visual authority. Include a public catalog, local price list,

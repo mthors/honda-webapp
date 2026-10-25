@@ -8,15 +8,15 @@
 
 export const dealershipCopy = {
   dealer: {
-    name: 'Honda Mega Persada Mandiri',
+    name: 'Honda Satrya Dealer Group',
     tagline: 'Dealer Resmi Sepeda Motor Honda',
     officialBadge: 'Dealer Resmi Honda',
     addressPlaceholder: 'Jl. Raya Sidoarjo No. 123, Sidoarjo, Jawa Timur (Konfirmasi Alamat)',
     operatingHours: 'Senin - Sabtu: 08:00 - 17:00 WIB | Minggu: 09:00 - 15:00 WIB',
     phone: '(031) 894-1234',
-    email: 'info@megapersada.co.id',
+    email: 'info@satryagroup.co.id (Konfirmasi Email)',
     corporateDisclaimer:
-      'Honda Mega Persada Mandiri adalah dealer resmi sepeda motor Honda. Website ini merupakan media informasi dan showroom digital dealer lokal, bukan website resmi korporat PT Astra Honda Motor (AHM).',
+      'Honda Satrya Dealer Group adalah grup dealer resmi sepeda motor Honda. Website ini merupakan media informasi dan showroom digital dealer lokal, bukan website resmi korporat PT Astra Honda Motor (AHM).',
   },
   nav: {
     home: 'Beranda',
@@ -30,7 +30,7 @@ export const dealershipCopy = {
     quickLinks: 'Navigasi Cepat',
   },
   hero: {
-    headline: 'Digital Showroom Honda Mega Persada Mandiri',
+    headline: 'Digital Showroom Honda Satrya Dealer Group',
     subheadline:
       'Temukan sepeda motor Honda impian Anda dengan harga OTR lokal terverifikasi, promo resmi dealer, dan layanan konsultasi pembelian terpercaya.',
     primaryCta: 'Lihat Daftar Motor',
@@ -73,7 +73,7 @@ export const dealershipCopy = {
   contact: {
     title: 'Hubungi Dealer Kami',
     subtitle:
-      'Tim konsultan Honda Mega Persada Mandiri siap membantu kebutuhan informasi dan pembelian sepeda motor Anda.',
+      'Tim konsultan Honda Satrya Dealer Group siap membantu kebutuhan informasi dan pembelian sepeda motor Anda.',
     whatsappTitle: 'Layanan WhatsApp Sales',
     whatsappDescription:
       'Dapatkan respons cepat mengenai spesifikasi unit, ketersediaan warna, dan simulasi pembelian.',
@@ -97,7 +97,7 @@ export const dealershipCopy = {
     messageLabel: 'Pesan Tambahan (Opsional)',
     messagePlaceholder: 'Tuliskan pertanyaan spesifik Anda di sini...',
     privacyConsent:
-      'Saya menyetujui bahwa data kontak yang saya berikan akan digunakan oleh tim Honda Mega Persada Mandiri untuk menghubungi saya terkait informasi pembelian motor.',
+      'Saya menyetujui bahwa data kontak yang saya berikan akan digunakan oleh tim Honda Satrya Dealer Group untuk menghubungi saya terkait informasi pembelian motor.',
     submitButton: 'Kirim Pertanyaan',
     submittingButton: 'Mengirim...',
     successTitle: 'Pertanyaan Anda Berhasil Terkirim',
@@ -116,9 +116,9 @@ export const dealershipCopy = {
   },
   adminAuth: {
     title: 'Masuk Portal Administrator',
-    subtitle: 'Akses khusus staf resmi Honda Mega Persada Mandiri',
+    subtitle: 'Akses khusus staf resmi Honda Satrya Dealer Group',
     emailLabel: 'Alamat Email',
-    emailPlaceholder: 'nama@megapersada.co.id',
+    emailPlaceholder: 'nama@satryagroup.co.id',
     passwordLabel: 'Kata Sandi',
     passwordPlaceholder: 'Masukkan kata sandi Anda',
     submitButton: 'Masuk ke Portal',
@@ -126,7 +126,7 @@ export const dealershipCopy = {
     signOutButton: 'Keluar',
     dashboardTitle: 'Dasbor Administrator',
     dashboardSubtitle:
-      'Selamat datang di panel pengelolaan digital showroom Honda Mega Persada Mandiri.',
+      'Selamat datang di panel pengelolaan digital showroom Honda Satrya Dealer Group.',
     unauthorizedError: 'Akun Anda tidak memiliki izin administrator atau sedang dinonaktifkan.',
     invalidCredentialsError: 'Alamat email atau kata sandi tidak sesuai.',
     unexpectedError: 'Terjadi kesalahan sistem saat mencoba masuk. Silakan coba kembali.',

@@ -1,6 +1,6 @@
 # Supabase Database, Authentication & Security Documentation
 
-This directory contains version-controlled database migrations and operational documentation for the **Honda Mega Persada Mandiri** digital showroom web application.
+This directory contains version-controlled database migrations and operational documentation for the **Honda Satrya Dealer Group** digital showroom web application.
 
 ---
 
@@ -88,7 +88,7 @@ In the **SQL Editor**, execute the following query, substituting the actual UID 
 insert into public.staff_profiles (user_id, display_name, role, is_active)
 values (
   '<COPIED_USER_UID>',
-  'Administrator Dealer MPM',
+  'Administrator Honda Satrya Dealer Group',
   'admin',
   true
 );

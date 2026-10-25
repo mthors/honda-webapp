@@ -102,7 +102,7 @@ defaults.
 
 ### Product/content
 
--   [ ] Dealer name/logo/contact details approved.
+-   [ ] Honda Satrya Dealer Group name/logo/contact details approved.
 -   [ ] All motorcycle names, variants, colors and specifications
     verified.
 -   [ ] All visible prices have a source, location scope and effective

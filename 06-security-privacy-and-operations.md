@@ -46,7 +46,7 @@ history and financing simulation details. Restrict to authorized staff; in V1, i
 
 ## 3. Privacy checklist
 
--   Publish a privacy notice identifying the dealership/business,
+-   Publish a privacy notice identifying Honda Satrya Dealer Group,
     collected fields, purpose, access, retention/contact method and
     relevant rights/process.
 -   Ask for acknowledgement before collecting a lead; store the consent

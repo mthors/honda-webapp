@@ -21,7 +21,7 @@
     DB/Auth/Storage. Confirm pricing, limits, and business ownership
     before production.
 -   **Notifications V1:** Admin dashboard plus email notification to a
-    configured dealership inbox if desired. WhatsApp handoff is a link
+    configured group sales inbox if desired. WhatsApp handoff is a link
     opened by the user; automated WhatsApp API is future scope.
 
 Supabase's official Next.js guide covers cookie-based auth, PostgreSQL
@@ -154,10 +154,11 @@ files after bootstrapping.
 
 Store price values as integer Rupiah (`BIGINT` or safe integer). Never
 use floating-point arithmetic for money. Keep prices in a dedicated
-table with effective dates and optional city/branch scope. The public
+table with effective dates and applicable city scope. The public
 page should show the currently effective price for the selected
 location, and show "Hubungi dealer untuk konfirmasi" when no valid price
-exists.
+exists. Motorcycles are showcased across Honda Satrya Dealer Group; do not
+introduce dealership-specific pricing ownership or branch assignment in V1.
 
 ## 8. Credit simulation (out of scope for V1)
 Do not implement a simulator or display installment estimates in V1. Show only verified local OTR prices. Revisit financing only after explicit owner approval and verified terms.

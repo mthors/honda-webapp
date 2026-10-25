@@ -16,7 +16,7 @@ describe('PublicHeader component', () => {
     render(<PublicHeader />);
     const dealerName = screen.getByText('HONDA');
     expect(dealerName).toBeInTheDocument();
-    expect(screen.getByText('MEGA PERSADA MANDIRI')).toBeInTheDocument();
+    expect(screen.getByText('SATRYA DEALER GROUP')).toBeInTheDocument();
   });
 
   it('renders desktop navigation links with correct destinations', () => {

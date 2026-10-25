@@ -5,8 +5,8 @@ import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 
 export const metadata = {
-  title: 'Dasbor Administrator — Honda Mega Persada Mandiri',
-  description: 'Dasbor portal administrasi dealer resmi Honda Mega Persada Mandiri.',
+  title: 'Dasbor Administrator — Honda Satrya Dealer Group',
+  description: 'Dasbor portal administrasi dealer resmi Honda Satrya Dealer Group.',
   robots: {
     index: false,
     follow: false,

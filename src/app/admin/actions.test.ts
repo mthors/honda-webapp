@@ -86,7 +86,7 @@ describe('Admin Server Actions', () => {
       });
 
       const formData = new FormData();
-      formData.set('email', 'admin@megapersada.co.id');
+      formData.set('email', 'admin@satryagroup.co.id');
       formData.set('password', 'secret123');
 
       await expect(signInAdmin(undefined, formData)).rejects.toThrow('NEXT_REDIRECT:/admin');

@@ -24,7 +24,7 @@ export const PublicFooter: React.FC = () => {
             <div className="md:col-span-2 space-y-4">
               <div className="flex flex-col">
                 <span className="text-xl sm:text-2xl font-bold tracking-tight text-on-primary font-manrope">
-                  HONDA <span className="text-primary">MEGA PERSADA MANDIRI</span>
+                  HONDA <span className="text-primary">SATRYA DEALER GROUP</span>
                 </span>
                 <span className="text-xs text-muted mt-1">{dealershipCopy.dealer.tagline}</span>
               </div>

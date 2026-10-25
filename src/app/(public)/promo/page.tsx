@@ -8,9 +8,9 @@ import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 
 export const metadata: Metadata = {
-  title: 'Promo Sepeda Motor Honda — Honda Mega Persada Mandiri',
+  title: 'Promo Sepeda Motor Honda — Honda Satrya Dealer Group',
   description:
-    'Program promo resmi, diskon spesial, dan penawaran menarik dari dealer Honda Mega Persada Mandiri.',
+    'Program promo resmi, diskon spesial, dan penawaran menarik dari dealer Honda Satrya Dealer Group.',
 };
 
 export default function PromoPage() {
@@ -25,8 +25,8 @@ export default function PromoPage() {
             {dealershipCopy.promotions.title}
           </h1>
           <p className="mt-3 text-base text-body leading-relaxed">
-            Dapatkan penawaran terbaik dan program spesial resmi dari dealer Honda Mega Persada
-            Mandiri.
+            Dapatkan penawaran terbaik dan program spesial resmi dari dealer Honda Satrya Dealer
+            Group.
           </p>
         </div>
 

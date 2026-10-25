@@ -70,7 +70,7 @@ describe('Admin authentication and authorization helpers', () => {
 
   it('returns user and profile when the user has an active admin record', async () => {
     const mockClient = createMockClient({
-      user: { id: 'usr-admin-1', email: 'admin@megapersada.co.id' },
+      user: { id: 'usr-admin-1', email: 'admin@satryagroup.co.id' },
       profile: {
         user_id: 'usr-admin-1',
         display_name: 'Budi Santoso',
@@ -84,7 +84,7 @@ describe('Admin authentication and authorization helpers', () => {
     expect(result?.profile.displayName).toBe('Budi Santoso');
     expect(result?.profile.role).toBe('admin');
     expect(result?.profile.isActive).toBe(true);
-    expect(result?.profile.email).toBe('admin@megapersada.co.id');
+    expect(result?.profile.email).toBe('admin@satryagroup.co.id');
   });
 
   it('redirects to /admin/login when requireAdmin encounters an unauthenticated caller', async () => {
@@ -95,7 +95,7 @@ describe('Admin authentication and authorization helpers', () => {
 
   it('returns authenticated session when requireAdmin succeeds', async () => {
     const mockClient = createMockClient({
-      user: { id: 'usr-admin-1', email: 'admin@megapersada.co.id' },
+      user: { id: 'usr-admin-1', email: 'admin@satryagroup.co.id' },
       profile: {
         user_id: 'usr-admin-1',
         display_name: 'Budi Santoso',

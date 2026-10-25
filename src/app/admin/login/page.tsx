@@ -4,8 +4,8 @@ import { LoginForm } from '@/components/admin/LoginForm';
 import { getAuthenticatedAdmin } from '@/lib/auth/admin';
 
 export const metadata = {
-  title: 'Masuk Portal Administrator — Honda Mega Persada Mandiri',
-  description: 'Halaman masuk staf dan administrator resmi Honda Mega Persada Mandiri.',
+  title: 'Masuk Portal Administrator — Honda Satrya Dealer Group',
+  description: 'Halaman masuk staf dan administrator resmi Honda Satrya Dealer Group.',
   robots: {
     index: false,
     follow: false,

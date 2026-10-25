@@ -6,7 +6,7 @@ describe('PublicFooter component', () => {
   it('renders the dealership identity name and official badge', () => {
     render(<PublicFooter />);
     expect(screen.getByText('HONDA')).toBeInTheDocument();
-    expect(screen.getByText('MEGA PERSADA MANDIRI')).toBeInTheDocument();
+    expect(screen.getByText('SATRYA DEALER GROUP')).toBeInTheDocument();
     expect(screen.getByText('Dealer Resmi Honda')).toBeInTheDocument();
   });
 
@@ -32,7 +32,7 @@ describe('PublicFooter component', () => {
     render(<PublicFooter />);
     const currentYear = new Date().getFullYear();
     const copyright = screen.getByText(
-      new RegExp(`© ${currentYear} Honda Mega Persada Mandiri`, 'i')
+      new RegExp(`© ${currentYear} Honda Satrya Dealer Group`, 'i')
     );
     expect(copyright).toBeInTheDocument();
   });

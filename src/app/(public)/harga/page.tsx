@@ -8,9 +8,9 @@ import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 
 export const metadata: Metadata = {
-  title: 'Daftar Harga OTR Sepeda Motor Honda — Honda Mega Persada Mandiri',
+  title: 'Daftar Harga OTR Sepeda Motor Honda — Honda Satrya Dealer Group',
   description:
-    'Informasi daftar harga OTR terbaru untuk sepeda motor Honda di dealer resmi Honda Mega Persada Mandiri.',
+    'Informasi daftar harga OTR terbaru untuk sepeda motor Honda di dealer resmi Honda Satrya Dealer Group.',
 };
 
 export default function HargaPage() {

@@ -7,16 +7,16 @@ import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 
 export const metadata: Metadata = {
-  title: 'Hubungi Kami — Honda Mega Persada Mandiri',
+  title: 'Hubungi Kami — Honda Satrya Dealer Group',
   description:
-    'Informasi kontak resmi, alamat showroom, jam layanan, dan nomor WhatsApp dealer Honda Mega Persada Mandiri.',
+    'Informasi kontak resmi, alamat showroom, jam layanan, dan nomor WhatsApp dealer Honda Satrya Dealer Group.',
 };
 
 export default function HubungiPage() {
   const whatsappNumber = process.env.NEXT_PUBLIC_DEALER_WHATSAPP;
   const whatsappUrl = whatsappNumber
     ? `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(
-        'Halo Honda Mega Persada Mandiri, saya ingin berkonsultasi mengenai motor Honda.'
+        'Halo Honda Satrya Dealer Group, saya ingin berkonsultasi mengenai motor Honda.'
       )}`
     : null;
 

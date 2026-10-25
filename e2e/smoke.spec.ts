@@ -6,7 +6,7 @@ test.describe('Showroom Smoke Tests', () => {
 
     // Check header and dealer name
     await expect(page.locator('header')).toContainText('HONDA');
-    await expect(page.locator('header')).toContainText('MEGA PERSADA MANDIRI');
+    await expect(page.locator('header')).toContainText('SATRYA DEALER GROUP');
 
     // Check primary CTA button
     const ctaButton = page.locator('button', { hasText: 'Hubungi Sales' });
@@ -14,7 +14,7 @@ test.describe('Showroom Smoke Tests', () => {
 
     // Check footer disclaimer
     const footer = page.locator('footer');
-    await expect(footer).toContainText('Honda Mega Persada Mandiri');
+    await expect(footer).toContainText('Honda Satrya Dealer Group');
     await expect(footer).toContainText('bukan website resmi korporat PT Astra Honda Motor');
   });
 

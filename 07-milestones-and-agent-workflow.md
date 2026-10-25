@@ -21,7 +21,7 @@
 **Deliverables:** approved PRD, design.md reviewed, route map, schema
 proposal, stack, repo skeleton, env example, CI basics. **Tasks:**
 inspect `design.md`; identify authorized brand assets and content;
-confirm dealer details, price ownership and scope. **Gate:** owner
+confirm group details, price ownership and scope. **Gate:** owner
 approves scope and visual direction; build/lint/test baseline works.
 
 ## M1 --- Foundation and design system
@@ -58,11 +58,11 @@ prices/promos without code changes.
 
 ## M5 — Inquiry capture
 
-**Deliverables:** public inquiry form, server validation, privacy acknowledgement, lead reference, protected inquiry list, and one-click Excel (`.xlsx`) export.
+**Deliverables:** public inquiry form with customer location collection, server validation, privacy acknowledgement, lead reference, protected inquiry list, and one-click Excel (`.xlsx`) export for manual forwarding to dealerships.
 
 **Tests:** valid/invalid submission, repeated submission, invalid variant/color pair, privacy/permission tests, Excel columns and Unicode text.
 
-**Gate:** an inquiry submitted from a phone appears in admin and downloads as a valid Excel workbook. No CRM pipeline or sales assignment workflow.
+**Gate:** an inquiry submitted from a phone appears in admin and downloads as a valid Excel workbook. No CRM pipeline, branch routing, or automated sales assignment workflow.
 
 ## M6 — Reserved / no simulator
 

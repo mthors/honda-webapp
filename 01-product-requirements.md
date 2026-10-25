@@ -2,37 +2,40 @@
 
 ## 1. Overview
 
-Build a responsive **Honda Mega Persada Mandiri** motorcycle dealership website inspired by the information architecture and premium product presentation of Astra Honda's official site. This is a locally operated dealership showroom, not an official AHM corporate website.
+Build a responsive **Honda Satrya Dealer Group** motorcycle dealership showcase website inspired by the information architecture and premium product presentation of Astra Honda's official site. Honda Satrya Dealer Group operates multiple Honda motorcycle dealerships. This website serves as a group-wide digital showcase, not an official AHM corporate website.
 
-Visitors browse motorcycles, view the dealership's local OTR prices and promotions, and submit inquiries. Staff manage catalog content through a protected admin panel and download inquiries as an Excel workbook.
+Visitors browse motorcycles across the group, view applicable area OTR prices and promotions, and submit inquiries with their location. Staff manage catalog content through a protected admin panel, download inquiries as an Excel workbook, and manually forward them to the appropriate dealership.
 
 ## 2. Goals
 
-- Present the dealership's motorcycle catalog and **local OTR prices** clearly.
-- Convert visitors into actionable customer inquiries.
+- Present the group's motorcycle catalog and **local OTR prices by applicable area** clearly.
+- Convert visitors into actionable customer inquiries while capturing customer location.
 - Let authorized staff update catalog, prices, banners and promotions without developer involvement.
-- Let authorized staff download inquiry records as an Excel (`.xlsx`) file.
+- Let authorized staff download inquiry records as an Excel (`.xlsx`) file so they can manually forward leads to the appropriate dealership.
 - Keep V1 intentionally simple so the owner can request refinements after launch.
 
 ## 3. Non-goals for V1
 
+- Public dealership directory, dealership detail pages, or individual showroom profile pages.
+- Dealership-specific administrator accounts, branch management CRUD, or branch-specific permissions.
+- Automatic dealership assignment, lead routing, or branch-specific notifications.
 - Articles, editorial/news pages, discussion, comments or public chat.
 - Credit simulation, installment estimates, finance applications or finance approval.
 - Checkout, online payment, stock reservation or binding online purchase.
 - Automated WhatsApp messages/API integration.
-- Full CRM features such as lead assignment, status pipeline, internal notes, reminders or conversion reporting.
+- Full CRM features such as lead assignment pipeline, status pipeline, internal notes, reminders or conversion reporting.
 - Customer accounts, loyalty features, service booking or spare-parts catalog.
 - Automatic synchronization with AHM/dealer systems unless a supported feed is later confirmed.
 
 ## 4. Users and roles
 
 ### Public visitor
-Browses catalog, local OTR prices and promotions; submits an inquiry.
+Browses group catalog, local OTR prices and promotions; submits an inquiry including their city/regency location.
 
 ### Administrator/content manager
 Manages motorcycles, variants, colors, images, local OTR prices, banners, promotions, site settings, and authorized inquiry Excel exports.
 
-V1 can use one administrator role if that fits the dealership's current size. Add separate sales/content roles only when the owner asks for them.
+V1 uses a single unified administrator role across the group. No dealership-specific administrator accounts or branch permissions are included in V1.
 
 ## 5. Primary journeys
 
@@ -40,7 +43,7 @@ V1 can use one administrator role if that fits the dealership's current size. Ad
 2. Homepage → promotion → eligible motorcycle → inquiry.
 3. Catalog or price list → view local OTR price → inquiry.
 4. Admin login → update motorcycle/price/banner/promotion → preview → publish.
-5. Admin login → view inquiry list → download Excel workbook → follow up outside the system.
+5. Admin login → view inquiry list → download Excel workbook → manually forward inquiry to the appropriate dealership based on customer location outside the system.
 
 ## 6. Functional requirements
 
@@ -101,7 +104,7 @@ Credit simulation is disabled and out of scope for V1. Do not display installmen
 
 ## 7. Inquiry handling in V1
 
-Store inquiries in the database and provide a protected Excel (`.xlsx`) download. Keep V1 intentionally simple: no lead status pipeline, assignment, internal notes, reminders or conversion reporting. Add these only if the owner requests them after reviewing the first release.
+Store inquiries in the database and provide a protected Excel (`.xlsx`) download. Customers provide their location (city/regency) so the sales administrator can identify the appropriate nearby dealership. The administrator reviews inquiries in the protected admin portal and manually forwards each inquiry to the appropriate dealership outside the system. Keep V1 intentionally simple: no automated routing, no dealership directory, no lead status pipeline, assignment, internal notes, reminders, or conversion reporting. Add these only if the owner requests them after reviewing the first release.
 
 ## 8. Non-functional requirements
 
@@ -146,8 +149,7 @@ Store inquiries in the database and provide a protected Excel (`.xlsx`) download
 -   Expired/unpublished content is not shown publicly.
 -   Admin-only operations reject unauthenticated/unauthorized direct
     requests.
--   Simulator calculations match documented test cases and display
-    disclaimers.
+-   Credit simulation is disabled for V1; only verified local OTR prices are shown.
 -   CI passes lint, typecheck, unit/integration tests and production
     build.
 -   Mobile layout and basic accessibility checks pass.
