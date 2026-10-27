@@ -50,8 +50,14 @@ If Docker is installed on your local workstation:
 # Start local Supabase containers
 npx supabase start
 
-# Apply pending migrations
+# Apply pending migrations and run seed data (supabase/seed.sql)
 npx supabase db reset
+```
+
+To run only the seed data without resetting the database:
+```bash
+# Apply seed data to local PostgreSQL instance
+psql "postgresql://postgres:postgres@localhost:54322/postgres" -f supabase/seed.sql
 ```
 
 ### Remote / Hosted Development Project

@@ -9,8 +9,8 @@ test.describe('Showroom Smoke Tests', () => {
     await expect(page.locator('header')).toContainText('SATRYA DEALER GROUP');
 
     // Check primary CTA button
-    const ctaButton = page.locator('button', { hasText: 'Hubungi Sales' });
-    await expect(ctaButton.first()).toBeVisible();
+    const ctaButton = page.getByRole('button', { name: 'Lihat Daftar Motor' });
+    await expect(ctaButton).toBeVisible();
 
     // Check footer disclaimer
     const footer = page.locator('footer');
@@ -39,5 +39,26 @@ test.describe('Showroom Smoke Tests', () => {
     // Close mobile menu
     await toggleButton.click();
     await expect(toggleButton).toHaveAttribute('aria-expanded', 'false');
+  });
+
+  test('motorcycle catalog page loads with category filters and search', async ({ page }) => {
+    await page.goto('/motor');
+
+    // Check heading
+    await expect(page.locator('h1')).toContainText('Katalog Sepeda Motor Honda');
+
+    // Check search input exists
+    const searchInput = page.locator('#catalog-search');
+    await expect(searchInput).toBeVisible();
+
+    // Check category filter tablist exists
+    const tablist = page.locator('[role="tablist"]');
+    await expect(tablist).toBeVisible();
+    await expect(tablist).toContainText('Semua Kategori');
+
+    // Check corporate disclaimer in footer band
+    await expect(
+      page.locator('text=bukan website resmi korporat PT Astra Honda Motor').first()
+    ).toBeVisible();
   });
 });
