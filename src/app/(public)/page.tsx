@@ -1,14 +1,16 @@
 import React from 'react';
 import Link from 'next/link';
 import { dealershipCopy } from '@/content/copy/id';
-import { Button } from '@/components/ui/Button';
 import { Container } from '@/components/ui/Container';
 import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 import { SectionHeading } from '@/components/ui/SectionHeading';
 import { formatRupiah } from '@/lib/formatters';
+import { HeroBannerCarousel } from '@/components/public/home/HeroBannerCarousel';
+import { getActiveHeroBanners } from '@/lib/promotions/queries';
 
-export default function HomePage() {
+export default async function HomePage() {
+  const banners = await getActiveHeroBanners();
   const samplePrice = 19500000;
 
   const categories = [
@@ -40,37 +42,8 @@ export default function HomePage() {
 
   return (
     <div className="flex flex-col">
-      {/* Hero Section with Color-Blocking Band */}
-      <section className="bg-canvas border-b border-hairline py-12 sm:py-20 lg:py-24">
-        <Container>
-          <div className="max-w-3xl">
-            <Badge variant="primary" size="md" className="mb-4">
-              {dealershipCopy.dealer.officialBadge}
-            </Badge>
-
-            <h1 className="text-3xl sm:text-5xl font-bold text-ink tracking-tight leading-tight font-manrope">
-              {dealershipCopy.hero.headline}
-            </h1>
-
-            <p className="mt-4 sm:mt-6 text-base sm:text-lg text-body leading-relaxed max-w-2xl">
-              {dealershipCopy.hero.subheadline}
-            </p>
-
-            <div className="mt-8 flex flex-wrap gap-4 items-center">
-              <Link href="/motor">
-                <Button variant="primary" size="lg">
-                  {dealershipCopy.hero.primaryCta}
-                </Button>
-              </Link>
-              <Link href="/hubungi">
-                <Button variant="outline" size="lg">
-                  {dealershipCopy.hero.secondaryCta}
-                </Button>
-              </Link>
-            </div>
-          </div>
-        </Container>
-      </section>
+      {/* Hero Banner Carousel or Fallback */}
+      <HeroBannerCarousel banners={banners} />
 
       {/* Category Overview Section */}
       <section className="bg-neutral-2/40 py-16 sm:py-20 border-b border-hairline">

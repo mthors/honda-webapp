@@ -80,17 +80,52 @@ export const dealershipCopy = {
   },
   pricing: {
     title: 'Daftar Harga OTR Sidoarjo & Sekitarnya',
+    subtitle:
+      'Informasi lengkap daftar harga On The Road (OTR) resmi sepeda motor Honda untuk wilayah Sidoarjo dan sekitarnya.',
     disclaimer:
       'Harga OTR (On The Road) yang tercantum merupakan estimasi wilayah dealer dan dapat berubah sewaktu-waktu. Silakan konfirmasi ketersediaan unit dan rincian harga dengan tim sales kami.',
+    disclaimerTitle: 'Kebijakan & Disclaimer Harga Dealer',
+    citySelectorLabel: 'Pilih Wilayah Domisili',
+    tableHeaderModel: 'Model & Tipe Motor',
+    tableHeaderEngine: 'Mesin & Transmisi',
+    tableHeaderPrice: 'Harga OTR Resmi',
+    tableHeaderAction: 'Konsultasi Sales',
+    emptyTitle: 'Daftar Harga Sedang Diselaraskan',
+    emptyDescription:
+      'Saat ini belum ada data harga OTR resmi terverifikasi yang dipublikasikan untuk wilayah yang dipilih. Silakan hubungi konsultan sales kami untuk konfirmasi harga terbaru.',
+    unverifiedNotice: 'Hubungi dealer untuk konfirmasi harga terbaru.',
+    contactSales: 'Tanya Harga via WhatsApp',
     placeholderTitle: 'Daftar Harga OTR Resmi',
     placeholderNotice:
       'Daftar rincian harga OTR lokal yang berlaku efektif sedang diselaraskan dengan data dealer dan akan aktif pada rilis Milestone 4.',
   },
   promotions: {
     title: 'Promo & Penawaran Spesial',
+    subtitle:
+      'Dapatkan program cashback resmi, potongan cicilan, dan bonus aksesoris menarik dari dealer Honda Satrya Dealer Group.',
+    emptyTitle: 'Belum Ada Promo Aktif',
+    emptyDescription:
+      'Saat ini belum ada program promosi berjalan yang dijadwalkan. Kunjungi kembali dalam waktu dekat atau tanyakan langsung promo showroom kepada tim sales kami.',
+    periodLabel: 'Periode Program',
+    termsTitle: 'Syarat & Ketentuan Berlaku',
+    eligibleModelsTitle: 'Pilihan Motor dalam Program Ini',
+    viewPromoDetail: 'Lihat Ketentuan Promo',
+    claimPromo: 'Tanya Promo via WhatsApp',
+    backToPromoList: 'Lihat Semua Promo',
+    promoActiveBadge: 'Promo Berjalan',
+    promoNotFoundTitle: 'Program Promo Tidak Ditemukan',
+    promoNotFoundDescription:
+      'Program promosi yang Anda tuju telah berakhir, belum dimulai, atau telah dipindahkan.',
     placeholderTitle: 'Promo Resmi Dealer',
     placeholderNotice:
       'Informasi promo cashback, voucher potongan harga, dan program promo musiman dealer akan hadir pada rilis Milestone 4.',
+  },
+  banners: {
+    previous: 'Spanduk Sebelumnya',
+    next: 'Spanduk Berikutnya',
+    pauseAutoplay: 'Jeda rotasi otomatis',
+    resumeAutoplay: 'Lanjutkan rotasi otomatis',
+    slideIndicator: 'Beralih ke spanduk',
   },
   contact: {
     title: 'Hubungi Dealer Kami',
