@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/Badge';
 import { ProductDetailInteractive } from '@/components/public/catalog/ProductDetailInteractive';
 import { ProductSpecs } from '@/components/public/catalog/ProductSpecs';
 import { getPublishedModelBySlug } from '@/lib/catalog/queries';
+import { getModelActivePromotions } from '@/lib/promotions/queries';
 import { getStorageImageUrl } from '@/lib/catalog/image';
 
 interface ModelDetailPageProps {
@@ -61,6 +62,8 @@ export default async function ModelDetailPage({ params }: ModelDetailPageProps) 
   if (!model) {
     notFound();
   }
+
+  const activePromotions = await getModelActivePromotions(model.id);
 
   return (
     <div className="py-8 sm:py-12">
@@ -121,6 +124,28 @@ export default async function ModelDetailPage({ params }: ModelDetailPageProps) 
             </p>
           )}
         </div>
+
+        {/* Active Promotion Callout (if model is included in an active campaign) */}
+        {activePromotions.length > 0 && (
+          <div className="mb-8 p-4 bg-neutral-2/40 border-l-4 border-l-primary border border-hairline flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <div className="flex items-center gap-2.5 flex-wrap">
+              <Badge variant="primary" size="sm">
+                {dealershipCopy.promotions.promoActiveBadge}
+              </Badge>
+              <span className="text-xs sm:text-sm font-bold text-ink font-manrope">
+                {activePromotions[0].title}
+              </span>
+              {activePromotions[0].summary && (
+                <span className="text-xs text-muted hidden md:inline">
+                  — {activePromotions[0].summary}
+                </span>
+              )}
+            </div>
+            <Link href={`/promo/${activePromotions[0].slug}`} className="shrink-0">
+              <span className="text-xs font-bold text-primary hover:underline">Lihat Promo →</span>
+            </Link>
+          </div>
+        )}
 
         {/* Interactive Gallery & Selector Section */}
         <div className="mb-16">

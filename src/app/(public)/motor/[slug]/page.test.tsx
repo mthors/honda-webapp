@@ -14,6 +14,12 @@ vi.mock('@/lib/catalog/queries', () => ({
   getPublishedModelBySlug: vi.fn(),
 }));
 
+vi.mock('@/lib/promotions/queries', () => ({
+  getModelActivePromotions: vi.fn().mockResolvedValue([]),
+}));
+
+import { getModelActivePromotions } from '@/lib/promotions/queries';
+
 describe('ModelDetailPage', () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -107,6 +113,34 @@ describe('ModelDetailPage', () => {
 
     // Pricing disclaimer
     expect(screen.getByText(/Catatan Harga & Wilayah/i)).toBeInTheDocument();
+  });
+
+  it('renders promotional callout when model has active promotions', async () => {
+    vi.mocked(catalogQueries.getPublishedModelBySlug).mockResolvedValue(mockModelDetail);
+    vi.mocked(getModelActivePromotions).mockResolvedValue([
+      {
+        id: 'promo-1',
+        title: 'Promo Cashback Vario 160',
+        slug: 'promo-cashback-vario',
+        summary: 'Potongan hingga Rp 1.500.000',
+        imagePath: null,
+        startsAt: '2026-10-01T00:00:00Z',
+        endsAt: '2026-11-30T23:59:59Z',
+        status: 'published',
+        ctaLabel: null,
+        ctaUrl: null,
+        eligibleModelCount: 1,
+      },
+    ]);
+
+    const pageResult = await ModelDetailPage({
+      params: Promise.resolve({ slug: 'vario-160' }),
+    });
+
+    render(pageResult);
+
+    expect(screen.getByText('Promo Cashback Vario 160')).toBeInTheDocument();
+    expect(screen.getByText('Lihat Promo →')).toBeInTheDocument();
   });
 
   it('calls notFound() when model does not exist or is unpublished', async () => {

@@ -590,5 +590,64 @@ export interface Database {
         };
       };
     };
+    Views: Record<string, never>;
+    Functions: {
+      is_admin: {
+        Args: Record<PropertyKey, never>;
+        Returns: boolean;
+      };
+      admin_upsert_price_entry: {
+        Args: {
+          p_id: string | null;
+          p_variant_id: string;
+          p_city: string | null;
+          p_price_type: string;
+          p_amount_idr: number;
+          p_valid_from: string;
+          p_valid_until: string | null;
+          p_is_published: boolean;
+          p_source_note: string | null;
+          p_summary: string;
+        };
+        Returns: Database['public']['Tables']['price_entries']['Row'];
+      };
+      admin_upsert_promotion: {
+        Args: {
+          p_id: string | null;
+          p_title: string;
+          p_slug: string;
+          p_summary: string;
+          p_details: string | null;
+          p_image_path: string | null;
+          p_starts_at: string;
+          p_ends_at: string;
+          p_terms: string | null;
+          p_status: string;
+          p_cta_label: string | null;
+          p_cta_url: string | null;
+          p_model_ids: string[];
+          p_audit_summary: string;
+        };
+        Returns: Database['public']['Tables']['promotions']['Row'];
+      };
+      admin_upsert_hero_banner: {
+        Args: {
+          p_id: string | null;
+          p_title: string;
+          p_subtitle: string | null;
+          p_desktop_image_path: string;
+          p_mobile_image_path: string | null;
+          p_alt_text: string;
+          p_cta_label: string | null;
+          p_cta_url: string | null;
+          p_starts_at: string | null;
+          p_ends_at: string | null;
+          p_sort_order: number;
+          p_status: string;
+          p_audit_summary: string;
+        };
+        Returns: Database['public']['Tables']['hero_banners']['Row'];
+      };
+    };
   };
 }
