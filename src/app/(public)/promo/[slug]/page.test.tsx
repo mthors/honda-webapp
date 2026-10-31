@@ -91,4 +91,3 @@ describe('PromoDetailPage', () => {
     expect(metadata.description).toBe(mockPromoDetail.summary);
   });
 });
-

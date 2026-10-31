@@ -280,4 +280,3 @@ export function HeroBannerCarousel({ banners }: HeroBannerCarouselProps) {
 
   return <ActiveBannerCarousel banners={banners} />;
 }
-

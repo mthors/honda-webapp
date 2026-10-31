@@ -86,4 +86,3 @@ export function PromotionCard({ promotion }: PromotionCardProps) {
     </Card>
   );
 }
-

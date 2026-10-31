@@ -1,4 +1,5 @@
 import React from 'react';
+import Link from 'next/link';
 import { requireAdmin } from '@/lib/auth/admin';
 import { dealershipCopy } from '@/content/copy/id';
 import { Card } from '@/components/ui/Card';
@@ -17,7 +18,7 @@ export default async function AdminDashboardPage() {
   const session = await requireAdmin();
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-6 border-b border-hairline">
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-ink font-heading">
@@ -32,6 +33,68 @@ export default async function AdminDashboardPage() {
         </div>
       </div>
 
+      <div>
+        <h2 className="text-base font-semibold text-ink mb-4">Modul Manajemen Milestone 4</h2>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <Link href="/admin/harga" className="group block focus:outline-none">
+            <Card className="p-6 space-y-3 h-full border border-hairline group-hover:border-primary/40 group-focus:ring-2 group-focus:ring-primary transition-all">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-semibold uppercase tracking-wider text-muted">
+                  Katalog & Tarif
+                </span>
+                <span className="text-xs font-medium text-primary group-hover:underline">
+                  Buka &rarr;
+                </span>
+              </div>
+              <h3 className="text-base font-semibold text-ink group-hover:text-primary transition-colors">
+                {dealershipCopy.adminPricing.title}
+              </h3>
+              <p className="text-xs text-muted leading-relaxed">
+                {dealershipCopy.adminPricing.subtitle}
+              </p>
+            </Card>
+          </Link>
+
+          <Link href="/admin/promo" className="group block focus:outline-none">
+            <Card className="p-6 space-y-3 h-full border border-hairline group-hover:border-primary/40 group-focus:ring-2 group-focus:ring-primary transition-all">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-semibold uppercase tracking-wider text-muted">
+                  Program Diskon
+                </span>
+                <span className="text-xs font-medium text-primary group-hover:underline">
+                  Buka &rarr;
+                </span>
+              </div>
+              <h3 className="text-base font-semibold text-ink group-hover:text-primary transition-colors">
+                {dealershipCopy.adminPromotions.title}
+              </h3>
+              <p className="text-xs text-muted leading-relaxed">
+                {dealershipCopy.adminPromotions.subtitle}
+              </p>
+            </Card>
+          </Link>
+
+          <Link href="/admin/banner" className="group block focus:outline-none">
+            <Card className="p-6 space-y-3 h-full border border-hairline group-hover:border-primary/40 group-focus:ring-2 group-focus:ring-primary transition-all">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-semibold uppercase tracking-wider text-muted">
+                  Tampilan Beranda
+                </span>
+                <span className="text-xs font-medium text-primary group-hover:underline">
+                  Buka &rarr;
+                </span>
+              </div>
+              <h3 className="text-base font-semibold text-ink group-hover:text-primary transition-colors">
+                {dealershipCopy.adminBanners.title}
+              </h3>
+              <p className="text-xs text-muted leading-relaxed">
+                {dealershipCopy.adminBanners.subtitle}
+              </p>
+            </Card>
+          </Link>
+        </div>
+      </div>
+
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <Card className="p-6 space-y-3">
           <div className="flex items-center justify-between">
@@ -40,7 +103,7 @@ export default async function AdminDashboardPage() {
             </span>
             <span className="w-2 h-2 rounded-full bg-emerald-500" />
           </div>
-          <h2 className="text-base font-semibold text-ink">Verifikasi Server Aktif</h2>
+          <h3 className="text-base font-semibold text-ink">Verifikasi Server Aktif</h3>
           <p className="text-xs text-muted leading-relaxed">
             Sesi administrator terverifikasi melalui data server-side{' '}
             <code className="text-ink font-mono bg-canvas px-1 rounded">staff_profiles</code>.
@@ -50,33 +113,33 @@ export default async function AdminDashboardPage() {
         <Card className="p-6 space-y-3">
           <div className="flex items-center justify-between">
             <span className="text-xs font-semibold uppercase tracking-wider text-muted">
-              Pondasi Database
+              Integritas Audit
             </span>
             <span className="w-2 h-2 rounded-full bg-blue-500" />
           </div>
-          <h2 className="text-base font-semibold text-ink">Skema V1 & RLS Terpasang</h2>
+          <h3 className="text-base font-semibold text-ink">Audit Transaksional Atomic</h3>
           <p className="text-xs text-muted leading-relaxed">
-            14 tabel entitas dan kebijakan keamanan baris (RLS) siap untuk modul katalog dan prospek
-            inquiry.
+            Setiap mutasi harga, promo, dan spanduk dieksekusi bersamaan dengan pencatatan audit log
+            secara atomik melalui transaksi PostgreSQL.
           </p>
         </Card>
 
         <Card className="p-6 space-y-3">
           <div className="flex items-center justify-between">
             <span className="text-xs font-semibold uppercase tracking-wider text-muted">
-              Tahap Pengembangan
+              Perlindungan Konkurensi
             </span>
             <span className="w-2 h-2 rounded-full bg-amber-500" />
           </div>
-          <h2 className="text-base font-semibold text-ink">Milestone 2 Selesai</h2>
+          <h3 className="text-base font-semibold text-ink">Pencegahan Tumpang Tindih</h3>
           <p className="text-xs text-muted leading-relaxed">
-            Pengelolaan katalog motor (M3) dan rincian harga OTR (M4) akan diimplementasikan pada
-            tahap berikutnya.
+            Validasi rentang tanggal efektif dan lock tingkat baris mencegah tumpang tindih harga
+            secara concurrency-safe.
           </p>
         </Card>
       </div>
 
-      <div className="p-6 rounded-xl border border-hairline bg-surface space-y-3">
+      <div className="p-6 rounded-none border border-hairline bg-surface space-y-3">
         <h3 className="text-sm font-semibold text-ink">Informasi Keamanan & Akses</h3>
         <p className="text-xs text-muted leading-relaxed">
           Portal ini dilindungi dengan verifikasi peran ketat pada sisi server. Akses basis data

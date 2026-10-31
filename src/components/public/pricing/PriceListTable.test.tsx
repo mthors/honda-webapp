@@ -83,4 +83,3 @@ describe('PriceListTable Component', () => {
     expect(screen.getByText(/Wilayah: Sidoarjo/i)).toBeInTheDocument();
   });
 });
-
