@@ -444,3 +444,143 @@ export async function getAdminNewInquiriesCount(client?: ClientType): Promise<nu
     return null;
   }
 }
+
+export interface AdminLeadsQueryOptions {
+  search?: string;
+  status?: string;
+  city?: string;
+  limit?: number;
+  offset?: number;
+}
+
+/**
+ * Loads inquiries (leads) with search and filtering for administrative review and export.
+ */
+export async function getAdminLeads(
+  options: AdminLeadsQueryOptions = {},
+  client?: ClientType
+): Promise<import('@/types/inquiries').AdminLeadItem[]> {
+  try {
+    const supabase = client ?? (await createClient());
+
+    let query = supabase.from('leads').select('*').order('created_at', { ascending: false });
+
+    if (options.status && options.status !== 'all') {
+      query = query.eq('status', options.status as import('@/types/database').LeadStatus);
+    }
+
+    if (options.city && options.city.trim() !== '' && options.city !== 'all') {
+      query = query.ilike('city', `%${options.city.trim()}%`);
+    }
+
+    if (options.search && options.search.trim() !== '') {
+      const term = `%${options.search.trim()}%`;
+      query = query.or(
+        `full_name.ilike.${term},whatsapp_number.ilike.${term},lead_reference.ilike.${term},city.ilike.${term}`
+      );
+    }
+
+    if (options.limit && options.limit > 0) {
+      if (options.offset !== undefined && options.offset >= 0) {
+        query = query.range(options.offset, options.offset + options.limit - 1);
+      } else {
+        query = query.limit(options.limit);
+      }
+    }
+
+    const { data, error } = await query;
+
+    if (error) {
+      console.error('Error fetching admin leads:', error.message);
+      return [];
+    }
+
+    if (!data) return [];
+
+    type LeadRow = import('@/types/database').Database['public']['Tables']['leads']['Row'];
+    const rows = data as unknown as LeadRow[];
+
+    return rows.map((r) => ({
+      id: r.id,
+      leadReference: r.lead_reference,
+      fullName: r.full_name,
+      whatsappNumber: r.whatsapp_number,
+      email: r.email,
+      city: r.city,
+      district: r.district,
+      modelId: r.model_id,
+      variantId: r.variant_id,
+      colorId: r.color_id,
+      modelNameSnapshot: r.model_name_snapshot,
+      variantNameSnapshot: r.variant_name_snapshot,
+      colorNameSnapshot: r.color_name_snapshot,
+      priceSnapshotIdr: r.price_snapshot_idr,
+      message: r.message,
+      sourcePage: r.source_page,
+      sourceCampaign: r.source_campaign,
+      consentPrivacyAt: r.consent_privacy_at,
+      status: r.status,
+      createdAt: r.created_at,
+      updatedAt: r.updated_at,
+    }));
+  } catch (err) {
+    if ((err as { digest?: string })?.digest === 'DYNAMIC_SERVER_USAGE') {
+      throw err;
+    }
+    console.error('Failed to load admin leads:', err);
+    return [];
+  }
+}
+
+/**
+ * Loads a single inquiry by its UUID.
+ */
+export async function getAdminLeadById(
+  id: string,
+  client?: ClientType
+): Promise<import('@/types/inquiries').AdminLeadItem | null> {
+  try {
+    const supabase = client ?? (await createClient());
+    const { data, error } = await supabase.from('leads').select('*').eq('id', id).maybeSingle();
+
+    if (error) {
+      console.error('Error fetching lead by id:', error.message);
+      return null;
+    }
+
+    if (!data) return null;
+
+    type LeadRow = import('@/types/database').Database['public']['Tables']['leads']['Row'];
+    const r = data as unknown as LeadRow;
+
+    return {
+      id: r.id,
+      leadReference: r.lead_reference,
+      fullName: r.full_name,
+      whatsappNumber: r.whatsapp_number,
+      email: r.email,
+      city: r.city,
+      district: r.district,
+      modelId: r.model_id,
+      variantId: r.variant_id,
+      colorId: r.color_id,
+      modelNameSnapshot: r.model_name_snapshot,
+      variantNameSnapshot: r.variant_name_snapshot,
+      colorNameSnapshot: r.color_name_snapshot,
+      priceSnapshotIdr: r.price_snapshot_idr,
+      message: r.message,
+      sourcePage: r.source_page,
+      sourceCampaign: r.source_campaign,
+      consentPrivacyAt: r.consent_privacy_at,
+      status: r.status,
+      createdAt: r.created_at,
+      updatedAt: r.updated_at,
+    };
+  } catch (err) {
+    if ((err as { digest?: string })?.digest === 'DYNAMIC_SERVER_USAGE') {
+      throw err;
+    }
+    console.error('Failed to load lead by id:', err);
+    return null;
+  }
+}
