@@ -417,3 +417,30 @@ export async function getAdminHeroBanners(client?: ClientType): Promise<AdminHer
     return [];
   }
 }
+
+/**
+ * Loads the count of new customer inquiries from the leads table.
+ * Returns null if the leads table is not accessible or on database errors.
+ */
+export async function getAdminNewInquiriesCount(client?: ClientType): Promise<number | null> {
+  try {
+    const supabase = client ?? (await createClient());
+    const { count, error } = await supabase
+      .from('leads')
+      .select('*', { count: 'exact', head: true })
+      .eq('status', 'new');
+
+    if (error) {
+      console.error('Error fetching new inquiries count:', error.message);
+      return null;
+    }
+
+    return count ?? 0;
+  } catch (err) {
+    if ((err as { digest?: string })?.digest === 'DYNAMIC_SERVER_USAGE') {
+      throw err;
+    }
+    console.error('Failed to load new inquiries count:', err);
+    return null;
+  }
+}

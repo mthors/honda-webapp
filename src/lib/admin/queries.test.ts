@@ -4,6 +4,7 @@ import {
   getMotorcycleOptionsForAdmin,
   getAdminPromotions,
   getAdminHeroBanners,
+  getAdminNewInquiriesCount,
 } from './queries';
 import * as serverSupabase from '@/lib/supabase/server';
 
@@ -244,6 +245,59 @@ describe('Admin Queries', () => {
       expect(result).toHaveLength(1);
       expect(result[0].title).toBe('Banner 1');
       expect(result[0].sortOrder).toBe(1);
+    });
+  });
+
+  describe('getAdminNewInquiriesCount', () => {
+    it('returns exact count of new inquiries from leads table', async () => {
+      const mockEq = vi.fn().mockResolvedValue({
+        count: 5,
+        error: null,
+      });
+
+      const mockSelect = vi.fn().mockReturnValue({
+        eq: mockEq,
+      });
+
+      const mockSupabase = {
+        from: vi.fn().mockReturnValue({
+          select: mockSelect,
+        }),
+      };
+
+      vi.spyOn(serverSupabase, 'createClient').mockResolvedValue(
+        mockSupabase as unknown as Awaited<ReturnType<typeof serverSupabase.createClient>>
+      );
+
+      const result = await getAdminNewInquiriesCount();
+      expect(mockSupabase.from).toHaveBeenCalledWith('leads');
+      expect(mockSelect).toHaveBeenCalledWith('*', { count: 'exact', head: true });
+      expect(mockEq).toHaveBeenCalledWith('status', 'new');
+      expect(result).toBe(5);
+    });
+
+    it('returns null on database error without throwing', async () => {
+      const mockEq = vi.fn().mockResolvedValue({
+        count: null,
+        error: { message: 'relation leads does not exist' },
+      });
+
+      const mockSelect = vi.fn().mockReturnValue({
+        eq: mockEq,
+      });
+
+      const mockSupabase = {
+        from: vi.fn().mockReturnValue({
+          select: mockSelect,
+        }),
+      };
+
+      vi.spyOn(serverSupabase, 'createClient').mockResolvedValue(
+        mockSupabase as unknown as Awaited<ReturnType<typeof serverSupabase.createClient>>
+      );
+
+      const result = await getAdminNewInquiriesCount();
+      expect(result).toBeNull();
     });
   });
 });
