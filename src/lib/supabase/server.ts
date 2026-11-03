@@ -1,4 +1,5 @@
 import { createServerClient } from '@supabase/ssr';
+import { createClient as createSupabaseClient } from '@supabase/supabase-js';
 import { cookies } from 'next/headers';
 import type { Database } from '@/types/database';
 
@@ -38,6 +39,31 @@ export async function createClient(
           // This can be ignored if session refreshing is handled via middleware or actions.
         }
       },
+    },
+  });
+}
+
+/**
+ * Creates a privileged server-side Supabase client using SUPABASE_SERVICE_ROLE_KEY.
+ * Strictly server-only. Bypasses RLS to insert or manage customer leads safely.
+ */
+export function createServiceClient(customUrl?: string, customServiceKey?: string) {
+  const url = customUrl || process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const key =
+    customServiceKey ||
+    process.env.SUPABASE_SERVICE_ROLE_KEY ||
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+  if (!url || !key) {
+    throw new Error(
+      'Service client initialization failed: NEXT_PUBLIC_SUPABASE_URL and key must be set.'
+    );
+  }
+
+  return createSupabaseClient<Database>(url, key, {
+    auth: {
+      persistSession: false,
+      autoRefreshToken: false,
     },
   });
 }

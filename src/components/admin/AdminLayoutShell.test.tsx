@@ -38,6 +38,7 @@ describe('AdminLayoutShell', () => {
     expect(screen.getByRole('link', { name: /Harga/i })).toHaveAttribute('href', '/admin/harga');
     expect(screen.getByRole('link', { name: /Promo/i })).toHaveAttribute('href', '/admin/promo');
     expect(screen.getByRole('link', { name: /Spanduk/i })).toHaveAttribute('href', '/admin/banner');
+    expect(screen.getByRole('link', { name: /Inquiry/i })).toHaveAttribute('href', '/admin/leads');
 
     // Children content
     expect(screen.getByText('Halaman Konten Dasbor')).toBeInTheDocument();
@@ -114,4 +115,3 @@ describe('AdminLayoutShell', () => {
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
   });
 });
-
