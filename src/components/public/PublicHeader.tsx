@@ -12,7 +12,7 @@ export interface PublicHeaderProps {
   settings?: SiteSettings | null;
 }
 
-export const PublicHeader: React.FC<PublicHeaderProps> = ({ settings }) => {
+export function PublicHeader({ settings }: PublicHeaderProps) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const pathname = usePathname();
 
@@ -260,4 +260,4 @@ export const PublicHeader: React.FC<PublicHeaderProps> = ({ settings }) => {
       </header>
     </>
   );
-};
+}

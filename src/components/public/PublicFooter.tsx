@@ -8,7 +8,7 @@ export interface PublicFooterProps {
   settings?: SiteSettings | null;
 }
 
-export const PublicFooter: React.FC<PublicFooterProps> = ({ settings }) => {
+export function PublicFooter({ settings }: PublicFooterProps) {
   const currentYear = new Date().getFullYear();
   const dealerName = settings?.dealerName?.trim() || dealershipCopy.dealer.name;
 
@@ -196,4 +196,4 @@ export const PublicFooter: React.FC<PublicFooterProps> = ({ settings }) => {
       </div>
     </footer>
   );
-};
+}

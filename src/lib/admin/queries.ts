@@ -477,7 +477,10 @@ export async function getAdminLeads(
     if (options.search && options.search.trim() !== '') {
       const term = escapePostgrestSearchTerm(options.search);
       if (term.length > 0) {
-        query = query.or(
+        type FilterableQuery = {
+          or: (filters: string) => typeof query;
+        };
+        query = (query as unknown as FilterableQuery).or(
           `full_name.ilike."%${term}%",whatsapp_number.ilike."%${term}%",lead_reference.ilike."%${term}%",city.ilike."%${term}%",model_name_snapshot.ilike."%${term}%"`
         );
       }
