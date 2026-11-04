@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { getSiteSettings, getDealerships } from './queries';
+import { getSiteSettings, getDealerships, getActiveDealerships } from './queries';
 import * as serverSupabase from '@/lib/supabase/server';
 
 describe('Settings Queries', () => {
@@ -133,6 +133,63 @@ describe('Settings Queries', () => {
       } as unknown as Awaited<ReturnType<typeof serverSupabase.createClient>>);
 
       const result = await getDealerships();
+      expect(result).toEqual([]);
+    });
+  });
+
+  describe('getActiveDealerships', () => {
+    it('queries active dealerships only with is_active = true', async () => {
+      const mockRows = [
+        {
+          id: 'dealership-1',
+          name: '[DEMO] Honda Satrya — Sidoarjo Sentral',
+          code: 'demo-satrya-sidoarjo',
+          city: 'Sidoarjo',
+          address: null,
+          phone: null,
+          whatsapp_number: null,
+          opening_hours: null,
+          is_synthetic: true,
+          is_active: true,
+          sort_order: 1,
+          created_at: '2026-11-04T08:00:00.000Z',
+          updated_at: '2026-11-04T08:00:00.000Z',
+        },
+      ];
+
+      const mockOrder2 = vi.fn().mockResolvedValue({ data: mockRows, error: null });
+      const mockOrder1 = vi.fn().mockReturnValue({ order: mockOrder2 });
+      const mockEq = vi.fn().mockReturnValue({ order: mockOrder1 });
+      const mockSelect = vi.fn().mockReturnValue({ eq: mockEq });
+      const mockFrom = vi.fn().mockReturnValue({ select: mockSelect });
+
+      vi.spyOn(serverSupabase, 'createClient').mockResolvedValue({
+        from: mockFrom,
+      } as unknown as Awaited<ReturnType<typeof serverSupabase.createClient>>);
+
+      const result = await getActiveDealerships();
+
+      expect(mockFrom).toHaveBeenCalledWith('dealerships');
+      expect(mockEq).toHaveBeenCalledWith('is_active', true);
+      expect(result).toHaveLength(1);
+      expect(result[0].isActive).toBe(true);
+    });
+
+    it('returns empty array on database error', async () => {
+      const mockOrder2 = vi.fn().mockResolvedValue({
+        data: null,
+        error: { message: 'Query failed' },
+      });
+      const mockOrder1 = vi.fn().mockReturnValue({ order: mockOrder2 });
+      const mockEq = vi.fn().mockReturnValue({ order: mockOrder1 });
+      const mockSelect = vi.fn().mockReturnValue({ eq: mockEq });
+      const mockFrom = vi.fn().mockReturnValue({ select: mockSelect });
+
+      vi.spyOn(serverSupabase, 'createClient').mockResolvedValue({
+        from: mockFrom,
+      } as unknown as Awaited<ReturnType<typeof serverSupabase.createClient>>);
+
+      const result = await getActiveDealerships();
       expect(result).toEqual([]);
     });
   });

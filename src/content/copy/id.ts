@@ -136,6 +136,11 @@ export const dealershipCopy = {
       'Dapatkan respons cepat mengenai spesifikasi unit, ketersediaan warna, dan simulasi pembelian.',
     showroomLocation: 'Lokasi Dealer & Showroom',
     operatingHoursTitle: 'Jam Layanan Showroom',
+    groupConsultationTitle: 'Layanan Konsultasi & Kontak Sentral',
+    networkSubtitle: 'Jaringan cabang showroom resmi Honda Satrya Dealer Group di berbagai kota.',
+    infoUnavailable: 'Informasi belum tersedia',
+    branchContact: 'Kontak Showroom',
+    noShowrooms: 'Belum ada informasi lokasi showroom yang tersedia saat ini.',
   },
   inquiry: {
     title: 'Konsultasi Pembelian',

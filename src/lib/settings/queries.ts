@@ -98,3 +98,51 @@ export async function getDealerships(client?: ClientType): Promise<DealershipIte
     return [];
   }
 }
+
+/**
+ * Fetches active dealership records for public-facing pages.
+ * Enforces is_active = true and orders by sort_order asc, name asc.
+ */
+export async function getActiveDealerships(client?: ClientType): Promise<DealershipItem[]> {
+  try {
+    const supabase = client ?? (await createClient());
+    const { data, error } = await supabase
+      .from('dealerships')
+      .select('*')
+      .eq('is_active', true)
+      .order('sort_order', { ascending: true })
+      .order('name', { ascending: true });
+
+    if (error) {
+      console.error('Error fetching active dealerships:', error.message);
+      return [];
+    }
+
+    if (!data) return [];
+
+    type DealershipRow = Database['public']['Tables']['dealerships']['Row'];
+    const rows = data as unknown as DealershipRow[];
+
+    return rows.map((r) => ({
+      id: r.id,
+      name: r.name,
+      code: r.code,
+      city: r.city,
+      address: r.address,
+      phone: r.phone,
+      whatsappNumber: r.whatsapp_number,
+      openingHours: r.opening_hours,
+      isSynthetic: r.is_synthetic,
+      isActive: r.is_active,
+      sortOrder: r.sort_order,
+      createdAt: r.created_at,
+      updatedAt: r.updated_at,
+    }));
+  } catch (err) {
+    if ((err as { digest?: string })?.digest === 'DYNAMIC_SERVER_USAGE') {
+      throw err;
+    }
+    console.error('Failed to load active dealerships:', err);
+    return [];
+  }
+}
