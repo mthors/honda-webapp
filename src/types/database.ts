@@ -557,6 +557,53 @@ export interface Database {
           updated_at?: string;
         };
       };
+      dealerships: {
+        Row: {
+          id: string;
+          name: string;
+          code: string;
+          city: string;
+          address: string | null;
+          phone: string | null;
+          whatsapp_number: string | null;
+          opening_hours: string | null;
+          is_synthetic: boolean;
+          is_active: boolean;
+          sort_order: number;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          name: string;
+          code: string;
+          city: string;
+          address?: string | null;
+          phone?: string | null;
+          whatsapp_number?: string | null;
+          opening_hours?: string | null;
+          is_synthetic?: boolean;
+          is_active?: boolean;
+          sort_order?: number;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          name?: string;
+          code?: string;
+          city?: string;
+          address?: string | null;
+          phone?: string | null;
+          whatsapp_number?: string | null;
+          opening_hours?: string | null;
+          is_synthetic?: boolean;
+          is_active?: boolean;
+          sort_order?: number;
+          created_at?: string;
+          updated_at?: string;
+        };
+      };
       audit_logs: {
         Row: {
           id: string;

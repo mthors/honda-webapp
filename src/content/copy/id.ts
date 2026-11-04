@@ -375,6 +375,43 @@ export const dealershipCopy = {
     totalInquiries: 'Total Inquiry',
     newInquiriesBadge: 'Inquiry Baru',
   },
+  adminSettings: {
+    title: 'Pengaturan Grup Dealer',
+    subtitle:
+      'Pengelolaan identitas grup dealer, kontak sentral, jam konsultasi, dan kebijakan privasi.',
+    scopeNoticeTitle: 'Cakupan Pengaturan Tingkat Grup',
+    scopeNoticeDesc:
+      'Halaman ini mengatur konfigurasi operasional tingkat grup Honda Satrya Dealer Group. Informasi kontak dan alamat spesifik masing-masing showroom dealer terkelola secara terpisah agar tetap netral antar cabang.',
+    dealerNameLabel: 'Nama Grup Dealer',
+    dealerNamePlaceholder: 'Honda Satrya Dealer Group',
+    whatsappLabel: 'Nomor WhatsApp Sentral',
+    whatsappPlaceholder: '6281234567890',
+    whatsappHelp:
+      'Nomor WhatsApp resmi grup untuk konsultasi pelanggan. Gunakan format internasional tanpa tanda + (contoh: 6281234567890).',
+    emailLabel: 'Email Publik Resmi',
+    emailPlaceholder: 'info@satryagroup.co.id',
+    consultationHoursLabel: 'Jam Layanan Konsultasi Grup',
+    consultationHoursPlaceholder: 'Senin - Sabtu: 08:00 - 17:00 WIB',
+    socialInstagramLabel: 'Tautan Instagram Resmi',
+    socialInstagramPlaceholder: 'https://instagram.com/hondasatryagroup',
+    socialFacebookLabel: 'Tautan Facebook Resmi',
+    socialFacebookPlaceholder: 'https://facebook.com/hondasatryagroup',
+    privacyNoticeLabel: 'Teks Kebijakan Privasi & Ketentuan',
+    privacyNoticeHelp:
+      'Pernyataan resmi perlindungan data dan privasi pelanggan Honda Satrya Dealer Group.',
+    saveButton: 'Simpan Pengaturan Grup',
+    savingButton: 'Menyimpan Pengaturan...',
+    saveSuccess: 'Pengaturan grup dealer berhasil diperbarui dan dicatat dalam audit log.',
+    dealershipsSectionTitle: 'Jaringan Showroom Dealer Terdaftar',
+    dealershipsSectionSubtitle:
+      'Daftar entitas dealer dalam Honda Satrya Dealer Group. Data fisik resmi akan dilengkapi setelah verifikasi bisnis.',
+    syntheticBadge: 'Data Demo / Sintetis',
+    syntheticNotice:
+      'Catatan: Rekaman dealer di bawah ini merupakan data demo sintetis untuk pengujian sistem dan pratinjau pemangku kepentingan. Informasi kontak spesifik cabang sengaja dikosongkan (unset) hingga data resmi diserahkan oleh pemilik bisnis.',
+    statusActive: 'Aktif',
+    statusInactive: 'Nonaktif',
+    fieldUnset: 'Menunggu konfirmasi data resmi dealer',
+  },
   common: {
     currencySymbol: 'Rp',
     contactSales: 'Hubungi Sales',
