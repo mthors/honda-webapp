@@ -117,4 +117,137 @@ describe('Admin Leads Queries', () => {
     const leads = await getAdminLeads({}, mockClient);
     expect(leads).toEqual([]);
   });
+
+  describe('Search input hardening in getAdminLeads', () => {
+    it('applies double-quoted PostgREST search filter for normal queries across name, phone, ref, city, and model', async () => {
+      const orMock = vi.fn().mockReturnThis();
+      const mockClient = {
+        from: vi.fn().mockReturnValue({
+          select: vi.fn().mockReturnValue({
+            order: vi.fn().mockReturnValue({
+              or: orMock,
+              then: vi.fn((resolve) => resolve({ data: sampleDbRows, error: null })),
+            }),
+          }),
+        }),
+      } as unknown as SupabaseClient<Database>;
+
+      await getAdminLeads({ search: 'Budi' }, mockClient);
+      expect(orMock).toHaveBeenCalledWith(
+        'full_name.ilike."%Budi%",whatsapp_number.ilike."%Budi%",lead_reference.ilike."%Budi%",city.ilike."%Budi%",model_name_snapshot.ilike."%Budi%"'
+      );
+    });
+
+    it('searches by motorcycle model name snapshot to align UI and export results', async () => {
+      const orMock = vi.fn().mockReturnThis();
+      const mockClient = {
+        from: vi.fn().mockReturnValue({
+          select: vi.fn().mockReturnValue({
+            order: vi.fn().mockReturnValue({
+              or: orMock,
+              then: vi.fn((resolve) => resolve({ data: sampleDbRows, error: null })),
+            }),
+          }),
+        }),
+      } as unknown as SupabaseClient<Database>;
+
+      await getAdminLeads({ search: 'Vario 160' }, mockClient);
+      expect(orMock).toHaveBeenCalledWith(
+        'full_name.ilike."%Vario 160%",whatsapp_number.ilike."%Vario 160%",lead_reference.ilike."%Vario 160%",city.ilike."%Vario 160%",model_name_snapshot.ilike."%Vario 160%"'
+      );
+    });
+
+    it('preserves commas and parentheses within double quotes without splitting logic tree', async () => {
+      const orMock = vi.fn().mockReturnThis();
+      const mockClient = {
+        from: vi.fn().mockReturnValue({
+          select: vi.fn().mockReturnValue({
+            order: vi.fn().mockReturnValue({
+              or: orMock,
+              then: vi.fn((resolve) => resolve({ data: sampleDbRows, error: null })),
+            }),
+          }),
+        }),
+      } as unknown as SupabaseClient<Database>;
+
+      await getAdminLeads({ search: 'Sidoarjo, (Waru)' }, mockClient);
+      expect(orMock).toHaveBeenCalledWith(
+        'full_name.ilike."%Sidoarjo, (Waru)%",whatsapp_number.ilike."%Sidoarjo, (Waru)%",lead_reference.ilike."%Sidoarjo, (Waru)%",city.ilike."%Sidoarjo, (Waru)%",model_name_snapshot.ilike."%Sidoarjo, (Waru)%"'
+      );
+    });
+
+    it('escapes SQL ILIKE wildcards (% and _) to treat them as literal characters', async () => {
+      const orMock = vi.fn().mockReturnThis();
+      const mockClient = {
+        from: vi.fn().mockReturnValue({
+          select: vi.fn().mockReturnValue({
+            order: vi.fn().mockReturnValue({
+              or: orMock,
+              then: vi.fn((resolve) => resolve({ data: sampleDbRows, error: null })),
+            }),
+          }),
+        }),
+      } as unknown as SupabaseClient<Database>;
+
+      await getAdminLeads({ search: '100% Promo_Honda' }, mockClient);
+      expect(orMock).toHaveBeenCalledWith(
+        'full_name.ilike."%100\\\\% Promo\\\\_Honda%",whatsapp_number.ilike."%100\\\\% Promo\\\\_Honda%",lead_reference.ilike."%100\\\\% Promo\\\\_Honda%",city.ilike."%100\\\\% Promo\\\\_Honda%",model_name_snapshot.ilike."%100\\\\% Promo\\\\_Honda%"'
+      );
+    });
+
+    it('escapes double quotes to prevent terminating the PostgREST string literal', async () => {
+      const orMock = vi.fn().mockReturnThis();
+      const mockClient = {
+        from: vi.fn().mockReturnValue({
+          select: vi.fn().mockReturnValue({
+            order: vi.fn().mockReturnValue({
+              or: orMock,
+              then: vi.fn((resolve) => resolve({ data: sampleDbRows, error: null })),
+            }),
+          }),
+        }),
+      } as unknown as SupabaseClient<Database>;
+
+      await getAdminLeads({ search: 'Vario "Street"' }, mockClient);
+      expect(orMock).toHaveBeenCalledWith(
+        'full_name.ilike."%Vario \\"Street\\"%",whatsapp_number.ilike."%Vario \\"Street\\"%",lead_reference.ilike."%Vario \\"Street\\"%",city.ilike."%Vario \\"Street\\"%",model_name_snapshot.ilike."%Vario \\"Street\\"%"'
+      );
+    });
+
+    it('preserves punctuation-only queries as literal filters and does not silently omit search', async () => {
+      const orMock = vi.fn().mockReturnThis();
+      const mockClient = {
+        from: vi.fn().mockReturnValue({
+          select: vi.fn().mockReturnValue({
+            order: vi.fn().mockReturnValue({
+              or: orMock,
+              then: vi.fn((resolve) => resolve({ data: sampleDbRows, error: null })),
+            }),
+          }),
+        }),
+      } as unknown as SupabaseClient<Database>;
+
+      await getAdminLeads({ search: ',' }, mockClient);
+      expect(orMock).toHaveBeenCalledWith(
+        'full_name.ilike."%,%",whatsapp_number.ilike."%,%",lead_reference.ilike."%,%",city.ilike."%,%",model_name_snapshot.ilike."%,%"'
+      );
+    });
+
+    it('omits .or() filter when search is empty or whitespace-only', async () => {
+      const orMock = vi.fn().mockReturnThis();
+      const mockClient = {
+        from: vi.fn().mockReturnValue({
+          select: vi.fn().mockReturnValue({
+            order: vi.fn().mockReturnValue({
+              or: orMock,
+              then: vi.fn((resolve) => resolve({ data: sampleDbRows, error: null })),
+            }),
+          }),
+        }),
+      } as unknown as SupabaseClient<Database>;
+
+      await getAdminLeads({ search: '   ' }, mockClient);
+      expect(orMock).not.toHaveBeenCalled();
+    });
+  });
 });

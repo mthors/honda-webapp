@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/Button';
 import { InquiryForm } from '@/components/public/inquiry/InquiryForm';
 import { getInquiryModelOptions } from '@/lib/inquiries/queries';
 import { getSiteSettings, getActiveDealerships } from '@/lib/settings/queries';
+import { normalizeIndonesianPhone } from '@/lib/formatters';
 
 export async function generateMetadata(): Promise<Metadata> {
   const settings = await getSiteSettings();
@@ -31,7 +32,7 @@ export default async function HubungiPage() {
 
   // Safe WhatsApp Resolution
   const rawWhatsApp = settings?.whatsappNumber || process.env.NEXT_PUBLIC_DEALER_WHATSAPP;
-  const cleanWhatsApp = rawWhatsApp ? rawWhatsApp.replace(/\D/g, '') : '';
+  const cleanWhatsApp = rawWhatsApp ? normalizeIndonesianPhone(rawWhatsApp) : '';
   const hasValidWhatsApp = cleanWhatsApp.length >= 9;
   const whatsappUrl = hasValidWhatsApp
     ? `https://wa.me/${cleanWhatsApp}?text=${encodeURIComponent(
@@ -179,7 +180,9 @@ export default async function HubungiPage() {
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {dealerships.map((d) => {
-                const branchWhatsApp = d.whatsappNumber ? d.whatsappNumber.replace(/\D/g, '') : '';
+                const branchWhatsApp = d.whatsappNumber
+                  ? normalizeIndonesianPhone(d.whatsappNumber)
+                  : '';
                 const hasBranchWA = branchWhatsApp.length >= 9;
                 const branchWaUrl = hasBranchWA
                   ? `https://wa.me/${branchWhatsApp}?text=${encodeURIComponent(

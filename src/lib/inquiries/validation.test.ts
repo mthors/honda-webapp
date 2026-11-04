@@ -68,6 +68,9 @@ describe('Inquiry Submission Schema Validation', () => {
     const testCases = [
       { input: '08123456789', expected: '628123456789' },
       { input: '0812-3456-7890', expected: '6281234567890' },
+      { input: '(0812) 3456-7890', expected: '6281234567890' },
+      { input: '0812.3456.7890', expected: '6281234567890' },
+      { input: '+62 (812) 3456-7890', expected: '6281234567890' },
       { input: '+6281234567890', expected: '6281234567890' },
       { input: '6281234567890', expected: '6281234567890' },
     ];

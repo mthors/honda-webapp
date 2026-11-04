@@ -1,13 +1,14 @@
 'use server';
 
 import { headers } from 'next/headers';
+import { revalidatePath } from 'next/cache';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { Database } from '@/types/database';
 import { createServiceClient } from '@/lib/supabase/server';
 import { inquirySubmissionSchema } from '@/lib/inquiries/validation';
 import {
   checkRateLimit,
-  recordRateLimitSubmission,
+  recordRateLimitAttempt,
   isDuplicateSubmission,
   recordDuplicateSubmission,
 } from '@/lib/inquiries/rate-limiter';
@@ -65,6 +66,9 @@ export async function submitInquiryAction(
       };
     }
 
+    // Record submission attempt immediately so invalid payloads and repeated requests cannot bypass rate limit
+    recordRateLimitAttempt(clientIp);
+
     // 2. Validate input schema with Zod
     const parsed = inquirySubmissionSchema.safeParse(rawInput);
     if (!parsed.success) {
@@ -97,16 +101,7 @@ export async function submitInquiryAction(
 
     const data = parsed.data;
 
-    // 3. Duplicate Submission Guard (60s window)
-    if (isDuplicateSubmission(data.whatsappNumber, data.city, data.modelNameSnapshot)) {
-      return {
-        success: false,
-        error:
-          'Pertanyaan yang sama baru saja dikirimkan. Silakan tunggu sejenak atau lanjutkan konsultasi melalui WhatsApp.',
-      };
-    }
-
-    // 4. Database Validation for Model / Variant / Color Consistency (T09)
+    // 3. Database Validation for Model / Variant / Color Consistency (T09)
     const supabase = clientOverride ?? createServiceClient();
 
     let resolvedModelName = data.modelNameSnapshot;
@@ -234,6 +229,15 @@ export async function submitInquiryAction(
       resolvedColorName = rel.color.name;
     }
 
+    // 4. Duplicate Submission Guard (60s window, using resolved model name for consistency)
+    if (isDuplicateSubmission(data.whatsappNumber, data.city, resolvedModelName)) {
+      return {
+        success: false,
+        error:
+          'Pertanyaan yang sama baru saja dikirimkan. Silakan tunggu sejenak atau lanjutkan konsultasi melalui WhatsApp.',
+      };
+    }
+
     // 5. Generate Lead Reference
     const leadReference = await generateLeadReference();
     const consentPrivacyAt = new Date().toISOString();
@@ -277,9 +281,10 @@ export async function submitInquiryAction(
       };
     }
 
-    // 7. Record successful submission for rate limiting and duplicate prevention
-    recordRateLimitSubmission(clientIp);
+    // 7. Record duplicate prevention and revalidate admin caches
     recordDuplicateSubmission(data.whatsappNumber, data.city, resolvedModelName);
+    revalidatePath('/admin/leads');
+    revalidatePath('/admin');
 
     return {
       success: true,

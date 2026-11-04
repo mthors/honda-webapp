@@ -8,7 +8,7 @@ export interface PublicFooterProps {
   settings?: SiteSettings | null;
 }
 
-export const PublicFooter: React.FC<PublicFooterProps> = ({ settings }) => {
+export function PublicFooter({ settings }: PublicFooterProps) {
   const currentYear = new Date().getFullYear();
   const dealerName = settings?.dealerName?.trim() || dealershipCopy.dealer.name;
 
@@ -135,9 +135,21 @@ export const PublicFooter: React.FC<PublicFooterProps> = ({ settings }) => {
               <h3 className="text-sm font-bold uppercase tracking-wider text-muted font-manrope">
                 {dealershipCopy.contact.showroomLocation}
               </h3>
-              <p className="text-xs text-on-primary/80 leading-relaxed">
-                {settings?.address || dealershipCopy.dealer.addressPlaceholder}
-              </p>
+              {settings?.address && settings.address.trim() !== '' ? (
+                <p className="text-xs text-on-primary/80 leading-relaxed">{settings.address}</p>
+              ) : (
+                <div className="space-y-1">
+                  <p className="text-xs text-on-primary/80 leading-relaxed">
+                    {dealershipCopy.contact.infoUnavailable}
+                  </p>
+                  <Link
+                    href="/hubungi"
+                    className="text-xs text-primary hover:underline inline-flex items-center gap-1 font-medium transition-colors"
+                  >
+                    Lihat Lokasi Showroom &rarr;
+                  </Link>
+                </div>
+              )}
 
               <div className="pt-2">
                 <h4 className="text-xs font-semibold uppercase tracking-wider text-muted font-manrope">
@@ -184,4 +196,4 @@ export const PublicFooter: React.FC<PublicFooterProps> = ({ settings }) => {
       </div>
     </footer>
   );
-};
+}

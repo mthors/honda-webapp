@@ -63,7 +63,32 @@ describe('PublicHeader component', () => {
     const contactLinks = screen.getAllByRole('link', { name: /Hubungi Sales/i });
     const waLink = contactLinks.find((l) => l.getAttribute('href')?.includes('wa.me'));
     expect(waLink).toBeDefined();
-    expect(waLink?.getAttribute('href')).toContain('wa.me/081234567890');
+    // Normalized to international 628... format without leading zero
+    expect(waLink?.getAttribute('href')).toContain('wa.me/6281234567890');
+  });
+
+  it('normalizes +62 and 08 phone numbers to 628... for WhatsApp universal links', () => {
+    const mockSettings: SiteSettings = {
+      id: 'default',
+      dealerName: 'Honda Satrya Group',
+      logoPath: null,
+      address: null,
+      city: null,
+      phone: null,
+      whatsappNumber: '+62 857-1122-3344',
+      publicEmail: null,
+      openingHours: {},
+      socialLinks: {},
+      privacyNotice: 'Privasi',
+      updatedBy: null,
+      updatedAt: '2026-11-04T00:00:00Z',
+    };
+
+    render(<PublicHeader settings={mockSettings} />);
+    const contactLinks = screen.getAllByRole('link', { name: /Hubungi Sales/i });
+    const waLink = contactLinks.find((l) => l.getAttribute('href')?.includes('wa.me'));
+    expect(waLink).toBeDefined();
+    expect(waLink?.getAttribute('href')).toContain('wa.me/6285711223344');
   });
 
   it('falls back to /hubungi internal link when WhatsApp number is missing or invalid', () => {

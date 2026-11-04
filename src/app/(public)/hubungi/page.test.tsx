@@ -225,4 +225,40 @@ describe('HubungiPage', () => {
 
     process.env.NEXT_PUBLIC_DEALER_WHATSAPP = originalEnv;
   });
+
+  it('normalizes Indonesian phone numbers (08... and +62...) to 628... in group and branch WhatsApp links', async () => {
+    vi.mocked(settingsQueries.getSiteSettings).mockResolvedValueOnce({
+      ...mockSettings,
+      whatsappNumber: '0812-3456-7890',
+    });
+
+    vi.mocked(settingsQueries.getActiveDealerships).mockResolvedValueOnce([
+      {
+        id: 'd-norm',
+        name: 'Honda Satrya Malang',
+        code: 'satrya-malang',
+        city: 'Malang',
+        address: 'Jl. Ijen No. 10',
+        phone: '0341-123456',
+        whatsappNumber: '+62 821-9988-7766',
+        openingHours: '08:00 - 17:00',
+        isSynthetic: false,
+        isActive: true,
+        sortOrder: 1,
+        createdAt: '2026-11-04T00:00:00Z',
+        updatedAt: '2026-11-04T00:00:00Z',
+      },
+    ]);
+
+    const Component = await HubungiPage();
+    render(Component);
+
+    // Group WhatsApp link: 0812-3456-7890 -> wa.me/6281234567890
+    const groupWaLink = screen.getByRole('link', { name: /Hubungi via WhatsApp/i });
+    expect(groupWaLink).toHaveAttribute('href', expect.stringContaining('wa.me/6281234567890'));
+
+    // Branch WhatsApp link: +62 821-9988-7766 -> wa.me/6282199887766
+    const branchWaLink = screen.getByRole('link', { name: /Chat Cabang Malang/i });
+    expect(branchWaLink).toHaveAttribute('href', expect.stringContaining('wa.me/6282199887766'));
+  });
 });

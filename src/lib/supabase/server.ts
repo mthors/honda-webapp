@@ -46,17 +46,25 @@ export async function createClient(
 /**
  * Creates a privileged server-side Supabase client using SUPABASE_SERVICE_ROLE_KEY.
  * Strictly server-only. Bypasses RLS to insert or manage customer leads safely.
+ *
+ * Security:
+ * - Requires SUPABASE_SERVICE_ROLE_KEY to be explicitly configured.
+ * - Never falls back to the anonymous key, preventing silent permissions failures.
+ * - Never expose or log the service role secret to client-side code or client logs.
  */
 export function createServiceClient(customUrl?: string, customServiceKey?: string) {
   const url = customUrl || process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const key =
-    customServiceKey ||
-    process.env.SUPABASE_SERVICE_ROLE_KEY ||
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  const key = customServiceKey || process.env.SUPABASE_SERVICE_ROLE_KEY;
 
-  if (!url || !key) {
+  if (!url) {
     throw new Error(
-      'Service client initialization failed: NEXT_PUBLIC_SUPABASE_URL and key must be set.'
+      'Service client initialization failed: NEXT_PUBLIC_SUPABASE_URL must be configured.'
+    );
+  }
+
+  if (!key) {
+    throw new Error(
+      'Service client initialization failed: SUPABASE_SERVICE_ROLE_KEY must be configured in server environment. Silent fallback to anon key is disabled for security.'
     );
   }
 

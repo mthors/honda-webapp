@@ -125,4 +125,73 @@ describe('PublicFooter component', () => {
     );
     expect(copyright).toBeInTheDocument();
   });
+
+  describe('Showroom address rendering and placeholder protection', () => {
+    it('renders configured address when settings.address is provided', () => {
+      const mockSettings: SiteSettings = {
+        id: 'default',
+        dealerName: 'Honda Satrya Surabaya',
+        logoPath: null,
+        address: 'Jl. Pemuda No. 100, Surabaya',
+        city: 'Surabaya',
+        phone: null,
+        whatsappNumber: '6281234567890',
+        publicEmail: null,
+        openingHours: {},
+        socialLinks: {},
+        privacyNotice: 'Privasi',
+        updatedBy: null,
+        updatedAt: '2026-11-04T00:00:00Z',
+      };
+
+      render(<PublicFooter settings={mockSettings} />);
+      expect(screen.getByText('Jl. Pemuda No. 100, Surabaya')).toBeInTheDocument();
+      expect(
+        screen.queryByText(/Jl\. Raya Sidoarjo No\. 123.*Konfirmasi Alamat/i)
+      ).not.toBeInTheDocument();
+    });
+
+    it('never renders the fake placeholder address when address is null, empty, or unconfigured', () => {
+      // 1. Without settings prop
+      const { rerender } = render(<PublicFooter />);
+      expect(
+        screen.queryByText(/Jl\. Raya Sidoarjo No\. 123.*Konfirmasi Alamat/i)
+      ).not.toBeInTheDocument();
+      expect(screen.getByText('Informasi belum tersedia')).toBeInTheDocument();
+      expect(screen.getByRole('link', { name: /Lihat Lokasi Showroom/i })).toHaveAttribute(
+        'href',
+        '/hubungi'
+      );
+
+      // 2. With settings having null address
+      const settingsNullAddress: SiteSettings = {
+        id: 'default',
+        dealerName: 'Honda Satrya Group',
+        logoPath: null,
+        address: null,
+        city: null,
+        phone: null,
+        whatsappNumber: '6281234567890',
+        publicEmail: null,
+        openingHours: {},
+        socialLinks: {},
+        privacyNotice: 'Privasi',
+        updatedBy: null,
+        updatedAt: '2026-11-04T00:00:00Z',
+      };
+
+      rerender(<PublicFooter settings={settingsNullAddress} />);
+      expect(
+        screen.queryByText(/Jl\. Raya Sidoarjo No\. 123.*Konfirmasi Alamat/i)
+      ).not.toBeInTheDocument();
+      expect(screen.getByText('Informasi belum tersedia')).toBeInTheDocument();
+
+      // 3. With settings having whitespace-only address
+      rerender(<PublicFooter settings={{ ...settingsNullAddress, address: '   ' }} />);
+      expect(
+        screen.queryByText(/Jl\. Raya Sidoarjo No\. 123.*Konfirmasi Alamat/i)
+      ).not.toBeInTheDocument();
+      expect(screen.getByText('Informasi belum tersedia')).toBeInTheDocument();
+    });
+  });
 });

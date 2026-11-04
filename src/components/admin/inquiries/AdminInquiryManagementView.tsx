@@ -63,9 +63,11 @@ export function AdminInquiryManagementView({ initialLeads }: AdminInquiryManagem
     });
   }, [leads, selectedStatus, selectedCity, searchQuery]);
 
-  // Counts
+  // Counts & Filter States
   const totalCount = leads.length;
   const newCount = leads.filter((l) => l.status === 'new').length;
+  const hasActiveFilter =
+    searchQuery.trim() !== '' || selectedStatus !== 'all' || selectedCity !== 'all';
 
   // Handle Excel Export
   const handleExportExcel = () => {
@@ -241,10 +243,14 @@ export function AdminInquiryManagementView({ initialLeads }: AdminInquiryManagem
         {filteredLeads.length === 0 ? (
           <div className="text-center py-12 px-4 space-y-2">
             <h3 className="text-sm font-semibold text-ink">
-              {dealershipCopy.adminLeads.emptyTitle}
+              {hasActiveFilter
+                ? 'Tidak Ada Inquiry yang Cocok'
+                : dealershipCopy.adminLeads.emptyTitle}
             </h3>
             <p className="text-xs text-muted max-w-sm mx-auto">
-              {dealershipCopy.adminLeads.emptyDescription}
+              {hasActiveFilter
+                ? 'Tidak ditemukan data inquiry yang sesuai dengan kata kunci pencarian atau filter yang dipilih. Silakan atur ulang filter Anda.'
+                : dealershipCopy.adminLeads.emptyDescription}
             </p>
           </div>
         ) : (

@@ -40,15 +40,20 @@ export function checkRateLimit(identifier: string): {
 }
 
 /**
- * Records a successful submission timestamp for an identifier.
+ * Records a submission attempt timestamp for an identifier.
  */
-export function recordRateLimitSubmission(identifier: string): void {
+export function recordRateLimitAttempt(identifier: string): void {
   const now = Date.now();
   const entry = ipRateLimits.get(identifier) || { timestamps: [] };
   entry.timestamps = entry.timestamps.filter((ts) => now - ts < WINDOW_MS);
   entry.timestamps.push(now);
   ipRateLimits.set(identifier, entry);
 }
+
+/**
+ * Backward compatibility alias for recordRateLimitAttempt.
+ */
+export const recordRateLimitSubmission = recordRateLimitAttempt;
 
 /**
  * Checks if an identical inquiry was submitted within the duplicate window (60s).
