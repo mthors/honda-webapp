@@ -51,6 +51,48 @@ export function formatExportDateTime(isoString: string): string {
 }
 
 /**
+ * Neutralizes potential CSV/Formula injection triggers (CWE-1236) in spreadsheet text cells.
+ * Prepends a single quote (') if the string begins with dangerous formula triggers:
+ * '=', '+', '-', '@', horizontal tab (\t), carriage return (\r), or line feed (\n).
+ * Preserves the customer's legitimate input while forcing spreadsheet software (Excel, Calc)
+ * to interpret the cell strictly as literal text.
+ */
+export function sanitizeExcelText(val: string | null | undefined, fallback: string = '-'): string {
+  if (val === null || val === undefined) {
+    return fallback;
+  }
+  const raw = String(val);
+  if (raw.length === 0) {
+    return fallback;
+  }
+  if (raw.trim() === '-' || raw.trim().length === 0) {
+    return fallback;
+  }
+
+  const trimmed = raw.trimStart();
+  const firstChar = trimmed[0];
+  const rawFirstChar = raw[0];
+
+  if (
+    firstChar === '=' ||
+    firstChar === '+' ||
+    firstChar === '-' ||
+    firstChar === '@' ||
+    rawFirstChar === '\t' ||
+    rawFirstChar === '\r' ||
+    rawFirstChar === '\n'
+  ) {
+    // If already prefixed with a single quote, preserve as-is
+    if (raw.startsWith("'")) {
+      return raw;
+    }
+    return `'${raw}`;
+  }
+
+  return raw;
+}
+
+/**
  * Generates a genuine Excel (.xlsx) workbook buffer for inquiry records.
  */
 export async function generateInquiryExcelWorkbook(leads: AdminLeadItem[]): Promise<Buffer> {
@@ -113,21 +155,28 @@ export async function generateInquiryExcelWorkbook(leads: AdminLeadItem[]): Prom
 
   // Populate data rows
   for (const lead of leads) {
+    const cleanPhone = lead.whatsappNumber ? String(lead.whatsappNumber).trim() : '';
+    const safePhone = cleanPhone
+      ? cleanPhone.startsWith("'")
+        ? cleanPhone
+        : `'${cleanPhone}`
+      : '-';
+
     const row = worksheet.addRow({
-      leadReference: lead.leadReference,
+      leadReference: sanitizeExcelText(lead.leadReference),
       createdAt: formatExportDateTime(lead.createdAt),
-      fullName: lead.fullName,
-      // Format phone as explicit text to prevent Excel scientific notation
-      whatsappNumber: `'${lead.whatsappNumber}`,
-      email: lead.email || '-',
-      city: lead.city,
-      district: lead.district || '-',
-      modelNameSnapshot: lead.modelNameSnapshot || '-',
-      variantNameSnapshot: lead.variantNameSnapshot || '-',
-      colorNameSnapshot: lead.colorNameSnapshot || '-',
+      fullName: sanitizeExcelText(lead.fullName),
+      // Format phone as explicit text to prevent Excel scientific notation and formula triggers
+      whatsappNumber: safePhone,
+      email: sanitizeExcelText(lead.email),
+      city: sanitizeExcelText(lead.city),
+      district: sanitizeExcelText(lead.district),
+      modelNameSnapshot: sanitizeExcelText(lead.modelNameSnapshot),
+      variantNameSnapshot: sanitizeExcelText(lead.variantNameSnapshot),
+      colorNameSnapshot: sanitizeExcelText(lead.colorNameSnapshot),
       priceSnapshotIdr: lead.priceSnapshotIdr ?? '-',
-      message: lead.message || '-',
-      sourcePage: lead.sourcePage || '-',
+      message: sanitizeExcelText(lead.message),
+      sourcePage: sanitizeExcelText(lead.sourcePage),
       consentPrivacyAt: formatExportDateTime(lead.consentPrivacyAt),
       status: getIndonesianLeadStatusLabel(lead.status),
     });

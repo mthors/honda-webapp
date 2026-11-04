@@ -4,6 +4,7 @@ import {
   generateInquiryExcelWorkbook,
   getIndonesianLeadStatusLabel,
   formatExportDateTime,
+  sanitizeExcelText,
 } from './export';
 import type { AdminLeadItem } from '@/types/inquiries';
 
@@ -125,5 +126,121 @@ describe('Excel (.xlsx) Inquiry Export Generator', () => {
     expect(row2.getCell(7).value).toBe('-');
     expect(row2.getCell(8).value).toBe('-');
     expect(row2.getCell(15).value).toBe('Dihubungi');
+  });
+
+  describe('Formula Injection Defense (CWE-1236)', () => {
+    it('neutralizes dangerous formula characters using sanitizeExcelText', () => {
+      // Equals (=)
+      expect(sanitizeExcelText('=SUM(A1:A10)')).toBe("'=SUM(A1:A10)");
+      expect(sanitizeExcelText("   =cmd|' /C calc'!A0")).toBe("'   =cmd|' /C calc'!A0");
+
+      // Plus (+)
+      expect(sanitizeExcelText('+6281234567890')).toBe("'+6281234567890");
+
+      // Minus (-)
+      expect(sanitizeExcelText('-2+5')).toBe("'-2+5");
+      expect(sanitizeExcelText('- Halo sales honda')).toBe("'- Halo sales honda");
+
+      // At sign (@)
+      expect(sanitizeExcelText('@HYPERLINK("https://evil.com")')).toBe(
+        '\'@HYPERLINK("https://evil.com")'
+      );
+
+      // Tab, CR, LF
+      expect(sanitizeExcelText('\tmalicious')).toBe("'\tmalicious");
+      expect(sanitizeExcelText('\rmalicious')).toBe("'\rmalicious");
+      expect(sanitizeExcelText('\nmalicious')).toBe("'\nmalicious");
+
+      // Safe legitimate values preserved as-is
+      expect(sanitizeExcelText('Ahmad Dahlan')).toBe('Ahmad Dahlan');
+      expect(sanitizeExcelText('Sidoarjo')).toBe('Sidoarjo');
+      expect(sanitizeExcelText('Honda Vario 160')).toBe('Honda Vario 160');
+
+      // Standalone dash or fallback
+      expect(sanitizeExcelText('-')).toBe('-');
+      expect(sanitizeExcelText(null)).toBe('-');
+      expect(sanitizeExcelText(undefined)).toBe('-');
+      expect(sanitizeExcelText('')).toBe('-');
+      expect(sanitizeExcelText('   ')).toBe('-');
+    });
+
+    it('neutralizes formula injection across all customer-controlled fields in generated workbook', async () => {
+      const maliciousLeads: AdminLeadItem[] = [
+        {
+          id: 'lead-exploit-1',
+          leadReference: '=INQ-EXPL-1',
+          fullName: "=cmd|' /C calc'!A0",
+          whatsappNumber: '+6281234567890',
+          email: '-attacker@evil.com',
+          city: '@Surabaya',
+          district: '+Gedangan',
+          modelId: 'm-1',
+          variantId: 'v-1',
+          colorId: 'c-1',
+          modelNameSnapshot: '=HYPERLINK("http://evil.com","Vario")',
+          variantNameSnapshot: '-CBS',
+          colorNameSnapshot: '+Black',
+          priceSnapshotIdr: 27000000,
+          message: '=1+1',
+          sourcePage: '/motor/vario-160',
+          sourceCampaign: null,
+          consentPrivacyAt: '2026-11-04T10:00:00Z',
+          status: 'new',
+          createdAt: '2026-11-04T10:00:00Z',
+          updatedAt: '2026-11-04T10:00:00Z',
+        },
+      ];
+
+      const buffer = await generateInquiryExcelWorkbook(maliciousLeads);
+      const workbook = new ExcelJS.Workbook();
+      await workbook.xlsx.load(buffer as unknown as Parameters<typeof workbook.xlsx.load>[0]);
+
+      const worksheet = workbook.getWorksheet('Daftar Inquiry');
+      expect(worksheet).toBeDefined();
+
+      const dataRow = worksheet!.getRow(2);
+
+      // Verify every customer-controlled cell value is prefixed with single quote
+      // and cell value is a plain string
+      const refCell = dataRow.getCell(1);
+      expect(refCell.value).toBe("'=INQ-EXPL-1");
+      expect(typeof refCell.value).toBe('string');
+
+      const nameCell = dataRow.getCell(3);
+      expect(nameCell.value).toBe("'=cmd|' /C calc'!A0");
+      expect(typeof nameCell.value).toBe('string');
+
+      const phoneCell = dataRow.getCell(4);
+      expect(phoneCell.value).toBe("'+6281234567890");
+      expect(typeof phoneCell.value).toBe('string');
+
+      const emailCell = dataRow.getCell(5);
+      expect(emailCell.value).toBe("'-attacker@evil.com");
+      expect(typeof emailCell.value).toBe('string');
+
+      const cityCell = dataRow.getCell(6);
+      expect(cityCell.value).toBe("'@Surabaya");
+      expect(typeof cityCell.value).toBe('string');
+
+      const districtCell = dataRow.getCell(7);
+      expect(districtCell.value).toBe("'+Gedangan");
+      expect(typeof districtCell.value).toBe('string');
+
+      const modelCell = dataRow.getCell(8);
+      expect(modelCell.value).toBe('\'=HYPERLINK("http://evil.com","Vario")');
+      expect(typeof modelCell.value).toBe('string');
+
+      const variantCell = dataRow.getCell(9);
+      expect(variantCell.value).toBe("'-CBS");
+      expect(typeof variantCell.value).toBe('string');
+
+      const colorCell = dataRow.getCell(10);
+      expect(colorCell.value).toBe("'+Black");
+      expect(typeof colorCell.value).toBe('string');
+
+      const msgCell = dataRow.getCell(12);
+      expect(msgCell.value).toBe("'=1+1");
+      expect(typeof msgCell.value).toBe('string');
+    });
   });
 });

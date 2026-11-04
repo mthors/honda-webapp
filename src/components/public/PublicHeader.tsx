@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { dealershipCopy } from '@/content/copy/id';
 import { Button } from '@/components/ui/Button';
+import { normalizeIndonesianPhone } from '@/lib/formatters';
 import type { SiteSettings } from '@/types/settings';
 
 export interface PublicHeaderProps {
@@ -62,7 +63,7 @@ export const PublicHeader: React.FC<PublicHeaderProps> = ({ settings }) => {
 
   // Safe WhatsApp URL construction
   const rawWhatsApp = settings?.whatsappNumber || process.env.NEXT_PUBLIC_DEALER_WHATSAPP;
-  const cleanWhatsApp = rawWhatsApp ? rawWhatsApp.replace(/\D/g, '') : '';
+  const cleanWhatsApp = rawWhatsApp ? normalizeIndonesianPhone(rawWhatsApp) : '';
   const hasValidWhatsApp = cleanWhatsApp.length >= 9;
   const whatsappUrl = hasValidWhatsApp
     ? `https://wa.me/${cleanWhatsApp}?text=${encodeURIComponent(
