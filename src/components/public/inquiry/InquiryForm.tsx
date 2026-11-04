@@ -13,9 +13,14 @@ import { normalizeIndonesianPhone, formatRupiah } from '@/lib/formatters';
 interface InquiryFormProps {
   modelOptions: InquiryModelOption[];
   dealerWhatsApp?: string;
+  privacyNotice?: string | null;
 }
 
-export function InquiryForm({ modelOptions, dealerWhatsApp = '6281234567890' }: InquiryFormProps) {
+export function InquiryForm({
+  modelOptions,
+  dealerWhatsApp = '6281234567890',
+  privacyNotice,
+}: InquiryFormProps) {
   const searchParams = useSearchParams();
 
   // Match preselected parameters from search params without triggering cascading effect renders
@@ -652,6 +657,16 @@ export function InquiryForm({ modelOptions, dealerWhatsApp = '6281234567890' }: 
               {dealershipCopy.inquiry.privacyConsent} <span className="text-primary">*</span>
             </span>
           </label>
+          {privacyNotice && (
+            <details className="mt-2 ml-7 text-[11px] text-muted">
+              <summary className="cursor-pointer hover:text-ink font-medium select-none">
+                Baca Ringkasan Kebijakan Privasi & Ketentuan
+              </summary>
+              <div className="mt-2 p-3 bg-neutral-2/50 border border-hairline text-body leading-relaxed whitespace-pre-wrap">
+                {privacyNotice}
+              </div>
+            </details>
+          )}
           {fieldErrors.consentPrivacy && (
             <p id="error-consentPrivacy" className="mt-1.5 text-xs text-status-error ml-7">
               {fieldErrors.consentPrivacy[0]}

@@ -195,4 +195,12 @@ describe('InquiryForm Component', () => {
       expect(screen.getByText(/Terjadi kendala sistem saat menyimpan data/i)).toBeInTheDocument();
     });
   });
+
+  it('renders configured privacy notice when prop is supplied', () => {
+    const customNotice = 'Pemberitahuan privasi resmi grup dealer untuk verifikasi pelanggan.';
+    render(<InquiryForm modelOptions={mockModelOptions} privacyNotice={customNotice} />);
+
+    expect(screen.getByText(/Baca Ringkasan Kebijakan Privasi & Ketentuan/i)).toBeInTheDocument();
+    expect(screen.getByText(customNotice)).toBeInTheDocument();
+  });
 });

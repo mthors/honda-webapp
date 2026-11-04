@@ -5,8 +5,13 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { dealershipCopy } from '@/content/copy/id';
 import { Button } from '@/components/ui/Button';
+import type { SiteSettings } from '@/types/settings';
 
-export const PublicHeader: React.FC = () => {
+export interface PublicHeaderProps {
+  settings?: SiteSettings | null;
+}
+
+export const PublicHeader: React.FC<PublicHeaderProps> = ({ settings }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const pathname = usePathname();
 
@@ -42,12 +47,28 @@ export const PublicHeader: React.FC = () => {
     { href: '/hubungi', label: dealershipCopy.nav.aboutContact },
   ];
 
-  const whatsappNumber = process.env.NEXT_PUBLIC_DEALER_WHATSAPP;
-  const whatsappUrl = whatsappNumber
-    ? `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(
-        'Halo Honda Satrya Dealer Group, saya ingin berkonsultasi mengenai motor Honda.'
+  const dealerName = settings?.dealerName?.trim() || dealershipCopy.dealer.name;
+
+  // Derive brand display parts while preserving styling
+  let brandPrefix = 'HONDA';
+  let brandSuffix = 'SATRYA DEALER GROUP';
+  if (dealerName.toLowerCase().startsWith('honda ')) {
+    brandPrefix = 'HONDA';
+    brandSuffix = dealerName.slice(6).trim().toUpperCase();
+  } else if (dealerName.toUpperCase() !== 'HONDA') {
+    brandPrefix = dealerName.toUpperCase();
+    brandSuffix = '';
+  }
+
+  // Safe WhatsApp URL construction
+  const rawWhatsApp = settings?.whatsappNumber || process.env.NEXT_PUBLIC_DEALER_WHATSAPP;
+  const cleanWhatsApp = rawWhatsApp ? rawWhatsApp.replace(/\D/g, '') : '';
+  const hasValidWhatsApp = cleanWhatsApp.length >= 9;
+  const whatsappUrl = hasValidWhatsApp
+    ? `https://wa.me/${cleanWhatsApp}?text=${encodeURIComponent(
+        `Halo ${dealerName}, saya ingin berkonsultasi mengenai motor Honda.`
       )}`
-    : '/hubungi';
+    : null;
 
   return (
     <>
@@ -55,7 +76,9 @@ export const PublicHeader: React.FC = () => {
       <div className="bg-surface-alt text-on-primary py-2 px-4 text-xs font-medium text-center border-b border-neutral-3">
         <div className="max-w-7xl mx-auto flex items-center justify-center space-x-2">
           <span className="inline-block w-2 h-2 rounded-full bg-status-success animate-pulse" />
-          <span>{dealershipCopy.dealer.officialBadge} — Sidoarjo, Jawa Timur</span>
+          <span>
+            {dealershipCopy.dealer.officialBadge} — {dealerName}
+          </span>
         </div>
       </div>
 
@@ -69,7 +92,7 @@ export const PublicHeader: React.FC = () => {
             onClick={() => setIsMenuOpen(false)}
           >
             <span className="text-lg sm:text-2xl font-bold tracking-tight text-ink font-manrope">
-              HONDA <span className="text-primary">SATRYA DEALER GROUP</span>
+              {brandPrefix} {brandSuffix && <span className="text-primary">{brandSuffix}</span>}
             </span>
             <span className="text-[11px] sm:text-xs text-muted font-normal">
               {dealershipCopy.dealer.tagline}
@@ -102,7 +125,7 @@ export const PublicHeader: React.FC = () => {
           {/* Desktop Call to Action & Mobile Hamburger Button */}
           <div className="flex items-center space-x-3">
             <div className="hidden sm:block">
-              {whatsappNumber ? (
+              {whatsappUrl ? (
                 <a
                   href={whatsappUrl}
                   target="_blank"
@@ -207,7 +230,7 @@ export const PublicHeader: React.FC = () => {
             })}
 
             <div className="pt-4 border-t border-hairline mt-4">
-              {whatsappNumber ? (
+              {whatsappUrl ? (
                 <a
                   href={whatsappUrl}
                   target="_blank"
