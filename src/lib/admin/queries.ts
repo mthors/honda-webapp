@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase/server';
+import { escapePostgrestSearchTerm } from '@/lib/search';
 import type { Database } from '@/types/database';
 import type { SupabaseClient } from '@supabase/supabase-js';
 
@@ -474,10 +475,12 @@ export async function getAdminLeads(
     }
 
     if (options.search && options.search.trim() !== '') {
-      const term = `%${options.search.trim()}%`;
-      query = query.or(
-        `full_name.ilike.${term},whatsapp_number.ilike.${term},lead_reference.ilike.${term},city.ilike.${term}`
-      );
+      const term = escapePostgrestSearchTerm(options.search);
+      if (term.length > 0) {
+        query = query.or(
+          `full_name.ilike."%${term}%",whatsapp_number.ilike."%${term}%",lead_reference.ilike."%${term}%",city.ilike."%${term}%"`
+        );
+      }
     }
 
     if (options.limit && options.limit > 0) {
