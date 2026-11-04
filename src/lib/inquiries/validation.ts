@@ -30,7 +30,7 @@ const baseSchema = z.object({
       message: 'Nomor WhatsApp wajib diisi.',
     })
     .trim()
-    .refine((val) => indonesianPhoneRegex.test(val.replace(/\s|-/g, '')), {
+    .refine((val) => indonesianPhoneRegex.test(val.replace(/[\s\-().]/g, '')), {
       message:
         'Format nomor WhatsApp tidak valid. Gunakan nomor ponsel aktif (contoh: 081234567890).',
     })

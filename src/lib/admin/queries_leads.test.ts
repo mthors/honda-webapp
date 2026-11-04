@@ -119,7 +119,7 @@ describe('Admin Leads Queries', () => {
   });
 
   describe('Search input hardening in getAdminLeads', () => {
-    it('applies double-quoted PostgREST search filter for normal queries', async () => {
+    it('applies double-quoted PostgREST search filter for normal queries across name, phone, ref, city, and model', async () => {
       const orMock = vi.fn().mockReturnThis();
       const mockClient = {
         from: vi.fn().mockReturnValue({
@@ -134,7 +134,26 @@ describe('Admin Leads Queries', () => {
 
       await getAdminLeads({ search: 'Budi' }, mockClient);
       expect(orMock).toHaveBeenCalledWith(
-        'full_name.ilike."%Budi%",whatsapp_number.ilike."%Budi%",lead_reference.ilike."%Budi%",city.ilike."%Budi%"'
+        'full_name.ilike."%Budi%",whatsapp_number.ilike."%Budi%",lead_reference.ilike."%Budi%",city.ilike."%Budi%",model_name_snapshot.ilike."%Budi%"'
+      );
+    });
+
+    it('searches by motorcycle model name snapshot to align UI and export results', async () => {
+      const orMock = vi.fn().mockReturnThis();
+      const mockClient = {
+        from: vi.fn().mockReturnValue({
+          select: vi.fn().mockReturnValue({
+            order: vi.fn().mockReturnValue({
+              or: orMock,
+              then: vi.fn((resolve) => resolve({ data: sampleDbRows, error: null })),
+            }),
+          }),
+        }),
+      } as unknown as SupabaseClient<Database>;
+
+      await getAdminLeads({ search: 'Vario 160' }, mockClient);
+      expect(orMock).toHaveBeenCalledWith(
+        'full_name.ilike."%Vario 160%",whatsapp_number.ilike."%Vario 160%",lead_reference.ilike."%Vario 160%",city.ilike."%Vario 160%",model_name_snapshot.ilike."%Vario 160%"'
       );
     });
 
@@ -153,7 +172,7 @@ describe('Admin Leads Queries', () => {
 
       await getAdminLeads({ search: 'Sidoarjo, (Waru)' }, mockClient);
       expect(orMock).toHaveBeenCalledWith(
-        'full_name.ilike."%Sidoarjo, (Waru)%",whatsapp_number.ilike."%Sidoarjo, (Waru)%",lead_reference.ilike."%Sidoarjo, (Waru)%",city.ilike."%Sidoarjo, (Waru)%"'
+        'full_name.ilike."%Sidoarjo, (Waru)%",whatsapp_number.ilike."%Sidoarjo, (Waru)%",lead_reference.ilike."%Sidoarjo, (Waru)%",city.ilike."%Sidoarjo, (Waru)%",model_name_snapshot.ilike."%Sidoarjo, (Waru)%"'
       );
     });
 
@@ -172,7 +191,7 @@ describe('Admin Leads Queries', () => {
 
       await getAdminLeads({ search: '100% Promo_Honda' }, mockClient);
       expect(orMock).toHaveBeenCalledWith(
-        'full_name.ilike."%100\\\\% Promo\\\\_Honda%",whatsapp_number.ilike."%100\\\\% Promo\\\\_Honda%",lead_reference.ilike."%100\\\\% Promo\\\\_Honda%",city.ilike."%100\\\\% Promo\\\\_Honda%"'
+        'full_name.ilike."%100\\\\% Promo\\\\_Honda%",whatsapp_number.ilike."%100\\\\% Promo\\\\_Honda%",lead_reference.ilike."%100\\\\% Promo\\\\_Honda%",city.ilike."%100\\\\% Promo\\\\_Honda%",model_name_snapshot.ilike."%100\\\\% Promo\\\\_Honda%"'
       );
     });
 
@@ -191,7 +210,7 @@ describe('Admin Leads Queries', () => {
 
       await getAdminLeads({ search: 'Vario "Street"' }, mockClient);
       expect(orMock).toHaveBeenCalledWith(
-        'full_name.ilike."%Vario \\"Street\\"%",whatsapp_number.ilike."%Vario \\"Street\\"%",lead_reference.ilike."%Vario \\"Street\\"%",city.ilike."%Vario \\"Street\\"%"'
+        'full_name.ilike."%Vario \\"Street\\"%",whatsapp_number.ilike."%Vario \\"Street\\"%",lead_reference.ilike."%Vario \\"Street\\"%",city.ilike."%Vario \\"Street\\"%",model_name_snapshot.ilike."%Vario \\"Street\\"%"'
       );
     });
 
@@ -210,7 +229,7 @@ describe('Admin Leads Queries', () => {
 
       await getAdminLeads({ search: ',' }, mockClient);
       expect(orMock).toHaveBeenCalledWith(
-        'full_name.ilike."%,%",whatsapp_number.ilike."%,%",lead_reference.ilike."%,%",city.ilike."%,%"'
+        'full_name.ilike."%,%",whatsapp_number.ilike."%,%",lead_reference.ilike."%,%",city.ilike."%,%",model_name_snapshot.ilike."%,%"'
       );
     });
 

@@ -1,8 +1,13 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { revalidatePath } from 'next/cache';
 import { submitInquiryAction } from './actions';
 import { resetRateLimiter } from './rate-limiter';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { Database } from '@/types/database';
+
+vi.mock('next/cache', () => ({
+  revalidatePath: vi.fn(),
+}));
 
 describe('submitInquiryAction', () => {
   const modelId = 'a1111111-1111-4111-8111-111111111111';
@@ -257,6 +262,47 @@ describe('submitInquiryAction', () => {
     const secondResult = await submitInquiryAction(validSubmission, mockClient);
     expect(secondResult.success).toBe(false);
     expect(secondResult.error).toContain('Pertanyaan yang sama baru saja dikirimkan');
+  });
+
+  it('rejects duplicate submissions when submitted with modelId and without modelNameSnapshot', async () => {
+    const submissionWithoutSnapshot = {
+      ...validSubmission,
+      modelNameSnapshot: null,
+      variantNameSnapshot: null,
+      colorNameSnapshot: null,
+    };
+
+    // First submission with modelId but without snapshot
+    const firstResult = await submitInquiryAction(submissionWithoutSnapshot, mockClient);
+    expect(firstResult.success).toBe(true);
+
+    // Second immediate submission with modelId but without snapshot
+    const secondResult = await submitInquiryAction(submissionWithoutSnapshot, mockClient);
+    expect(secondResult.success).toBe(false);
+    expect(secondResult.error).toContain('Pertanyaan yang sama baru saja dikirimkan');
+  });
+
+  it('revalidates admin paths (/admin/leads and /admin) upon successful inquiry submission', async () => {
+    const result = await submitInquiryAction(validSubmission, mockClient);
+    expect(result.success).toBe(true);
+    expect(revalidatePath).toHaveBeenCalledWith('/admin/leads');
+    expect(revalidatePath).toHaveBeenCalledWith('/admin');
+  });
+
+  it('counts invalid submission attempts toward the rate limit to prevent spam attacks', async () => {
+    const invalidPayload = { fullName: '' };
+
+    // Send 5 invalid requests
+    for (let i = 0; i < 5; i++) {
+      const res = await submitInquiryAction(invalidPayload, mockClient);
+      expect(res.success).toBe(false);
+      expect(res.fieldErrors).toBeDefined();
+    }
+
+    // 6th request should be blocked by rate limiter even though previous requests were invalid
+    const blockedRes = await submitInquiryAction(validSubmission, mockClient);
+    expect(blockedRes.success).toBe(false);
+    expect(blockedRes.error).toContain('Terlalu banyak permintaan pengiriman');
   });
 
   it('handles database errors safely without exposing internal database details', async () => {

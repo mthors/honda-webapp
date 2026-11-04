@@ -478,7 +478,7 @@ export async function getAdminLeads(
       const term = escapePostgrestSearchTerm(options.search);
       if (term.length > 0) {
         query = query.or(
-          `full_name.ilike."%${term}%",whatsapp_number.ilike."%${term}%",lead_reference.ilike."%${term}%",city.ilike."%${term}%"`
+          `full_name.ilike."%${term}%",whatsapp_number.ilike."%${term}%",lead_reference.ilike."%${term}%",city.ilike."%${term}%",model_name_snapshot.ilike."%${term}%"`
         );
       }
     }

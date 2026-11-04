@@ -203,4 +203,36 @@ describe('InquiryForm Component', () => {
     expect(screen.getByText(/Baca Ringkasan Kebijakan Privasi & Ketentuan/i)).toBeInTheDocument();
     expect(screen.getByText(customNotice)).toBeInTheDocument();
   });
+
+  it('accepts phone formatted with parentheses, hyphens, and dots without client validation error', async () => {
+    vi.mocked(inquiryActions.submitInquiryAction).mockResolvedValue({
+      success: true,
+      leadReference: 'INQ-PHONE-TEST',
+    });
+
+    render(<InquiryForm modelOptions={mockModelOptions} />);
+
+    fireEvent.change(screen.getByLabelText(/Nama Lengkap/i), {
+      target: { value: 'Budi Santoso' },
+    });
+    fireEvent.change(screen.getByLabelText(/Nomor WhatsApp/i), {
+      target: { value: '(0812) 3456-7890' },
+    });
+    fireEvent.change(screen.getByLabelText(/Kota \/ Kabupaten Domisili/i), {
+      target: { value: 'Sidoarjo' },
+    });
+    fireEvent.click(screen.getByRole('checkbox'));
+
+    fireEvent.click(screen.getByRole('button', { name: /Kirim Pertanyaan/i }));
+
+    await waitFor(() => {
+      expect(inquiryActions.submitInquiryAction).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  it('enforces maxLength on message textarea to prevent excessive input', () => {
+    render(<InquiryForm modelOptions={mockModelOptions} />);
+    const textarea = screen.getByLabelText(/Pesan Tambahan/i);
+    expect(textarea).toHaveAttribute('maxLength', '1000');
+  });
 });

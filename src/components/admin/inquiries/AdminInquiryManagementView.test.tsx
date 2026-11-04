@@ -138,4 +138,22 @@ describe('AdminInquiryManagementView Component', () => {
     expect(exportBtn).toBeInTheDocument();
     expect(exportBtn).not.toBeDisabled();
   });
+
+  it('displays contextual empty state when search or filters return no results', () => {
+    render(<AdminInquiryManagementView initialLeads={mockLeads} />);
+
+    const searchInput = screen.getByPlaceholderText(/Cari nama, WhatsApp, referensi, atau kota/i);
+    fireEvent.change(searchInput, { target: { value: 'NonexistentKeyword123' } });
+
+    expect(screen.getByText('Tidak Ada Inquiry yang Cocok')).toBeInTheDocument();
+    expect(
+      screen.getByText(/Tidak ditemukan data inquiry yang sesuai dengan kata kunci pencarian/i)
+    ).toBeInTheDocument();
+  });
+
+  it('displays default empty state when initial leads list is empty without active filters', () => {
+    render(<AdminInquiryManagementView initialLeads={[]} />);
+
+    expect(screen.getByText('Belum Ada Inquiry')).toBeInTheDocument();
+  });
 });

@@ -129,7 +129,7 @@ export function InquiryForm({
       errors.fullName = ['Nama lengkap minimal 2 karakter.'];
     }
 
-    const cleanedPhone = whatsappNumber.replace(/\s|-/g, '');
+    const cleanedPhone = whatsappNumber.replace(/[\s\-().]/g, '');
     const phoneRegex = /^(?:\+62|62|0)8[1-9][0-9]{6,11}$/;
     if (!cleanedPhone || !phoneRegex.test(cleanedPhone)) {
       errors.whatsappNumber = [
@@ -143,6 +143,10 @@ export function InquiryForm({
 
     if (!city.trim() || city.trim().length < 2) {
       errors.city = ['Kota / Kabupaten domisili wajib diisi.'];
+    }
+
+    if (message.trim().length > 1000) {
+      errors.message = ['Pesan pertanyaan maksimal 1000 karakter.'];
     }
 
     if (!consentPrivacy) {
@@ -625,6 +629,7 @@ export function InquiryForm({
           <textarea
             id="inquiry-message"
             rows={3}
+            maxLength={1000}
             value={message}
             onChange={(e) => setMessage(e.target.value)}
             placeholder={dealershipCopy.inquiry.messagePlaceholder}
