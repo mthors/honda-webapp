@@ -80,4 +80,3 @@ export const updateSiteSettingsSchema = z.object({
 });
 
 export type UpdateSiteSettingsInput = z.infer<typeof updateSiteSettingsSchema>;
-

@@ -142,8 +142,8 @@ describe('Settings Management Actions — updateSiteSettingsAction', () => {
     );
 
     // Verify cache revalidation
+    expect(revalidatePath).toHaveBeenCalledWith('/', 'layout');
     expect(revalidatePath).toHaveBeenCalledWith('/admin/settings');
-    expect(revalidatePath).toHaveBeenCalledWith('/');
     expect(revalidatePath).toHaveBeenCalledWith('/hubungi');
   });
 
@@ -159,4 +159,3 @@ describe('Settings Management Actions — updateSiteSettingsAction', () => {
     expect(result.error).toContain('Database connection failed');
   });
 });
-

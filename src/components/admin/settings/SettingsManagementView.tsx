@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import Link from 'next/link';
 import type { SiteSettings, DealershipItem } from '@/types/settings';
 import { dealershipCopy } from '@/content/copy/id';
 import { Card } from '@/components/ui/Card';
@@ -90,7 +91,27 @@ export function SettingsManagementView({
           </h1>
           <p className="mt-1 text-sm text-body">{dealershipCopy.adminSettings.subtitle}</p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
+          <Link
+            href="/admin/dealerships"
+            className="px-3.5 py-1.5 text-xs font-semibold text-ink bg-surface border border-hairline rounded-xs hover:bg-neutral-2 hover:border-ink transition-colors inline-flex items-center gap-1.5 shadow-2xs"
+          >
+            <svg
+              className="w-4 h-4 text-primary"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
+              />
+            </svg>
+            <span>{dealershipCopy.adminSettings.manageDealershipsButton}</span>
+            <span aria-hidden="true">&rarr;</span>
+          </Link>
           <Badge variant="primary" size="sm">
             Tingkat Grup
           </Badge>
@@ -104,25 +125,34 @@ export function SettingsManagementView({
 
       {/* 2. Group Scope Architectural Callout */}
       <Card padding="md" className="border-l-4 border-l-primary bg-canvas">
-        <div className="flex items-start gap-3">
-          <span className="p-1 bg-primary/10 text-primary shrink-0 mt-0.5" aria-hidden="true">
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-              />
-            </svg>
-          </span>
-          <div className="space-y-1">
-            <h2 className="text-sm font-bold text-ink font-heading">
-              {dealershipCopy.adminSettings.scopeNoticeTitle}
-            </h2>
-            <p className="text-xs text-body leading-relaxed">
-              {dealershipCopy.adminSettings.scopeNoticeDesc}
-            </p>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="flex items-start gap-3">
+            <span className="p-1 bg-primary/10 text-primary shrink-0 mt-0.5" aria-hidden="true">
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
+              </svg>
+            </span>
+            <div className="space-y-1">
+              <h2 className="text-sm font-bold text-ink font-heading">
+                {dealershipCopy.adminSettings.scopeNoticeTitle}
+              </h2>
+              <p className="text-xs text-body leading-relaxed">
+                {dealershipCopy.adminSettings.scopeNoticeDesc}
+              </p>
+            </div>
           </div>
+          <Link
+            href="/admin/dealerships"
+            className="shrink-0 px-3 py-1.5 text-xs font-semibold text-primary bg-primary/10 border border-primary/20 rounded-xs hover:bg-primary/20 transition-colors inline-flex items-center gap-1.5"
+          >
+            <span>Buka Manajemen Dealer</span>
+            <span aria-hidden="true">&rarr;</span>
+          </Link>
         </div>
       </Card>
 
@@ -331,9 +361,25 @@ export function SettingsManagementView({
               {dealershipCopy.adminSettings.dealershipsSectionSubtitle}
             </p>
           </div>
-          <Badge variant="warning" size="sm">
-            {dealershipCopy.adminSettings.syntheticBadge}
-          </Badge>
+          <div className="flex items-center gap-2">
+            <Link
+              href="/admin/dealerships"
+              className="px-3.5 py-1.5 text-xs font-semibold text-primary bg-primary/10 border border-primary/30 rounded-xs hover:bg-primary/20 transition-colors inline-flex items-center gap-1.5"
+            >
+              <span>{dealershipCopy.adminSettings.manageDealershipsButton}</span>
+              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M9 5l7 7-7 7"
+                />
+              </svg>
+            </Link>
+            <Badge variant="warning" size="sm">
+              {dealershipCopy.adminSettings.syntheticBadge}
+            </Badge>
+          </div>
         </div>
 
         {/* Demo Notice Banner */}

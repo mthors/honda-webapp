@@ -137,4 +137,3 @@ describe('Settings Queries', () => {
     });
   });
 });
-

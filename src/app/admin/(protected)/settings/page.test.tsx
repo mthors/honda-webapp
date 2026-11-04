@@ -76,6 +76,14 @@ describe('AdminSettingsPage', () => {
     // Verify dealership record table shows synthetic dealership
     expect(screen.getByText('[DEMO] Honda Satrya — Sidoarjo Sentral')).toBeDefined();
     expect(screen.getByText('Demo Sintetis')).toBeDefined();
+
+    // Verify prominent dealership CRUD entry points to /admin/dealerships
+    const manageLinks = screen.getAllByRole('link', { name: /Kelola Entitas Dealer/i });
+    expect(manageLinks.length).toBeGreaterThanOrEqual(1);
+    expect(manageLinks[0]).toHaveAttribute('href', '/admin/dealerships');
+    expect(screen.getByRole('link', { name: /Buka Manajemen Dealer/i })).toHaveAttribute(
+      'href',
+      '/admin/dealerships'
+    );
   });
 });
-

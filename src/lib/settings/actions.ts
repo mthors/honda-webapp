@@ -111,9 +111,9 @@ export async function updateSiteSettingsAction(
       supabase
     );
 
-    // 6. Revalidate cache
+    // 6. Revalidate cache across all public layouts and routes
+    revalidatePath('/', 'layout');
     revalidatePath('/admin/settings');
-    revalidatePath('/');
     revalidatePath('/hubungi');
 
     return {

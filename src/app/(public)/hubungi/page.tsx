@@ -7,21 +7,37 @@ import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { InquiryForm } from '@/components/public/inquiry/InquiryForm';
 import { getInquiryModelOptions } from '@/lib/inquiries/queries';
+import { getSiteSettings } from '@/lib/settings/queries';
 
-export const metadata: Metadata = {
-  title: 'Hubungi & Konsultasi — Honda Satrya Dealer Group',
-  description:
-    'Konsultasi pembelian motor Honda, informasi harga OTR resmi, alamat showroom, jam layanan, dan pengajuan pertanyaan pelanggan.',
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const settings = await getSiteSettings();
+  const dealerName = settings?.dealerName || 'Honda Satrya Dealer Group';
+
+  return {
+    title: `Hubungi & Konsultasi — ${dealerName}`,
+    description:
+      'Konsultasi pembelian motor Honda, informasi harga OTR resmi, alamat showroom, jam layanan, dan pengajuan pertanyaan pelanggan.',
+  };
+}
 
 export default async function HubungiPage() {
-  const modelOptions = await getInquiryModelOptions();
-  const whatsappNumber = process.env.NEXT_PUBLIC_DEALER_WHATSAPP;
-  const whatsappUrl = whatsappNumber
-    ? `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(
-        'Halo Honda Satrya Dealer Group, saya ingin berkonsultasi mengenai motor Honda.'
+  const [modelOptions, settings] = await Promise.all([getInquiryModelOptions(), getSiteSettings()]);
+
+  const dealerName = settings?.dealerName?.trim() || 'Honda Satrya Dealer Group';
+
+  // Safe WhatsApp Resolution
+  const rawWhatsApp = settings?.whatsappNumber || process.env.NEXT_PUBLIC_DEALER_WHATSAPP;
+  const cleanWhatsApp = rawWhatsApp ? rawWhatsApp.replace(/\D/g, '') : '';
+  const hasValidWhatsApp = cleanWhatsApp.length >= 9;
+  const whatsappUrl = hasValidWhatsApp
+    ? `https://wa.me/${cleanWhatsApp}?text=${encodeURIComponent(
+        `Halo ${dealerName}, saya ingin berkonsultasi mengenai motor Honda.`
       )}`
     : null;
+
+  // Resolve Consultation Hours
+  const consultationHours =
+    settings?.openingHours?.consultation_hours?.trim() || dealershipCopy.dealer.operatingHours;
 
   return (
     <div className="py-12 sm:py-16">
@@ -44,7 +60,11 @@ export default async function HubungiPage() {
           {/* Left Column: Public Inquiry Capture Form */}
           <div className="lg:col-span-7">
             <Suspense fallback={<Card padding="lg">Memuat formulir konsultasi...</Card>}>
-              <InquiryForm modelOptions={modelOptions} dealerWhatsApp={whatsappNumber} />
+              <InquiryForm
+                modelOptions={modelOptions}
+                dealerWhatsApp={cleanWhatsApp || undefined}
+                privacyNotice={settings?.privacyNotice}
+              />
             </Suspense>
           </div>
 
@@ -63,8 +83,8 @@ export default async function HubungiPage() {
                 <span className="text-xs text-muted block uppercase font-semibold">
                   Nomor WhatsApp Resmi
                 </span>
-                <span className="text-lg font-bold text-ink">
-                  {whatsappNumber ? `+${whatsappNumber}` : dealershipCopy.dealer.phone}
+                <span className="text-lg font-bold text-ink font-mono">
+                  {hasValidWhatsApp ? `+${cleanWhatsApp}` : 'Nomor Belum Dikonfigurasi'}
                 </span>
               </div>
 
@@ -87,24 +107,30 @@ export default async function HubungiPage() {
                 {dealershipCopy.contact.showroomLocation}
               </h2>
               <p className="text-sm text-body leading-relaxed mb-4">
-                {dealershipCopy.dealer.addressPlaceholder}
+                {settings?.address || dealershipCopy.dealer.addressPlaceholder}
               </p>
 
               <div className="pt-4 border-t border-hairline mb-4">
                 <h3 className="text-xs font-semibold uppercase tracking-wider text-muted font-heading mb-1">
                   {dealershipCopy.contact.operatingHoursTitle}
                 </h3>
-                <p className="text-sm text-ink leading-relaxed">
-                  {dealershipCopy.dealer.operatingHours}
-                </p>
+                <p className="text-sm text-ink leading-relaxed">{consultationHours}</p>
               </div>
 
-              <div className="pt-4 border-t border-hairline">
-                <h3 className="text-xs font-semibold uppercase tracking-wider text-muted font-heading mb-1">
-                  Layanan Email
-                </h3>
-                <p className="text-sm text-ink">{dealershipCopy.dealer.email}</p>
-              </div>
+              {/* Public Email (Only rendered when configured) */}
+              {settings?.publicEmail && (
+                <div className="pt-4 border-t border-hairline">
+                  <h3 className="text-xs font-semibold uppercase tracking-wider text-muted font-heading mb-1">
+                    Layanan Email Resmi
+                  </h3>
+                  <a
+                    href={`mailto:${settings.publicEmail}`}
+                    className="text-sm text-ink hover:text-primary transition-colors underline font-mono"
+                  >
+                    {settings.publicEmail}
+                  </a>
+                </div>
+              )}
             </Card>
           </div>
         </div>
