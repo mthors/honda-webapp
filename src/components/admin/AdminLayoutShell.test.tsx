@@ -35,6 +35,7 @@ describe('AdminLayoutShell', () => {
 
     // Navigation links in sidebar
     expect(screen.getByRole('link', { name: /Dasbor/i })).toHaveAttribute('href', '/admin');
+    expect(screen.getByRole('link', { name: /^Motor$/i })).toHaveAttribute('href', '/admin/motor');
     expect(screen.getByRole('link', { name: /Harga/i })).toHaveAttribute('href', '/admin/harga');
     expect(screen.getByRole('link', { name: /Promo/i })).toHaveAttribute('href', '/admin/promo');
     expect(screen.getByRole('link', { name: /Spanduk/i })).toHaveAttribute('href', '/admin/banner');
