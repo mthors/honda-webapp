@@ -283,14 +283,14 @@ export function MotorcycleFormModal({
 
   return (
     <div
-      className="fixed inset-0 z-50 overflow-y-auto bg-black/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4"
+      className="fixed inset-0 z-50 overflow-y-auto bg-neutral-900/40 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4"
       role="dialog"
       aria-modal="true"
       aria-labelledby="modal-headline"
     >
-      <div className="relative w-full max-w-4xl bg-surface border border-hairline shadow-xl flex flex-col max-h-[92vh] rounded-none">
+      <div className="relative w-full max-w-4xl bg-surface border border-hairline shadow-2xl flex flex-col max-h-[92vh] sm:max-h-[88vh] rounded-none overflow-hidden">
         {/* Modal Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-hairline bg-surface">
+        <div className="flex items-center justify-between px-4 sm:px-6 py-4 border-b border-hairline bg-surface shrink-0">
           <div>
             <h2 id="modal-headline" className="text-base font-bold text-ink font-heading">
               {isEditing ? copy.formTitleEdit : copy.formTitleCreate}
@@ -302,7 +302,7 @@ export function MotorcycleFormModal({
           <button
             type="button"
             onClick={onClose}
-            className="text-muted hover:text-ink p-1 rounded-none focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+            className="text-muted hover:text-ink hover:bg-neutral-2 p-1.5 rounded-none transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
             aria-label="Tutup formulir"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -312,14 +312,14 @@ export function MotorcycleFormModal({
         </div>
 
         {/* Tab Navigation */}
-        <div className="flex border-b border-hairline bg-neutral-1 px-6">
+        <div className="flex border-b border-hairline bg-neutral-2/40 px-4 sm:px-6 gap-2 shrink-0 overflow-x-auto">
           <button
             type="button"
             onClick={() => setActiveTab('general')}
-            className={`py-3 px-4 text-xs font-semibold border-b-2 transition-colors ${
+            className={`py-3 px-4 text-xs font-semibold border-b-2 transition-colors whitespace-nowrap focus:outline-none focus-visible:ring-2 focus-visible:ring-primary ${
               activeTab === 'general'
-                ? 'border-primary text-primary'
-                : 'border-transparent text-muted hover:text-ink'
+                ? 'border-primary text-primary bg-surface font-bold shadow-2xs'
+                : 'border-transparent text-muted hover:text-ink hover:bg-neutral-2/60'
             }`}
           >
             {copy.sectionGeneral}
@@ -327,28 +327,40 @@ export function MotorcycleFormModal({
           <button
             type="button"
             onClick={() => setActiveTab('variants')}
-            className={`py-3 px-4 text-xs font-semibold border-b-2 transition-colors flex items-center space-x-1.5 ${
+            className={`py-3 px-4 text-xs font-semibold border-b-2 transition-colors whitespace-nowrap flex items-center space-x-1.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary ${
               activeTab === 'variants'
-                ? 'border-primary text-primary'
-                : 'border-transparent text-muted hover:text-ink'
+                ? 'border-primary text-primary bg-surface font-bold shadow-2xs'
+                : 'border-transparent text-muted hover:text-ink hover:bg-neutral-2/60'
             }`}
           >
             <span>{copy.sectionVariants}</span>
-            <span className="inline-flex items-center justify-center px-1.5 py-0.5 text-[10px] font-bold rounded-full bg-neutral-2 text-ink">
+            <span
+              className={`inline-flex items-center justify-center px-1.5 py-0.5 text-[10px] font-bold rounded-full ${
+                activeTab === 'variants'
+                  ? 'bg-primary/10 text-primary'
+                  : 'bg-neutral-2 text-muted'
+              }`}
+            >
               {variants.length}
             </span>
           </button>
           <button
             type="button"
             onClick={() => setActiveTab('images')}
-            className={`py-3 px-4 text-xs font-semibold border-b-2 transition-colors flex items-center space-x-1.5 ${
+            className={`py-3 px-4 text-xs font-semibold border-b-2 transition-colors whitespace-nowrap flex items-center space-x-1.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary ${
               activeTab === 'images'
-                ? 'border-primary text-primary'
-                : 'border-transparent text-muted hover:text-ink'
+                ? 'border-primary text-primary bg-surface font-bold shadow-2xs'
+                : 'border-transparent text-muted hover:text-ink hover:bg-neutral-2/60'
             }`}
           >
             <span>{copy.sectionImages}</span>
-            <span className="inline-flex items-center justify-center px-1.5 py-0.5 text-[10px] font-bold rounded-full bg-neutral-2 text-ink">
+            <span
+              className={`inline-flex items-center justify-center px-1.5 py-0.5 text-[10px] font-bold rounded-full ${
+                activeTab === 'images'
+                  ? 'bg-primary/10 text-primary'
+                  : 'bg-neutral-2 text-muted'
+              }`}
+            >
               {images.length}
             </span>
           </button>
@@ -356,14 +368,14 @@ export function MotorcycleFormModal({
 
         {/* Global Error Banner */}
         {errorMessage && (
-          <div className="mx-6 mt-4 p-3 bg-status-error/10 border-l-4 border-status-error text-status-error text-xs">
+          <div className="mx-4 sm:mx-6 mt-4 p-3 bg-status-error/10 border-l-4 border-status-error text-status-error text-xs">
             <p className="font-semibold">{errorMessage}</p>
           </div>
         )}
 
         {/* Form Body */}
         <form onSubmit={handleSubmit} className="flex flex-col flex-1 overflow-hidden">
-          <div className="flex-1 overflow-y-auto p-6 space-y-6">
+          <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-6 bg-surface">
             {/* =================================================================
                 TAB 1: GENERAL INFORMASI
                ================================================================= */}
@@ -382,7 +394,7 @@ export function MotorcycleFormModal({
                       value={name}
                       onChange={(e) => handleNameChange(e.target.value)}
                       placeholder={copy.namePlaceholder}
-                      className="w-full h-10 px-3 text-xs bg-canvas text-ink border border-hairline rounded-none focus:ring-1 focus:ring-primary focus:border-primary"
+                      className="w-full h-10 px-3 text-xs bg-canvas text-ink border border-hairline rounded-none focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-colors"
                     />
                     {fieldErrors.name && (
                       <p className="mt-1 text-[11px] text-status-error">{fieldErrors.name.join(', ')}</p>
@@ -401,7 +413,7 @@ export function MotorcycleFormModal({
                       value={slug}
                       onChange={(e) => handleSlugChange(e.target.value)}
                       placeholder={copy.slugPlaceholder}
-                      className="w-full h-10 px-3 text-xs bg-canvas text-ink border border-hairline rounded-none focus:ring-1 focus:ring-primary focus:border-primary font-mono"
+                      className="w-full h-10 px-3 text-xs bg-canvas text-ink border border-hairline rounded-none focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary font-mono transition-colors"
                     />
                     <p className="mt-1 text-[10px] text-muted">{copy.slugHelp}</p>
                     {fieldErrors.slug && (
@@ -419,7 +431,7 @@ export function MotorcycleFormModal({
                       required
                       value={categoryId}
                       onChange={(e) => setCategoryId(e.target.value)}
-                      className="w-full h-10 px-3 text-xs bg-canvas text-ink border border-hairline rounded-none focus:ring-1 focus:ring-primary focus:border-primary"
+                      className="w-full h-10 px-3 text-xs bg-canvas text-ink border border-hairline rounded-none focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-colors"
                     >
                       {categories.map((c) => (
                         <option key={c.id} value={c.id}>
@@ -444,7 +456,7 @@ export function MotorcycleFormModal({
                       value={engineCc}
                       onChange={(e) => setEngineCc(e.target.value)}
                       placeholder={copy.engineCcPlaceholder}
-                      className="w-full h-10 px-3 text-xs bg-canvas text-ink border border-hairline rounded-none focus:ring-1 focus:ring-primary focus:border-primary"
+                      className="w-full h-10 px-3 text-xs bg-canvas text-ink border border-hairline rounded-none focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-colors"
                     />
                   </div>
 
@@ -459,7 +471,7 @@ export function MotorcycleFormModal({
                       value={transmission}
                       onChange={(e) => setTransmission(e.target.value)}
                       placeholder={copy.transmissionPlaceholder}
-                      className="w-full h-10 px-3 text-xs bg-canvas text-ink border border-hairline rounded-none focus:ring-1 focus:ring-primary focus:border-primary"
+                      className="w-full h-10 px-3 text-xs bg-canvas text-ink border border-hairline rounded-none focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-colors"
                     />
                   </div>
 
@@ -472,7 +484,7 @@ export function MotorcycleFormModal({
                       id="model-status"
                       value={status}
                       onChange={(e) => setStatus(e.target.value as ModelStatus)}
-                      className="w-full h-10 px-3 text-xs bg-canvas text-ink border border-hairline rounded-none focus:ring-1 focus:ring-primary focus:border-primary"
+                      className="w-full h-10 px-3 text-xs bg-canvas text-ink border border-hairline rounded-none focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-colors"
                     >
                       <option value="draft">{copy.statusDraft} (Hanya Admin)</option>
                       <option value="published">{copy.statusPublished} (Tampil Publik)</option>
@@ -483,22 +495,22 @@ export function MotorcycleFormModal({
 
                   {/* Featured and New toggles */}
                   <div className="sm:col-span-2 flex flex-wrap gap-6 pt-2">
-                    <label className="flex items-center space-x-2 text-xs font-medium text-ink cursor-pointer">
+                    <label className="flex items-center space-x-2 text-xs font-medium text-ink cursor-pointer select-none">
                       <input
                         type="checkbox"
                         checked={isFeatured}
                         onChange={(e) => setIsFeatured(e.target.checked)}
-                        className="rounded-none border-hairline text-primary focus:ring-primary h-4 w-4"
+                        className="rounded-none border-hairline text-primary focus:ring-2 focus:ring-primary h-4 w-4"
                       />
                       <span>{copy.isFeaturedLabel}</span>
                     </label>
 
-                    <label className="flex items-center space-x-2 text-xs font-medium text-ink cursor-pointer">
+                    <label className="flex items-center space-x-2 text-xs font-medium text-ink cursor-pointer select-none">
                       <input
                         type="checkbox"
                         checked={isNew}
                         onChange={(e) => setIsNew(e.target.checked)}
-                        className="rounded-none border-hairline text-primary focus:ring-primary h-4 w-4"
+                        className="rounded-none border-hairline text-primary focus:ring-2 focus:ring-primary h-4 w-4"
                       />
                       <span>{copy.isNewLabel}</span>
                     </label>
@@ -515,7 +527,7 @@ export function MotorcycleFormModal({
                       value={shortDescription}
                       onChange={(e) => setShortDescription(e.target.value)}
                       placeholder={copy.shortDescriptionPlaceholder}
-                      className="w-full p-3 text-xs bg-canvas text-ink border border-hairline rounded-none focus:ring-1 focus:ring-primary focus:border-primary"
+                      className="w-full p-3 text-xs bg-canvas text-ink border border-hairline rounded-none focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-colors"
                     />
                   </div>
 
@@ -530,7 +542,7 @@ export function MotorcycleFormModal({
                       value={description}
                       onChange={(e) => setDescription(e.target.value)}
                       placeholder={copy.descriptionPlaceholder}
-                      className="w-full p-3 text-xs bg-canvas text-ink border border-hairline rounded-none focus:ring-1 focus:ring-primary focus:border-primary"
+                      className="w-full p-3 text-xs bg-canvas text-ink border border-hairline rounded-none focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-colors"
                     />
                   </div>
 
@@ -547,7 +559,7 @@ export function MotorcycleFormModal({
                         value={seoTitle}
                         onChange={(e) => setSeoTitle(e.target.value)}
                         placeholder={copy.seoTitlePlaceholder}
-                        className="w-full h-9 px-3 text-xs bg-canvas text-ink border border-hairline rounded-none"
+                        className="w-full h-9 px-3 text-xs bg-canvas text-ink border border-hairline rounded-none focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-colors"
                       />
                     </div>
                     <div>
@@ -560,7 +572,7 @@ export function MotorcycleFormModal({
                         value={seoDescription}
                         onChange={(e) => setSeoDescription(e.target.value)}
                         placeholder={copy.seoDescriptionPlaceholder}
-                        className="w-full h-9 px-3 text-xs bg-canvas text-ink border border-hairline rounded-none"
+                        className="w-full h-9 px-3 text-xs bg-canvas text-ink border border-hairline rounded-none focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-colors"
                       />
                     </div>
                   </div>
@@ -584,7 +596,7 @@ export function MotorcycleFormModal({
                 </div>
 
                 {variants.length === 0 ? (
-                  <div className="p-8 text-center border border-dashed border-hairline text-muted text-xs">
+                  <div className="p-8 text-center border border-dashed border-hairline text-muted text-xs bg-neutral-2/20">
                     Belum ada varian. Klik &quot;{copy.addVariantButton}&quot; untuk menambahkan tipe varian motor.
                   </div>
                 ) : (
@@ -592,7 +604,7 @@ export function MotorcycleFormModal({
                     {variants.map((v, vIdx) => (
                       <div
                         key={v.id || vIdx}
-                        className="p-4 border border-hairline bg-surface rounded-none space-y-3 relative"
+                        className="p-4 border border-hairline bg-neutral-2/15 rounded-none space-y-3 relative shadow-2xs"
                       >
                         <div className="flex items-center justify-between pb-2 border-b border-hairline">
                           <span className="text-xs font-bold text-ink">
@@ -602,7 +614,7 @@ export function MotorcycleFormModal({
                             <button
                               type="button"
                               onClick={() => removeVariant(vIdx)}
-                              className="text-status-error text-xs hover:underline"
+                              className="text-status-error text-xs hover:underline focus:outline-none focus-visible:ring-1 focus-visible:ring-status-error"
                             >
                               Hapus Varian
                             </button>
@@ -620,7 +632,7 @@ export function MotorcycleFormModal({
                               value={v.name}
                               onChange={(e) => updateVariant(vIdx, { name: e.target.value })}
                               placeholder={copy.variantNamePlaceholder}
-                              className="w-full h-8 px-2.5 text-xs bg-canvas text-ink border border-hairline rounded-none"
+                              className="w-full h-8 px-2.5 text-xs bg-canvas text-ink border border-hairline rounded-none focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-colors"
                             />
                           </div>
 
@@ -633,7 +645,7 @@ export function MotorcycleFormModal({
                               value={v.code || ''}
                               onChange={(e) => updateVariant(vIdx, { code: e.target.value })}
                               placeholder={copy.variantCodePlaceholder}
-                              className="w-full h-8 px-2.5 text-xs bg-canvas text-ink border border-hairline rounded-none font-mono"
+                              className="w-full h-8 px-2.5 text-xs bg-canvas text-ink border border-hairline rounded-none font-mono focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-colors"
                             />
                           </div>
 
@@ -644,7 +656,7 @@ export function MotorcycleFormModal({
                               onChange={(e) =>
                                 updateVariant(vIdx, { status: e.target.value as 'active' | 'inactive' })
                               }
-                              className="w-full h-8 px-2.5 text-xs bg-canvas text-ink border border-hairline rounded-none"
+                              className="w-full h-8 px-2.5 text-xs bg-canvas text-ink border border-hairline rounded-none focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-colors"
                             >
                               <option value="active">Aktif</option>
                               <option value="inactive">Nonaktif</option>
@@ -665,10 +677,10 @@ export function MotorcycleFormModal({
                                   key={c.id}
                                   type="button"
                                   onClick={() => toggleVariantColor(vIdx, c.id)}
-                                  className={`inline-flex items-center space-x-1.5 px-2.5 py-1 text-xs border rounded-none transition-colors ${
+                                  className={`inline-flex items-center space-x-1.5 px-2.5 py-1 text-xs border rounded-none transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary ${
                                     isChecked
-                                      ? 'border-primary bg-primary/10 text-primary font-semibold'
-                                      : 'border-hairline bg-canvas text-muted hover:text-ink'
+                                      ? 'border-primary bg-primary/10 text-primary font-semibold ring-1 ring-primary'
+                                      : 'border-hairline bg-surface text-body hover:text-ink hover:border-neutral-3'
                                   }`}
                                 >
                                   {c.hexCode && (
@@ -707,7 +719,7 @@ export function MotorcycleFormModal({
                 </div>
 
                 {images.length === 0 ? (
-                  <div className="p-8 text-center border border-dashed border-hairline text-muted text-xs">
+                  <div className="p-8 text-center border border-dashed border-hairline text-muted text-xs bg-neutral-2/20">
                     Belum ada gambar ditambahkan. Klik &quot;{copy.addImageButton}&quot; untuk menambahkan gambar model.
                   </div>
                 ) : (
@@ -719,7 +731,7 @@ export function MotorcycleFormModal({
                       return (
                         <div
                           key={img.id || imgIdx}
-                          className="p-4 border border-hairline bg-surface rounded-none space-y-3 relative"
+                          className="p-4 border border-hairline bg-neutral-2/15 rounded-none space-y-3 relative shadow-2xs"
                         >
                           <div className="flex items-center justify-between pb-2 border-b border-hairline">
                             <span className="text-xs font-bold text-ink">
@@ -728,7 +740,7 @@ export function MotorcycleFormModal({
                             <button
                               type="button"
                               onClick={() => removeImage(imgIdx)}
-                              className="text-status-error text-xs hover:underline"
+                              className="text-status-error text-xs hover:underline focus:outline-none focus-visible:ring-1 focus-visible:ring-status-error"
                             >
                               Hapus Gambar
                             </button>
@@ -763,9 +775,9 @@ export function MotorcycleFormModal({
                                     value={img.storagePath}
                                     onChange={(e) => updateImage(imgIdx, { storagePath: e.target.value })}
                                     placeholder={copy.imagePathPlaceholder}
-                                    className="flex-1 h-8 px-2.5 text-xs bg-canvas text-ink border border-hairline rounded-none font-mono"
+                                    className="flex-1 h-8 px-2.5 text-xs bg-canvas text-ink border border-hairline rounded-none font-mono focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-colors"
                                   />
-                                  <label className="cursor-pointer inline-flex items-center justify-center px-3 h-8 bg-neutral-2 hover:bg-neutral-3 text-ink text-xs font-medium border border-hairline shrink-0">
+                                  <label className="cursor-pointer inline-flex items-center justify-center px-3 h-8 bg-neutral-2 hover:bg-neutral-3 hover:text-on-primary text-ink text-xs font-semibold border border-hairline shrink-0 transition-colors focus-within:ring-2 focus-within:ring-primary">
                                     <span>{isUploading ? 'Mengunggah...' : 'Unggah File'}</span>
                                     <input
                                       type="file"
@@ -792,7 +804,7 @@ export function MotorcycleFormModal({
                                     value={img.altText}
                                     onChange={(e) => updateImage(imgIdx, { altText: e.target.value })}
                                     placeholder={copy.imageAltPlaceholder}
-                                    className="w-full h-8 px-2.5 text-xs bg-canvas text-ink border border-hairline rounded-none"
+                                    className="w-full h-8 px-2.5 text-xs bg-canvas text-ink border border-hairline rounded-none focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-colors"
                                   />
                                 </div>
 
@@ -805,7 +817,7 @@ export function MotorcycleFormModal({
                                     onChange={(e) =>
                                       updateImage(imgIdx, { imageRole: e.target.value as ImageRole })
                                     }
-                                    className="w-full h-8 px-2.5 text-xs bg-canvas text-ink border border-hairline rounded-none"
+                                    className="w-full h-8 px-2.5 text-xs bg-canvas text-ink border border-hairline rounded-none focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-colors"
                                   >
                                     <option value="card">{copy.roleCard}</option>
                                     <option value="hero">{copy.roleHero}</option>
@@ -826,11 +838,11 @@ export function MotorcycleFormModal({
           </div>
 
           {/* Modal Footer */}
-          <div className="flex items-center justify-between px-6 py-4 border-t border-hairline bg-surface">
+          <div className="flex items-center justify-between px-4 sm:px-6 py-4 border-t border-hairline bg-surface shrink-0">
             <Button type="button" variant="outline" size="sm" onClick={onClose} disabled={isSubmitting}>
               Batal
             </Button>
-            <div className="flex space-x-2">
+            <div className="flex items-center space-x-2">
               {activeTab !== 'images' && (
                 <Button
                   type="button"

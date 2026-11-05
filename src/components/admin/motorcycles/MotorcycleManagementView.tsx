@@ -342,7 +342,7 @@ export function MotorcycleManagementView({
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs">
-              <thead className="bg-neutral-1 border-b border-hairline uppercase text-[11px] font-semibold text-muted">
+              <thead className="bg-neutral-2/70 border-b border-hairline uppercase text-[11px] font-semibold text-muted">
                 <tr>
                   <th scope="col" className="px-4 py-3">
                     {copy.tableHeaderModel}
@@ -367,7 +367,7 @@ export function MotorcycleManagementView({
                   const isToggling = togglingId === model.id;
 
                   return (
-                    <tr key={model.id} className="hover:bg-neutral-1/50 transition-colors">
+                    <tr key={model.id} className="hover:bg-neutral-2/40 transition-colors">
                       {/* Model Thumbnail & Identity */}
                       <td className="px-4 py-3.5">
                         <div className="flex items-center space-x-3">
@@ -514,12 +514,12 @@ export function MotorcycleManagementView({
       {/* Delete Confirmation Dialog */}
       {deleteTarget && (
         <div
-          className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4"
+          className="fixed inset-0 z-50 bg-neutral-900/40 backdrop-blur-sm flex items-center justify-center p-4"
           role="dialog"
           aria-modal="true"
           aria-labelledby="delete-dialog-title"
         >
-          <div className="w-full max-w-md bg-surface border border-hairline p-6 shadow-xl rounded-none space-y-4">
+          <div className="w-full max-w-md bg-surface border border-hairline p-6 shadow-2xl rounded-none space-y-4">
             <h3 id="delete-dialog-title" className="text-sm font-bold text-ink font-heading">
               {copy.confirmDeleteTitle}
             </h3>
