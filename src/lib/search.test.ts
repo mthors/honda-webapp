@@ -98,26 +98,33 @@ describe('PostgREST client URL serialization', () => {
   });
 });
 
-describe('Live PostgREST query execution (when local Supabase is accessible)', () => {
-  function getServiceRoleKey(): string | null {
-    if (process.env.SUPABASE_SERVICE_ROLE_KEY) {
-      return process.env.SUPABASE_SERVICE_ROLE_KEY;
-    }
+describe('Live PostgREST query execution (when Supabase is accessible)', () => {
+  function getEnvConfig(): { url: string; serviceKey: string } | null {
+    let url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    let key = process.env.SUPABASE_SERVICE_ROLE_KEY;
     try {
       const envPath = path.resolve(process.cwd(), '.env.local');
       if (fs.existsSync(envPath)) {
         const content = fs.readFileSync(envPath, 'utf-8');
-        const match = content.match(/SUPABASE_SERVICE_ROLE_KEY=([^\s\r\n]+)/);
-        if (match) return match[1];
+        if (!key) {
+          const matchKey = content.match(/SUPABASE_SERVICE_ROLE_KEY=([^\s\r\n]+)/);
+          if (matchKey) key = matchKey[1];
+        }
+        if (!url) {
+          const matchUrl = content.match(/NEXT_PUBLIC_SUPABASE_URL=([^\s\r\n]+)/);
+          if (matchUrl) url = matchUrl[1];
+        }
       }
     } catch {
       // ignore
     }
-    return null;
+    if (!url || !key) return null;
+    return { url, serviceKey: key };
   }
 
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'http://127.0.0.1:54321';
-  const serviceKey = getServiceRoleKey();
+  const envConfig = getEnvConfig();
+  const supabaseUrl = envConfig?.url || '';
+  const serviceKey = envConfig?.serviceKey || null;
   const clientOptions = { auth: { persistSession: false, autoRefreshToken: false } };
 
   it.skipIf(!serviceKey)(
@@ -131,21 +138,26 @@ describe('Live PostgREST query execution (when local Supabase is accessible)', (
         .or(`full_name.ilike."%${term}%",city.ilike."%${term}%"`);
 
       expect(error).toBeNull();
-    }
+    },
+    10000
   );
 
-  it.skipIf(!serviceKey)('prevents wildcard % from matching all rows in the table', async () => {
-    const client = createClient(supabaseUrl, serviceKey!, clientOptions);
-    const term = escapePostgrestSearchTerm('%');
-    const { data, error } = await client
-      .from('leads')
-      .select('id')
-      .or(`full_name.ilike."%${term}%",city.ilike."%${term}%"`);
+  it.skipIf(!serviceKey)(
+    'prevents wildcard % from matching all rows in the table',
+    async () => {
+      const client = createClient(supabaseUrl, serviceKey!, clientOptions);
+      const term = escapePostgrestSearchTerm('%');
+      const { data, error } = await client
+        .from('leads')
+        .select('id')
+        .or(`full_name.ilike."%${term}%",city.ilike."%${term}%"`);
 
-    expect(error).toBeNull();
-    // In our test database, no lead literally contains '%' in name or city, so result count should be 0
-    expect(data?.length).toBe(0);
-  });
+      expect(error).toBeNull();
+      // In our test database, no lead literally contains '%' in name or city, so result count should be 0
+      expect(data?.length).toBe(0);
+    },
+    10000
+  );
 
   it.skipIf(!serviceKey)(
     'prevents PostgREST condition injection from matching all rows',
@@ -160,6 +172,7 @@ describe('Live PostgREST query execution (when local Supabase is accessible)', (
       expect(error).toBeNull();
       // The injection is treated as a literal search string, not a separate filter condition
       expect(data?.length).toBe(0);
-    }
+    },
+    10000
   );
 });
