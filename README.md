@@ -1,44 +1,77 @@
-# Honda Satrya Dealer Group Digital Showroom — Documentation Pack
+# Honda Satrya Dealer Group Digital Showroom
 
-**Status:** Proposed V1 baseline — clarified by dealership owner\
-**Product type:** Group-wide public motorcycle catalog + CMS + sales inquiry management\
-**Business identity:** **Honda Satrya Dealer Group** (a group operating multiple Honda motorcycle dealerships)\
-**Reference:** https://www.astra-honda.com/\
-**Important:** Use the reference for layout inspiration and interaction
-patterns. Do not copy Astra Honda's source code, exact assets, text,
-trademarks beyond authorized dealer use, or imply this is the official
-Astra Honda corporate website.
+A digital showroom web application for Honda Mega Persada Mandiri, featuring a public motorcycle catalog, local on-the-road (OTR) pricing, customer inquiry forms, and an administrative CMS for managing showroom content.
 
-## Confirmed business decisions
-- Dealer identity: **Honda Satrya Dealer Group** (group operating multiple Honda motorcycle dealerships).
-- Showcase concept: Group-wide digital motorcycle showroom; does not display individual dealership details or a dealership directory in V1.
-- Pricing: Applicable area / city-based local OTR prices; do not imply national pricing. No dealership-specific pricing ownership in V1.
-- Credit simulation: disabled/out of scope for V1; display verified OTR prices only.
-- Inquiry workflow: Customer submits an inquiry including their location (city/regency). The sales administrator reviews inquiries in the protected admin portal, exports to Excel (`.xlsx`), and manually forwards each inquiry to the appropriate nearby dealership. No automated lead routing or CRM sales pipeline in V1.
-- Explicit V1 exclusions: No public dealership directory or branch detail pages, no dealership-specific admin roles or branch CRUD, no automated lead routing/notifications.
+## Tech Stack
 
-## Documents
+- **Framework:** Next.js (App Router, Turbopack) & React 19
+- **Language:** TypeScript
+- **Styling:** Tailwind CSS v4
+- **Backend & Database:** Supabase (PostgreSQL, Auth, Storage, RLS)
+- **Utilities:** ExcelJS (inquiry export), Zod (schema validation)
+- **Testing:** Vitest, Testing Library, Playwright
 
-1.  `01-product-requirements.md` — product scope, personas, requirements, acceptance criteria.
-2.  `02-technical-architecture.md` — recommended stack, application structure, integrations.
-3.  `03-database-schema.md` — proposed PostgreSQL schema, relationships, indexes and RLS.
-4.  `04-ux-and-content-spec.md` — routes, page layouts, inquiry and credit simulation behavior.
-5.  `05-admin-and-sales-workflows.md` — CMS operations, lead workflow, roles and manual forwarding.
-6.  `06-security-privacy-and-operations.md` — security, privacy, backups, deployment and operations.
-7.  `07-milestones-and-agent-workflow.md` — phased delivery, gates and AI-agent workflow.
-8.  `08-test-and-release-plan.md` — quality strategy, test matrix and release checklist.
-9.  `09-agent-project-instructions.md` — starting instructions for an AI coding agent.
+## Prerequisites
 
-## Decisions to validate with the dealership owner
+- [Node.js](https://nodejs.org/) (v20 or higher recommended)
+- [npm](https://www.npmjs.com/)
+- A [Supabase](https://supabase.com/) project
 
--   Official group contact information, logo assets, group operating hours, and authorized sales WhatsApp/email.
--   Which Honda models and variants the group is authorized/able to sell.
--   Authoritative local on-the-road (OTR) price tables and applicable city coverage.
--   Who owns and updates promotion terms across the group.
--   Which financing partners (if any) can be named, and whether their rates/terms may be published in a future release.
--   Domain, hosting budget, and data retention policy.
--   Consent text and privacy notice reviewed by the business owner/legal adviser.
+## Installation & Setup
 
-## Recommended V1 principle
+### 1. Clone & Install Dependencies
 
-Keep the first release focused on **group catalog → local OTR price → inquiry with location → Excel export → manual dealership forwarding**. Do not build credit simulation, branch management CRUD, or a CRM pipeline in V1.
+```bash
+git clone <repository-url>
+cd honda-webapp
+npm install
+```
+
+### 2. Configure Environment Variables
+
+Copy the example environment file:
+
+```bash
+cp .env.example .env.local
+```
+
+Fill in your configuration in `.env.local`:
+
+```env
+NEXT_PUBLIC_APP_URL=http://localhost:3000
+NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your-supabase-anon-key
+NEXT_PUBLIC_DEALER_WHATSAPP=[Your Admin Whatsapp Number]
+```
+
+### 3. Run Locally
+
+Start the development server:
+
+```bash
+npm run dev
+```
+
+- Public showroom: [http://localhost:3000](http://localhost:3000)
+- Admin portal: [http://localhost:3000/admin](http://localhost:3000/admin)
+
+## Available Scripts
+
+| Command | Description |
+| --- | --- |
+| `npm run dev` | Starts local Next.js development server |
+| `npm run build` | Builds optimized production bundle |
+| `npm run start` | Starts Next.js production server |
+| `npm run typecheck` | Checks TypeScript types with `tsc` |
+| `npm run lint` | Runs ESLint checks |
+| `npm test` | Runs unit and component tests with Vitest |
+| `npm run test:e2e` | Runs end-to-end browser tests with Playwright |
+
+## Documentation
+
+For full project specifications, database schema, and architecture details, refer to:
+- [`01-product-requirements.md`](./01-product-requirements.md)
+- [`02-technical-architecture.md`](./02-technical-architecture.md)
+- [`03-database-schema.md`](./03-database-schema.md)
+- [`05-admin-and-sales-workflows.md`](./05-admin-and-sales-workflows.md)
+- [`DESIGN.md`](./DESIGN.md)
