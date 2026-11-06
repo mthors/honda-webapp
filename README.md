@@ -1,6 +1,6 @@
 # Honda Satrya Dealer Group Digital Showroom
 
-A digital showroom web application for Honda Mega Persada Mandiri, featuring a public motorcycle catalog, local on-the-road (OTR) pricing, customer inquiry forms, and an administrative CMS for managing showroom content.
+A digital showroom web application for Honda Satrya Dealer Group, featuring a public motorcycle catalog, local on-the-road (OTR) pricing, customer inquiry forms, and an administrative CMS for managing showroom content.
 
 ## Tech Stack
 
