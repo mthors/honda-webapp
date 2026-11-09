@@ -6,6 +6,7 @@ import {
   getActiveCategories,
 } from '@/lib/catalog/queries';
 import { getActiveHeroBanners } from '@/lib/promotions/queries';
+import { getStorageImageSizes } from '@/lib/catalog/image-quality.server';
 import { SplitHeroShowroom } from '@/components/public/home/SplitHeroShowroom';
 import { ReferenceCategoryDiscovery } from '@/components/public/home/ReferenceCategoryDiscovery';
 import { ReferencePromoBanner } from '@/components/public/home/ReferencePromoBanner';
@@ -23,11 +24,12 @@ export const metadata: Metadata = {
 };
 
 export default async function HomePage() {
-  const [allModels, featuredModels, categories, heroBanners] = await Promise.all([
+  const [allModels, featuredModels, categories, heroBanners, imageSizes] = await Promise.all([
     getPublishedModels(),
     getFeaturedModels(),
     getActiveCategories(),
     getActiveHeroBanners(),
+    getStorageImageSizes(),
   ]);
 
   return (
@@ -37,6 +39,7 @@ export default async function HomePage() {
         categories={categories}
         models={allModels}
         banners={heroBanners}
+        imageSizes={imageSizes}
       />
 
       {/* 2. Popular Body Type: Category Discovery with Consistent Cards */}

@@ -1,112 +1,13 @@
 import React from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import type { CatalogCategory, CatalogModelSummary } from '@/types/catalog';
 import { Container } from '@/components/ui/Container';
+import { getStorageImageUrl } from '@/lib/catalog/image';
 
 interface ReferenceCategoryDiscoveryProps {
   categories: CatalogCategory[];
   models?: CatalogModelSummary[];
-}
-
-function CategoryIcon({ slug }: { slug: string }) {
-  switch (slug) {
-    case 'matic':
-      // Scooter / Skutik with step-through floorboard and front cowl
-      return (
-        <svg
-          className="w-7 h-7"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth={1.8}
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          aria-hidden="true"
-        >
-          <circle cx="5.5" cy="17.5" r="3" />
-          <circle cx="18.5" cy="17.5" r="3" />
-          <path d="M5.5 17.5h4.5l3.5-6.5h3l2 6.5" />
-          <path d="M16.5 11l-1.5-6h2" />
-          <path d="M7 13.5h3.5" />
-        </svg>
-      );
-    case 'cub':
-      // Bebek / Underbone with diagonal backbone frame and slim chassis
-      return (
-        <svg
-          className="w-7 h-7"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth={1.8}
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          aria-hidden="true"
-        >
-          <circle cx="5.5" cy="17.5" r="3" />
-          <circle cx="18.5" cy="17.5" r="3" />
-          <path d="M5.5 17.5l4-7h4.5l4.5 7" />
-          <path d="M7 11.5l3-2h4l1.5 2" />
-          <path d="M17 12l-1.5-7h2.5" />
-        </svg>
-      );
-    case 'sport':
-      // Sportbike with aerodynamic full fairing, low clip-ons and high tail
-      return (
-        <svg
-          className="w-7 h-7"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth={1.8}
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          aria-hidden="true"
-        >
-          <circle cx="5.5" cy="17.5" r="3" />
-          <circle cx="18.5" cy="17.5" r="3" />
-          <path d="M5.5 17.5l4.5-5.5 4.5 1 3.5-3.5 1.5 8" />
-          <path d="M4 11l4-3 4.5 1.5 4-4.5" />
-          <path d="M15.5 6l1.5-1.5" />
-        </svg>
-      );
-    case 'ev':
-      // Electric motorcycle with lightning energy bolt
-      return (
-        <svg
-          className="w-7 h-7"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth={1.8}
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          aria-hidden="true"
-        >
-          <circle cx="5.5" cy="17.5" r="3" />
-          <circle cx="18.5" cy="17.5" r="3" />
-          <path d="M5.5 17.5h3.5l3-5.5h4l2.5 5.5" />
-          <path d="M15 12l-1-6h2" />
-          <path d="M11.5 6l-2 3.5h2.5l-1.5 3.5" stroke="currentColor" strokeWidth={2} />
-        </svg>
-      );
-    default:
-      return (
-        <svg
-          className="w-7 h-7"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth={1.8}
-          viewBox="0 0 24 24"
-          aria-hidden="true"
-        >
-          <circle cx="6" cy="18" r="3" />
-          <circle cx="18" cy="18" r="3" />
-          <path d="M6 18h4l2-6 5 2 1-4" />
-          <path d="M12 12h5" />
-        </svg>
-      );
-  }
 }
 
 export function ReferenceCategoryDiscovery({
@@ -136,7 +37,18 @@ export function ReferenceCategoryDiscovery({
         {/* Category Cards: Visually consistent, balanced dimensions, equal visual hierarchy */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 items-stretch">
           {categories.map((cat) => {
-            const modelCount = models.filter((m) => m.category.slug === cat.slug).length;
+            const categoryModels = models.filter((m) => m.category.slug === cat.slug);
+            const modelCount = categoryModels.length;
+
+            // Select valid representative motorcycle from this category with an image
+            const representativeModel =
+              categoryModels.find((m) => m.isFeatured && m.primaryImage?.storagePath) ||
+              categoryModels.find((m) => m.primaryImage?.storagePath);
+
+            const thumbnailStoragePath = representativeModel?.primaryImage?.storagePath;
+            const thumbnailUrl = thumbnailStoragePath
+              ? getStorageImageUrl(thumbnailStoragePath)
+              : null;
 
             return (
               <Link
@@ -145,9 +57,25 @@ export function ReferenceCategoryDiscovery({
                 className="group flex flex-col justify-between bg-white text-ink border border-hairline hover:border-primary/50 rounded-xl p-6 sm:p-7 hover:shadow-lg hover:-translate-y-1 transition-all duration-300"
               >
                 <div>
-                  {/* Category Distinct Icon */}
-                  <div className="w-12 h-12 rounded-xl bg-neutral-100 group-hover:bg-primary/10 text-primary flex items-center justify-center mb-5 transition-colors">
-                    <CategoryIcon slug={cat.slug} />
+                  {/* Category Representative Motorcycle Thumbnail */}
+                  <div className="relative w-full h-32 sm:h-36 mb-5 flex items-center justify-center bg-[#F7F4EE]/60 rounded-lg overflow-hidden border border-hairline/60">
+                    {thumbnailUrl ? (
+                      <div className="relative w-full h-full p-2 transform group-hover:scale-105 transition-transform duration-300">
+                        <Image
+                          src={thumbnailUrl}
+                          alt={`Sepeda motor kategori ${cat.name}: ${representativeModel?.name || ''}`}
+                          fill
+                          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+                          className="object-contain"
+                        />
+                      </div>
+                    ) : (
+                      <div className="flex flex-col items-center justify-center text-center p-4 text-muted">
+                        <span className="text-xs font-semibold text-neutral-400">
+                          Unit Segera Hadir
+                        </span>
+                      </div>
+                    )}
                   </div>
 
                   <h3 className="text-lg font-bold font-manrope text-ink group-hover:text-primary transition-colors mb-2">
@@ -159,7 +87,7 @@ export function ReferenceCategoryDiscovery({
                   </p>
 
                   <span className="text-xs font-semibold text-muted block mb-6">
-                    {modelCount > 0 ? `${modelCount} Pilihan Model` : 'Lini Lengkap'}
+                    {modelCount > 0 ? `${modelCount} Pilihan Model` : 'Unit Segera Hadir'}
                   </span>
                 </div>
 
