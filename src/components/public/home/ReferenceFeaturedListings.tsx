@@ -10,8 +10,13 @@ interface ReferenceFeaturedListingsProps {
 }
 
 export function ReferenceFeaturedListings({ models }: ReferenceFeaturedListingsProps) {
-  // Show up to 6 published models for the showroom showcase
-  const displayedModels = models.slice(0, 6);
+  // Strictly filter only models that have isFeatured === true
+  const featuredModels = models.filter((m) => m.isFeatured).slice(0, 6);
+
+  // If no motorcycles are marked Unggulan, hide the section gracefully
+  if (featuredModels.length === 0) {
+    return null;
+  }
 
   return (
     <section
@@ -29,8 +34,8 @@ export function ReferenceFeaturedListings({ models }: ReferenceFeaturedListingsP
               Model Motor Terpopuler
             </h2>
             <p className="mt-2 text-sm sm:text-base text-body leading-relaxed max-w-xl">
-              Daftar sepeda motor Honda yang paling banyak diminati dengan jaminan keaslian unit,
-              performa unggul, dan nilai jual kembali yang stabil.
+              Daftar sepeda motor Honda unggulan yang paling banyak diminati dengan jaminan keaslian
+              unit, performa prima, dan layanan purna jual resmi terpercaya.
             </p>
           </div>
 
@@ -47,33 +52,17 @@ export function ReferenceFeaturedListings({ models }: ReferenceFeaturedListingsP
           </div>
         </div>
 
-        {/* Motorcycle Cards Grid */}
-        {displayedModels.length > 0 ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
-            {displayedModels.map((model) => (
-              <div
-                key={model.id}
-                className="transform transition-transform duration-200 hover:-translate-y-1"
-              >
-                <MotorcycleCard model={model} />
-              </div>
-            ))}
-          </div>
-        ) : (
-          <div className="py-12 px-6 text-center bg-white border border-hairline max-w-lg mx-auto rounded-xl">
-            <h3 className="text-base font-bold text-ink font-manrope mb-2">
-              Unit Sedang Disiapkan
-            </h3>
-            <p className="text-xs text-body mb-4">
-              Katalog model motor unggulan sedang diperbarui oleh tim showroom.
-            </p>
-            <Link href="/motor">
-              <Button variant="outline" size="sm">
-                Lihat Semua Motor
-              </Button>
-            </Link>
-          </div>
-        )}
+        {/* Motorcycle Cards Grid (Only Unggulan Models) */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
+          {featuredModels.map((model) => (
+            <div
+              key={model.id}
+              className="transform transition-transform duration-200 hover:-translate-y-1"
+            >
+              <MotorcycleCard model={model} />
+            </div>
+          ))}
+        </div>
       </Container>
     </section>
   );

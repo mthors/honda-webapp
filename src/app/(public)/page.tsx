@@ -1,12 +1,15 @@
 import React from 'react';
 import type { Metadata } from 'next';
-import { getPublishedModels, getActiveCategories } from '@/lib/catalog/queries';
-import { getSiteSettings, getActiveDealerships } from '@/lib/settings/queries';
+import {
+  getPublishedModels,
+  getFeaturedModels,
+  getActiveCategories,
+} from '@/lib/catalog/queries';
+import { getActiveHeroBanners } from '@/lib/promotions/queries';
 import { SplitHeroShowroom } from '@/components/public/home/SplitHeroShowroom';
 import { ReferenceCategoryDiscovery } from '@/components/public/home/ReferenceCategoryDiscovery';
 import { ReferencePromoBanner } from '@/components/public/home/ReferencePromoBanner';
 import { ReferenceFeaturedListings } from '@/components/public/home/ReferenceFeaturedListings';
-import { ReferenceDealerTrust } from '@/components/public/home/ReferenceDealerTrust';
 
 export const dynamic = 'force-dynamic';
 
@@ -20,25 +23,24 @@ export const metadata: Metadata = {
 };
 
 export default async function HomePage() {
-  const [models, categories, settings, dealerships] = await Promise.all([
+  const [allModels, featuredModels, categories, heroBanners] = await Promise.all([
     getPublishedModels(),
+    getFeaturedModels(),
     getActiveCategories(),
-    getSiteSettings(),
-    getActiveDealerships(),
+    getActiveHeroBanners(),
   ]);
 
   return (
     <div className="flex flex-col w-full">
-      {/* 1. Dramatic Split Hero with Warm Textured Showcase & Overlapping Floating Filter */}
+      {/* 1. Dramatic Split Hero with Multiple Carousel Slides & Overlapping Floating Filter */}
       <SplitHeroShowroom
         categories={categories}
-        models={models}
-        heroImageStoragePath="vario-125-street-1794191564438-1.webp"
-        heroModelName="Honda Vario 125 Street"
+        models={allModels}
+        banners={heroBanners}
       />
 
-      {/* 2. Popular Body Type: Category Discovery with Highlighted Red Accent Card */}
-      <ReferenceCategoryDiscovery categories={categories} models={models} />
+      {/* 2. Popular Body Type: Category Discovery with Consistent Cards */}
+      <ReferenceCategoryDiscovery categories={categories} models={allModels} />
 
       {/* 3. Wide Dark Editorial Promotional Banner with Radiant Circle & Motorcycle Cutout */}
       <ReferencePromoBanner
@@ -46,11 +48,8 @@ export default async function HomePage() {
         promoTitle="Honda PCX 160 eSP+ Teknologi Terdepan"
       />
 
-      {/* 4. Most Popular Listings: Featured Motorcycle Product Discovery */}
-      <ReferenceFeaturedListings models={models} />
-
-      {/* 5. Dealership Commitment, Service Guarantees & Network Contact */}
-      <ReferenceDealerTrust settings={settings} dealerships={dealerships} />
+      {/* 4. Most Popular Listings: Featured Motorcycle Product Discovery (Only Unggulan Models) */}
+      <ReferenceFeaturedListings models={featuredModels} />
     </div>
   );
 }

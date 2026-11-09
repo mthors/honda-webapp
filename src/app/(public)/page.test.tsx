@@ -2,12 +2,12 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import HomePage from './page';
 import * as catalogQueries from '@/lib/catalog/queries';
-import * as settingsQueries from '@/lib/settings/queries';
+import * as promotionsQueries from '@/lib/promotions/queries';
 import type { CatalogCategory, CatalogModelSummary } from '@/types/catalog';
-import type { SiteSettings, DealershipItem } from '@/types/settings';
+import type { HeroBanner } from '@/types/promotions';
 
 vi.mock('@/lib/catalog/queries');
-vi.mock('@/lib/settings/queries');
+vi.mock('@/lib/promotions/queries');
 
 // Mock next/navigation useRouter for FloatingHeroFilter
 vi.mock('next/navigation', () => ({
@@ -50,6 +50,22 @@ describe('Public HomePage (Reference Redesign)', () => {
       },
       startingPriceIdr: 37500000,
     },
+    {
+      id: 'model-3',
+      name: 'Revo X',
+      slug: 'revo-x',
+      shortDescription: 'Motor bebek tangguh dan irit.',
+      engineCc: 110,
+      transmission: 'Manual 4-Kecepatan',
+      isFeatured: false,
+      isNew: false,
+      category: { id: 'cat-3', name: 'Cub', slug: 'cub' },
+      primaryImage: {
+        storagePath: 'revo-x.webp',
+        altText: 'Honda Revo X',
+      },
+      startingPriceIdr: 16500000,
+    },
   ];
 
   const mockCategories: CatalogCategory[] = [
@@ -57,35 +73,36 @@ describe('Public HomePage (Reference Redesign)', () => {
     { id: 'cat-2', name: 'Sport', slug: 'sport', description: 'Performa tinggi.', sortOrder: 2 },
   ];
 
-  const mockSettings: SiteSettings = {
-    id: 'default',
-    dealerName: 'Honda Satrya Dealership Group',
-    logoPath: null,
-    address: 'Jl. Raya Sidoarjo',
-    city: 'Sidoarjo',
-    phone: '(031) 894-1234',
-    whatsappNumber: '6281234567890',
-    publicEmail: 'info@satryagroup.co.id',
-    openingHours: { consultation_hours: 'Senin - Sabtu: 08:00 - 17:00 WIB' },
-    socialLinks: {},
-    privacyNotice: 'Kebijakan Privasi',
-    updatedBy: null,
-    updatedAt: '2026-01-01T00:00:00Z',
-  };
-
-  const mockDealerships: DealershipItem[] = [
+  const mockHeroBanners: HeroBanner[] = [
     {
-      id: 'dealership-1',
-      name: 'Honda Satrya Sidoarjo Sentral',
-      code: 'satrya-sidoarjo',
-      city: 'Sidoarjo',
-      address: 'Jl. Raya Sidoarjo',
-      phone: '(031) 894-1234',
-      whatsappNumber: '6281234567890',
-      openingHours: '08:00 - 17:00',
-      isSynthetic: false,
-      isActive: true,
+      id: 'banner-1',
+      title: 'Selamat Datang di Honda Satrya Dealership Group',
+      subtitle: 'Digital showroom resmi Honda Satrya Dealership Group.',
+      desktopImagePath: 'vario-125-street-1794191564438-1.webp',
+      mobileImagePath: null,
+      altText: 'Honda Vario 125 Street',
+      ctaLabel: 'Lihat Semua Motor',
+      ctaUrl: '/motor',
+      startsAt: null,
+      endsAt: null,
       sortOrder: 1,
+      status: 'published',
+      createdAt: '2026-01-01T00:00:00Z',
+      updatedAt: '2026-01-01T00:00:00Z',
+    },
+    {
+      id: 'banner-2',
+      title: 'Honda PCX 160 eSP+ Skutik Mewah',
+      subtitle: 'Kenyamanan berkendara kelas premium.',
+      desktopImagePath: 'pcx-160-1793861131468-1.webp',
+      mobileImagePath: null,
+      altText: 'Honda PCX 160',
+      ctaLabel: 'Jelajahi PCX 160',
+      ctaUrl: '/motor',
+      startsAt: null,
+      endsAt: null,
+      sortOrder: 2,
+      status: 'published',
       createdAt: '2026-01-01T00:00:00Z',
       updatedAt: '2026-01-01T00:00:00Z',
     },
@@ -94,12 +111,14 @@ describe('Public HomePage (Reference Redesign)', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.mocked(catalogQueries.getPublishedModels).mockResolvedValue(mockModels);
+    vi.mocked(catalogQueries.getFeaturedModels).mockResolvedValue(
+      mockModels.filter((m) => m.isFeatured)
+    );
     vi.mocked(catalogQueries.getActiveCategories).mockResolvedValue(mockCategories);
-    vi.mocked(settingsQueries.getSiteSettings).mockResolvedValue(mockSettings);
-    vi.mocked(settingsQueries.getActiveDealerships).mockResolvedValue(mockDealerships);
+    vi.mocked(promotionsQueries.getActiveHeroBanners).mockResolvedValue(mockHeroBanners);
   });
 
-  it('renders dramatic split hero section with headline, dealer badge, and CTAs', async () => {
+  it('renders dramatic split hero section with multiple slides, manual navigation controls, and CTAs', async () => {
     const Component = await HomePage();
     render(Component);
 
@@ -112,7 +131,9 @@ describe('Public HomePage (Reference Redesign)', () => {
     ).toBeInTheDocument();
 
     // Supporting copy
-    expect(screen.getByText(/Digital showroom resmi Honda Satrya Dealer Group/i)).toBeInTheDocument();
+    expect(
+      screen.getByText(/Digital showroom resmi Honda Satrya Dealership Group/i)
+    ).toBeInTheDocument();
 
     // CTAs
     const catalogCta = screen.getByRole('link', { name: 'Lihat Semua Motor' });
@@ -120,6 +141,13 @@ describe('Public HomePage (Reference Redesign)', () => {
 
     const contactCta = screen.getByRole('link', { name: 'Konsultasi Sales' });
     expect(contactCta).toHaveAttribute('href', '/hubungi');
+
+    // Slide navigation controls exist for multiple slides
+    expect(screen.getByRole('button', { name: 'Slide sebelumnya' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Slide berikutnya' })).toBeInTheDocument();
+
+    // Vertical text is NOT present
+    expect(screen.queryByText(/Showroom Resmi • Honda Satrya Group/i)).not.toBeInTheDocument();
   });
 
   it('renders floating search/filter bar with category and model selectors', async () => {
@@ -132,7 +160,7 @@ describe('Public HomePage (Reference Redesign)', () => {
     expect(screen.getByRole('button', { name: /Cari Motor/i })).toBeInTheDocument();
   });
 
-  it('renders category discovery section with highlighted Matic card', async () => {
+  it('renders category discovery section with visually consistent cards', async () => {
     const Component = await HomePage();
     render(Component);
 
@@ -146,7 +174,7 @@ describe('Public HomePage (Reference Redesign)', () => {
     const maticLink = screen.getByRole('link', { name: /Eksplorasi Matic/i });
     expect(maticLink).toHaveAttribute('href', '/motor?kategori=matic');
 
-    const sportLink = screen.getByRole('link', { name: /Lihat Pilihan/i });
+    const sportLink = screen.getByRole('link', { name: /Eksplorasi Sport/i });
     expect(sportLink).toHaveAttribute('href', '/motor?kategori=sport');
   });
 
@@ -166,7 +194,7 @@ describe('Public HomePage (Reference Redesign)', () => {
     ).toHaveAttribute('href', '/hubungi');
   });
 
-  it('renders popular listings section with published motorcycle models', async () => {
+  it('renders popular listings section displaying strictly Unggulan (isFeatured) models', async () => {
     const Component = await HomePage();
     render(Component);
 
@@ -177,25 +205,24 @@ describe('Public HomePage (Reference Redesign)', () => {
       })
     ).toBeInTheDocument();
 
+    // Featured models are rendered
     expect(screen.getByText('Vario 160')).toBeInTheDocument();
     expect(screen.getByText('CBR150 R')).toBeInTheDocument();
+
+    // Non-featured model (Revo X) is NOT rendered in the featured section
+    expect(screen.queryByText('Revo X')).not.toBeInTheDocument();
   });
 
-  it('renders dealer trust section with accurate dealership details and CTAs', async () => {
+  it('does not render dealer trust section on the homepage', async () => {
     const Component = await HomePage();
     render(Component);
 
+    // Dealer trust section heading and content was removed from the homepage
     expect(
-      screen.getByRole('heading', {
-        level: 2,
-        name: /Honda Satrya Dealership Group/i,
-      })
-    ).toBeInTheDocument();
-
-    expect(screen.getByText(/Senin - Sabtu: 08:00 - 17:00 WIB/i)).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: /Hubungi Showroom Kami/i })).toHaveAttribute(
-      'href',
-      '/hubungi'
-    );
+      screen.queryByRole('region', { name: /Layanan dan Komitmen Showroom/i })
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole('link', { name: /Hubungi Showroom Kami/i })
+    ).not.toBeInTheDocument();
   });
 });
