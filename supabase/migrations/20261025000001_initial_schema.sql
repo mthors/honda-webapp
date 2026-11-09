@@ -1,6 +1,6 @@
 -- ==============================================================================
 -- Migration: 20261025000001_initial_schema.sql
--- Description: Honda Mega Persada Mandiri Digital Showroom Initial V1 Schema
+-- Description: Honda Satrya Dealership Group Digital Showroom Initial V1 Schema
 -- ==============================================================================
 
 -- 1. Utilities and Trigger Functions

@@ -150,6 +150,7 @@ export interface CatalogFilterOptions {
   categorySlug?: string;
   search?: string;
   sort?: string;
+  isFeatured?: boolean;
 }
 
 /**
@@ -193,6 +194,10 @@ export async function getPublishedModels(
       .eq('status', 'published')
       .eq('category.is_active', true)
       .or(`published_at.is.null,published_at.lte.${nowIso}`);
+
+    if (options.isFeatured !== undefined) {
+      query = query.eq('is_featured', options.isFeatured);
+    }
 
     if (options.categorySlug && options.categorySlug !== 'all') {
       query = query.eq('category.slug', options.categorySlug);
@@ -294,6 +299,13 @@ export async function getPublishedModels(
     console.error('Failed to load published models:', err);
     return [];
   }
+}
+
+/**
+ * Retrieves published motorcycle models marked as featured (Unggulan).
+ */
+export async function getFeaturedModels(client?: ClientType): Promise<CatalogModelSummary[]> {
+  return getPublishedModels({ isFeatured: true }, client);
 }
 
 /**

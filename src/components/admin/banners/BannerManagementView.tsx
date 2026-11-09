@@ -29,6 +29,7 @@ export function BannerManagementView({ initialBanners }: BannerManagementViewPro
   const [endsAt, setEndsAt] = useState('');
   const [sortOrder, setSortOrder] = useState<number>(0);
   const [status, setStatus] = useState<'draft' | 'published' | 'archived'>('draft');
+  const [imageSizeWarning, setImageSizeWarning] = useState<string | null>(null);
 
   // Status & Feedback State
   const [formError, setFormError] = useState<string | null>(null);
@@ -49,6 +50,7 @@ export function BannerManagementView({ initialBanners }: BannerManagementViewPro
     setEndsAt('');
     setSortOrder(banners.length > 0 ? Math.max(...banners.map((b) => b.sortOrder)) + 1 : 0);
     setStatus('draft');
+    setImageSizeWarning(null);
     setFormError(null);
     setFieldErrors({});
     setSuccessMessage(null);
@@ -68,6 +70,7 @@ export function BannerManagementView({ initialBanners }: BannerManagementViewPro
     setEndsAt(banner.endsAt ? new Date(banner.endsAt).toISOString().slice(0, 16) : '');
     setSortOrder(banner.sortOrder);
     setStatus(banner.status);
+    setImageSizeWarning(null);
     setFormError(null);
     setFieldErrors({});
     setSuccessMessage(null);
@@ -283,10 +286,51 @@ export function BannerManagementView({ initialBanners }: BannerManagementViewPro
                   id="banner-desktop-image"
                   type="text"
                   value={desktopImagePath}
-                  onChange={(e) => setDesktopImagePath(e.target.value)}
+                  onChange={(e) => {
+                    setDesktopImagePath(e.target.value);
+                    setImageSizeWarning(null);
+                  }}
                   placeholder={dealershipCopy.adminBanners.desktopImagePlaceholder}
                   className="w-full h-10 px-3 text-xs bg-canvas text-ink border border-hairline rounded-xs focus:ring-1 focus:ring-primary focus:border-primary font-mono"
                 />
+                <div className="mt-1.5 flex items-center gap-2">
+                  <label
+                    htmlFor="banner-desktop-file"
+                    className="cursor-pointer text-[11px] text-primary hover:underline font-medium inline-flex items-center gap-1"
+                  >
+                    <span>Pilih Berkas untuk Cek Ukuran</span>
+                    <input
+                      id="banner-desktop-file"
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (!file) return;
+                        if (file.size <= 102400) {
+                          setImageSizeWarning(
+                            `Perhatian: Ukuran file ${(file.size / 1024).toFixed(1)} KB (≤ 100 KB). Gambar ini di bawah batas minimum 100 KB dan tidak akan memenuhi syarat tayang di hero beranda.`
+                          );
+                        } else {
+                          setImageSizeWarning(null);
+                        }
+                        setDesktopImagePath(file.name);
+                      }}
+                    />
+                  </label>
+                  <span className="text-[11px] text-muted">
+                    (Min. 100 KB / 102.400 byte untuk hero)
+                  </span>
+                </div>
+                {imageSizeWarning && (
+                  <div
+                    role="alert"
+                    className="mt-1.5 p-2 bg-amber-50 border border-amber-200 text-amber-800 rounded-xs text-[11px] flex items-center gap-1.5"
+                  >
+                    <span>⚠️</span>
+                    <span>{imageSizeWarning}</span>
+                  </div>
+                )}
                 {fieldErrors.desktopImagePath && (
                   <p className="mt-1 text-[11px] text-status-error">
                     {fieldErrors.desktopImagePath.join(', ')}

@@ -9,7 +9,7 @@ test.describe('Showroom Smoke Tests', () => {
     await expect(page.locator('header')).toContainText('SATRYA DEALER GROUP');
 
     // Check primary CTA button
-    const ctaButton = page.getByRole('button', { name: 'Lihat Daftar Motor' });
+    const ctaButton = page.getByRole('button', { name: 'Lihat Semua Motor', exact: true });
     await expect(ctaButton).toBeVisible();
 
     // Check footer disclaimer
