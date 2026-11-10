@@ -101,12 +101,18 @@ input:disabled,
 }
 
 @keyframes bannerProgress {
-  from {
+  0% {
     transform: scaleX(0);
   }
-  to {
+  100% {
     transform: scaleX(1);
   }
+}
+
+.animate-banner-progress {
+  animation-name: bannerProgress;
+  animation-timing-function: linear;
+  animation-fill-mode: forwards;
 }
 
 .animate-hero-fade {
@@ -130,7 +136,8 @@ input:disabled,
   .animate-hero-fade,
   .animate-hero-up,
   .animate-hero-up-delay,
-  .animate-hero-scale {
+  .animate-hero-scale,
+  .animate-banner-progress {
     animation: none !important;
     opacity: 1 !important;
     transform: none !important;

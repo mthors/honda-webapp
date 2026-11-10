@@ -366,10 +366,9 @@ export function ReferencePromoBanner({ banners }: ReferencePromoBannerProps) {
               <div
                 key={progressKey}
                 data-testid="banner-progress-fill"
-                className="h-full bg-primary origin-left rounded-full w-full"
+                className="h-full bg-primary origin-left rounded-full w-full animate-banner-progress"
                 style={{
-                  transform: 'scaleX(0)',
-                  animation: `bannerProgress ${PROMO_AUTOPLAY_INTERVAL}ms linear forwards`,
+                  animationDuration: `${PROMO_AUTOPLAY_INTERVAL}ms`,
                   animationPlayState: isPaused ? 'paused' : 'running',
                   willChange: 'transform',
                 }}

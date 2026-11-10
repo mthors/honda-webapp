@@ -329,8 +329,9 @@ describe('ReferencePromoBanner Component (Image-First CMS Promotional Banner wit
       expect(progressBar).toHaveAttribute('aria-valuemax', '100');
 
       const fill = screen.getByTestId('banner-progress-fill');
+      expect(fill).toHaveClass('animate-banner-progress');
       expect(fill).toHaveStyle({
-        animation: 'bannerProgress 5000ms linear forwards',
+        animationDuration: '5000ms',
         animationPlayState: 'running',
       });
     });
@@ -394,8 +395,9 @@ describe('ReferencePromoBanner Component (Image-First CMS Promotional Banner wit
       // Fresh fill element is remounted for the new slide
       rerender(<ReferencePromoBanner banners={mockBanners} />);
       const fill = screen.getByTestId('banner-progress-fill');
+      expect(fill).toHaveClass('animate-banner-progress');
       expect(fill).toHaveStyle({
-        animation: 'bannerProgress 5000ms linear forwards',
+        animationDuration: '5000ms',
         animationPlayState: 'running',
       });
     });
