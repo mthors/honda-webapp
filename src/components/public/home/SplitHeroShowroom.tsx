@@ -16,7 +16,6 @@ import { FloatingHeroFilter } from '@/components/public/home/FloatingHeroFilter'
 import { getStorageImageUrl } from '@/lib/catalog/image';
 import { isHeroImageEligibleBySize } from '@/lib/catalog/image-quality';
 import type { CatalogCategory, CatalogModelSummary } from '@/types/catalog';
-import type { HeroBanner } from '@/types/promotions';
 
 export interface ShowcaseSlide {
   id: string;
@@ -27,7 +26,6 @@ export interface ShowcaseSlide {
 interface SplitHeroShowroomProps {
   categories: CatalogCategory[];
   models?: CatalogModelSummary[];
-  banners?: HeroBanner[];
   imageSizes?: Record<string, number>;
 }
 
@@ -48,45 +46,21 @@ function getServerSnapshot() {
 }
 
 /**
- * Builds the list of eligible showcase slides strictly enforcing the minimum 100 KB
- * image file size requirement.
+ * Builds the list of eligible showcase slides strictly driven by the published
+ * motorcycle catalog data and enforcing the minimum 100 KB image file size requirement.
  *
  * Requirements:
- * - Only images larger than 100 KB (102,400 bytes) are eligible.
- * - Ineligible banners or model images (<= 100 KB) are skipped.
- * - If no eligible images are available, returns empty array to trigger the graceful fallback.
+ * - Powered exclusively by motorcycle product catalog data.
+ * - Categories ordered strictly: Matic, Cub/Bebek, Sport, EV.
+ * - Prioritizes featured models (isFeatured = true) first within each category.
+ * - Takes up to 2 models per category when available.
+ * - Image file size must exceed 100 KB (102,400 bytes).
+ * - Gracefully skips unavailable or ineligible images.
  */
 export function buildShowcaseSlides(
   models: CatalogModelSummary[],
-  banners?: HeroBanner[],
   imageSizes?: Record<string, number>
 ): ShowcaseSlide[] {
-  // 1. Process CMS Hero Banners if present
-  if (banners && banners.length > 0) {
-    const eligibleBanners: ShowcaseSlide[] = [];
-
-    for (const b of banners) {
-      const barePath = b.desktopImagePath.replace(/^hero-banners\//, '');
-      const size = imageSizes?.[b.desktopImagePath] ?? imageSizes?.[barePath];
-
-      // If size is tracked, strictly require > 100 KB
-      if (size !== undefined && !isHeroImageEligibleBySize(size)) {
-        continue; // Skip ineligible banner
-      }
-
-      eligibleBanners.push({
-        id: b.id,
-        modelName: b.altText || b.title,
-        imagePath: b.desktopImagePath,
-      });
-    }
-
-    if (eligibleBanners.length > 0) {
-      return eligibleBanners;
-    }
-  }
-
-  // 2. Select eligible models with high-resolution images (> 100 KB)
   const targetCategorySlugs = ['matic', 'cub', 'sport', 'ev'];
   const slides: ShowcaseSlide[] = [];
 
@@ -136,7 +110,6 @@ export function buildShowcaseSlides(
 export function SplitHeroShowroom({
   categories,
   models = [],
-  banners = [],
   imageSizes = {},
 }: SplitHeroShowroomProps) {
   const prefersReducedMotion = useSyncExternalStore(
@@ -146,8 +119,8 @@ export function SplitHeroShowroom({
   );
 
   const slides = useMemo(
-    () => buildShowcaseSlides(models, banners, imageSizes),
-    [models, banners, imageSizes]
+    () => buildShowcaseSlides(models, imageSizes),
+    [models, imageSizes]
   );
   const totalSlides = slides.length;
 

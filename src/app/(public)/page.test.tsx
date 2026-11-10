@@ -76,15 +76,34 @@ describe('Public HomePage (Reference Redesign)', () => {
   const mockCategories: CatalogCategory[] = [
     { id: 'cat-1', name: 'Matic', slug: 'matic', description: 'Skutik harian lincah.', sortOrder: 1 },
     { id: 'cat-2', name: 'Sport', slug: 'sport', description: 'Performa tinggi.', sortOrder: 2 },
+    { id: 'cat-3', name: 'Cub / Bebek', slug: 'cub', description: 'Motor bebek legendaris.', sortOrder: 3 },
     { id: 'cat-4', name: 'Kendaraan Listrik', slug: 'ev', description: 'Ramah lingkungan.', sortOrder: 4 },
   ];
 
-  const mockHeroBanners: HeroBanner[] = [];
+  const mockHeroBanners: HeroBanner[] = [
+    {
+      id: 'banner-1',
+      title: 'Gebyar Promo Honda Satrya',
+      subtitle: 'Dapatkan diskon DP dan angsuran ringan pembelian motor Honda baru.',
+      desktopImagePath: 'promo-banner-1.webp',
+      mobileImagePath: null,
+      altText: 'Gebyar Promo Honda Satrya',
+      ctaLabel: 'Klaim Promo',
+      ctaUrl: '/hubungi?promo=gebyar',
+      startsAt: '2026-01-01T00:00:00Z',
+      endsAt: '2026-12-31T23:59:59Z',
+      sortOrder: 1,
+      status: 'published',
+      createdAt: '2026-01-01T00:00:00Z',
+      updatedAt: '2026-01-01T00:00:00Z',
+    },
+  ];
 
   const defaultMockSizes: Record<string, number> = {
     'vario-160.webp': 200000, // > 100 KB
     'cbr150-r.webp': 150000, // > 100 KB
     'revo-x.webp': 120000, // > 100 KB
+    'promo-banner-1.webp': 180000,
   };
 
   beforeEach(() => {
@@ -175,20 +194,38 @@ describe('Public HomePage (Reference Redesign)', () => {
     expect(sportLink).toHaveAttribute('href', '/motor?kategori=sport');
   });
 
-  it('renders wide dark editorial promotional banner', async () => {
+  it('renders dynamic promotional banner when an active CMS hero banner is present', async () => {
     const Component = await HomePage();
     render(Component);
 
     expect(
       screen.getByRole('heading', {
         level: 2,
-        name: /Performa Tangguh Mesin eSP\+.*Dan Rangka Presisi eSAF/i,
+        name: /Gebyar Promo Honda Satrya/i,
       })
     ).toBeInTheDocument();
 
     expect(
-      screen.getByRole('link', { name: /Konsultasi Sales Showroom/i })
-    ).toHaveAttribute('href', '/hubungi');
+      screen.getByText(/Dapatkan diskon DP dan angsuran ringan/i)
+    ).toBeInTheDocument();
+
+    expect(
+      screen.getByRole('link', { name: /Klaim Promo/i })
+    ).toHaveAttribute('href', '/hubungi?promo=gebyar');
+  });
+
+  it('gracefully hides promotional banner when no active hero banner exists', async () => {
+    vi.mocked(promotionsQueries.getActiveHeroBanners).mockResolvedValue([]);
+
+    const Component = await HomePage();
+    render(Component);
+
+    expect(
+      screen.queryByRole('heading', {
+        level: 2,
+        name: /Gebyar Promo Honda Satrya/i,
+      })
+    ).not.toBeInTheDocument();
   });
 
   it('renders popular listings section displaying strictly Unggulan (isFeatured) models', async () => {
@@ -222,74 +259,107 @@ describe('Public HomePage (Reference Redesign)', () => {
     ).not.toBeInTheDocument();
   });
 
-  describe('Hero Image Quality Filter (Minimum 100 KB)', () => {
-    it('skips hero banners with image file sizes below or equal to 100 KB and retains eligible ones', () => {
-      const testBanners: HeroBanner[] = [
+  describe('Catalog-Driven Showcase Slide Selection & Quality Filter', () => {
+    it('orders slides strictly by category (Matic, Cub, Sport, EV) and prioritizes isFeatured', () => {
+      const extraModels: CatalogModelSummary[] = [
         {
-          id: 'banner-small',
-          title: 'Banner Kecil',
-          subtitle: null,
-          desktopImagePath: 'banner-small.webp',
-          mobileImagePath: null,
-          altText: 'Banner Kecil',
-          ctaLabel: null,
-          ctaUrl: null,
-          startsAt: null,
-          endsAt: null,
-          sortOrder: 1,
-          status: 'published',
-          createdAt: '2026-01-01T00:00:00Z',
-          updatedAt: '2026-01-01T00:00:00Z',
+          id: 'model-cub-feat',
+          name: 'Supra X 125',
+          slug: 'supra-x-125',
+          shortDescription: 'Bebek tangguh',
+          engineCc: 125,
+          transmission: 'Manual',
+          isFeatured: true,
+          isNew: false,
+          category: { id: 'cat-3', name: 'Cub / Bebek', slug: 'cub' },
+          primaryImage: { storagePath: 'supra.webp', altText: 'Supra X' },
+          startingPriceIdr: 19000000,
         },
         {
-          id: 'banner-exact-100kb',
-          title: 'Banner Pas 100 KB',
-          subtitle: null,
-          desktopImagePath: 'banner-exact.webp',
-          mobileImagePath: null,
-          altText: 'Banner Pas 100 KB',
-          ctaLabel: null,
-          ctaUrl: null,
-          startsAt: null,
-          endsAt: null,
-          sortOrder: 2,
-          status: 'published',
-          createdAt: '2026-01-01T00:00:00Z',
-          updatedAt: '2026-01-01T00:00:00Z',
-        },
-        {
-          id: 'banner-hd',
-          title: 'Banner HD Berkualitas',
-          subtitle: null,
-          desktopImagePath: 'banner-hd.webp',
-          mobileImagePath: null,
-          altText: 'Banner HD Berkualitas',
-          ctaLabel: null,
-          ctaUrl: null,
-          startsAt: null,
-          endsAt: null,
-          sortOrder: 3,
-          status: 'published',
-          createdAt: '2026-01-01T00:00:00Z',
-          updatedAt: '2026-01-01T00:00:00Z',
+          id: 'model-cub-std',
+          name: 'Revo Fit',
+          slug: 'revo-fit',
+          shortDescription: 'Bebek hemat',
+          engineCc: 110,
+          transmission: 'Manual',
+          isFeatured: false,
+          isNew: false,
+          category: { id: 'cat-3', name: 'Cub / Bebek', slug: 'cub' },
+          primaryImage: { storagePath: 'revo-fit.webp', altText: 'Revo Fit' },
+          startingPriceIdr: 15000000,
         },
       ];
 
-      const testSizes: Record<string, number> = {
-        'banner-small.webp': 50 * 1024, // 50 KB -> excluded
-        'banner-exact.webp': 100 * 1024, // 100 KB exactly -> excluded
-        'banner-hd.webp': 250 * 1024, // 250 KB -> eligible!
+      const sizes: Record<string, number> = {
+        ...defaultMockSizes,
+        'supra.webp': 180000,
+        'revo-fit.webp': 150000,
       };
 
-      const slides = buildShowcaseSlides([], testBanners, testSizes);
+      const slides = buildShowcaseSlides([...mockModels, ...extraModels], sizes);
 
-      // Only banner-hd is eligible
-      expect(slides).toHaveLength(1);
-      expect(slides[0].id).toBe('banner-hd');
-      expect(slides[0].imagePath).toBe('banner-hd.webp');
+      // Category order check: Matic (Vario 160) first, then Cub (Supra X 125), then Sport (CBR150 R)
+      expect(slides.length).toBeGreaterThanOrEqual(3);
+      expect(slides[0].modelName).toContain('Vario 160');
+      // Featured cub model comes before standard cub model
+      const cubSlideIndex = slides.findIndex((s) => s.modelName.includes('Supra X 125'));
+      expect(cubSlideIndex).toBeGreaterThan(0);
     });
 
-    it('excludes models whose primaryImage is below 100 KB from showcase', () => {
+    it('limits to at most 2 models per category', () => {
+      const threeMaticModels: CatalogModelSummary[] = [
+        {
+          id: 'matic-1',
+          name: 'Vario 160',
+          slug: 'vario-160',
+          shortDescription: 'Matic 1',
+          engineCc: 160,
+          transmission: 'Otomatis',
+          isFeatured: true,
+          isNew: false,
+          category: { id: 'cat-1', name: 'Matic', slug: 'matic' },
+          primaryImage: { storagePath: 'vario.webp', altText: 'Vario' },
+          startingPriceIdr: 27000000,
+        },
+        {
+          id: 'matic-2',
+          name: 'BeAT',
+          slug: 'beat',
+          shortDescription: 'Matic 2',
+          engineCc: 110,
+          transmission: 'Otomatis',
+          isFeatured: true,
+          isNew: false,
+          category: { id: 'cat-1', name: 'Matic', slug: 'matic' },
+          primaryImage: { storagePath: 'beat.webp', altText: 'BeAT' },
+          startingPriceIdr: 18000000,
+        },
+        {
+          id: 'matic-3',
+          name: 'Scoopy',
+          slug: 'scoopy',
+          shortDescription: 'Matic 3',
+          engineCc: 110,
+          transmission: 'Otomatis',
+          isFeatured: false,
+          isNew: false,
+          category: { id: 'cat-1', name: 'Matic', slug: 'matic' },
+          primaryImage: { storagePath: 'scoopy.webp', altText: 'Scoopy' },
+          startingPriceIdr: 21000000,
+        },
+      ];
+
+      const sizes = {
+        'vario.webp': 150000,
+        'beat.webp': 150000,
+        'scoopy.webp': 150000,
+      };
+
+      const slides = buildShowcaseSlides(threeMaticModels, sizes);
+      expect(slides).toHaveLength(2); // strictly max 2 per category
+    });
+
+    it('excludes models whose primaryImage is below or equal to 100 KB from showcase', () => {
       const testModels: CatalogModelSummary[] = [
         {
           ...mockModels[0], // Vario 160
@@ -306,7 +376,7 @@ describe('Public HomePage (Reference Redesign)', () => {
         'hd-cbr.webp': 160000, // 160 KB -> eligible!
       };
 
-      const slides = buildShowcaseSlides(testModels, [], testSizes);
+      const slides = buildShowcaseSlides(testModels, testSizes);
 
       // Only hd-cbr should be in slides
       expect(slides.some((s) => s.imagePath === 'small-vario.webp')).toBe(false);

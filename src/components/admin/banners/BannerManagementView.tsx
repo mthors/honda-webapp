@@ -1,8 +1,11 @@
 'use client';
 
 import React, { useState, useTransition } from 'react';
+import Image from 'next/image';
 import type { AdminHeroBannerItem } from '@/lib/admin/queries';
 import { upsertHeroBannerAction } from '@/lib/admin/actions';
+import { createClient } from '@/lib/supabase/client';
+import { getStorageImageUrl } from '@/lib/catalog/image';
 import { dealershipCopy } from '@/content/copy/id';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
@@ -29,7 +32,11 @@ export function BannerManagementView({ initialBanners }: BannerManagementViewPro
   const [endsAt, setEndsAt] = useState('');
   const [sortOrder, setSortOrder] = useState<number>(0);
   const [status, setStatus] = useState<'draft' | 'published' | 'archived'>('draft');
-  const [imageSizeWarning, setImageSizeWarning] = useState<string | null>(null);
+
+  // Upload States
+  const [isUploadingDesktop, setIsUploadingDesktop] = useState(false);
+  const [isUploadingMobile, setIsUploadingMobile] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
 
   // Status & Feedback State
   const [formError, setFormError] = useState<string | null>(null);
@@ -50,7 +57,7 @@ export function BannerManagementView({ initialBanners }: BannerManagementViewPro
     setEndsAt('');
     setSortOrder(banners.length > 0 ? Math.max(...banners.map((b) => b.sortOrder)) + 1 : 0);
     setStatus('draft');
-    setImageSizeWarning(null);
+    setUploadError(null);
     setFormError(null);
     setFieldErrors({});
     setSuccessMessage(null);
@@ -70,11 +77,60 @@ export function BannerManagementView({ initialBanners }: BannerManagementViewPro
     setEndsAt(banner.endsAt ? new Date(banner.endsAt).toISOString().slice(0, 16) : '');
     setSortOrder(banner.sortOrder);
     setStatus(banner.status);
-    setImageSizeWarning(null);
+    setUploadError(null);
     setFormError(null);
     setFieldErrors({});
     setSuccessMessage(null);
     setIsEditing(true);
+  };
+
+  const handleFileUpload = async (type: 'desktop' | 'mobile', file: File) => {
+    if (!file) return;
+
+    if (file.size > 5 * 1024 * 1024) {
+      setUploadError(`Ukuran file ${type === 'desktop' ? 'desktop' : 'mobile'} maksimal 5 MB.`);
+      return;
+    }
+
+    const validMimes = ['image/jpeg', 'image/png', 'image/webp'];
+    if (!validMimes.includes(file.type)) {
+      setUploadError('Format gambar harus berupa JPG, PNG, atau WebP.');
+      return;
+    }
+
+    setUploadError(null);
+    if (type === 'desktop') setIsUploadingDesktop(true);
+    else setIsUploadingMobile(true);
+
+    try {
+      const supabase = createClient();
+      const ext = file.name.split('.').pop()?.toLowerCase() || 'webp';
+      const cleanSlug = title.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').slice(0, 30) || 'promo-banner';
+      const fileName = `${cleanSlug}-${type}-${Date.now()}.${ext}`;
+
+      const { data, error } = await supabase.storage
+        .from('hero-banners')
+        .upload(fileName, file, {
+          cacheControl: '3600',
+          upsert: true,
+        });
+
+      if (error) {
+        setUploadError(`Upload ${type} gagal: ${error.message}`);
+      } else if (data) {
+        if (type === 'desktop') {
+          setDesktopImagePath(data.path);
+        } else {
+          setMobileImagePath(data.path);
+        }
+      }
+    } catch (err) {
+      console.error(`Upload ${type} error:`, err);
+      setUploadError(`Terjadi kesalahan saat mengunggah gambar ${type} ke Supabase Storage.`);
+    } finally {
+      if (type === 'desktop') setIsUploadingDesktop(false);
+      else setIsUploadingMobile(false);
+    }
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -89,7 +145,7 @@ export function BannerManagementView({ initialBanners }: BannerManagementViewPro
     }
 
     if (!desktopImagePath.trim()) {
-      setFormError('Jalur gambar desktop wajib diisi.');
+      setFormError('Gambar desktop wajib diunggah atau diisi.');
       return;
     }
 
@@ -122,7 +178,7 @@ export function BannerManagementView({ initialBanners }: BannerManagementViewPro
       const res = await upsertHeroBannerAction(payload);
 
       if (!res.success) {
-        setFormError(res.error || 'Gagal menyimpan data spanduk hero.');
+        setFormError(res.error || 'Gagal menyimpan data spanduk promosi.');
         if (res.fieldErrors) {
           setFieldErrors(res.fieldErrors);
         }
@@ -184,6 +240,19 @@ export function BannerManagementView({ initialBanners }: BannerManagementViewPro
         </div>
       </div>
 
+      {/* Architecture Separation Context Notice */}
+      <div className="p-4 rounded-xs border border-blue-200 bg-blue-50/70 text-blue-900 text-xs sm:text-sm flex items-start gap-3">
+        <span className="text-base leading-none">ℹ️</span>
+        <div className="space-y-1">
+          <p className="font-semibold text-xs sm:text-sm">Pemisahan Materi Promosi dan Etalase Beranda</p>
+          <p className="text-muted text-[11px] sm:text-xs leading-relaxed">
+            Spanduk di menu ini khusus digunakan untuk pengelolaan spanduk promosi grafis kampanye dealer.
+            Etalase sepeda motor pada bagian atas beranda (motorcycle showcase) ditenagai secara langsung
+            oleh data motor yang dipublikasikan di katalog produk (menu Motor).
+          </p>
+        </div>
+      </div>
+
       {/* Global Success Banner */}
       {successMessage && (
         <div
@@ -195,7 +264,7 @@ export function BannerManagementView({ initialBanners }: BannerManagementViewPro
           <button
             type="button"
             onClick={() => setSuccessMessage(null)}
-            className="text-status-success hover:underline ml-4 text-xs font-semibold"
+            className="text-status-success hover:underline ml-4 text-xs font-semibold cursor-pointer"
           >
             Tutup
           </button>
@@ -214,7 +283,7 @@ export function BannerManagementView({ initialBanners }: BannerManagementViewPro
             <button
               type="button"
               onClick={() => setIsEditing(false)}
-              className="text-xs text-muted hover:text-ink transition-colors"
+              className="text-xs text-muted hover:text-ink transition-colors cursor-pointer"
             >
               Tutup &times;
             </button>
@@ -229,6 +298,16 @@ export function BannerManagementView({ initialBanners }: BannerManagementViewPro
             </div>
           )}
 
+          {uploadError && (
+            <div
+              role="alert"
+              className="p-3.5 rounded-xs border border-amber-200 bg-amber-50 text-amber-900 text-xs flex items-center gap-2"
+            >
+              <span>⚠️</span>
+              <span>{uploadError}</span>
+            </div>
+          )}
+
           <form onSubmit={handleSubmit} className="space-y-4" noValidate>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {/* Title */}
@@ -237,7 +316,7 @@ export function BannerManagementView({ initialBanners }: BannerManagementViewPro
                   htmlFor="banner-title"
                   className="block text-xs font-semibold text-ink mb-1.5"
                 >
-                  {dealershipCopy.adminBanners.titleLabel}
+                  {dealershipCopy.adminBanners.titleLabel} *
                 </label>
                 <input
                   id="banner-title"
@@ -274,63 +353,62 @@ export function BannerManagementView({ initialBanners }: BannerManagementViewPro
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {/* Desktop Image Path */}
-              <div>
+              {/* Desktop Image Upload & Path */}
+              <div className="space-y-2">
                 <label
                   htmlFor="banner-desktop-image"
-                  className="block text-xs font-semibold text-ink mb-1.5"
+                  className="block text-xs font-semibold text-ink"
                 >
-                  {dealershipCopy.adminBanners.desktopImageLabel}
+                  {dealershipCopy.adminBanners.desktopImageLabel} *
                 </label>
                 <input
                   id="banner-desktop-image"
                   type="text"
                   value={desktopImagePath}
-                  onChange={(e) => {
-                    setDesktopImagePath(e.target.value);
-                    setImageSizeWarning(null);
-                  }}
+                  onChange={(e) => setDesktopImagePath(e.target.value)}
                   placeholder={dealershipCopy.adminBanners.desktopImagePlaceholder}
                   className="w-full h-10 px-3 text-xs bg-canvas text-ink border border-hairline rounded-xs focus:ring-1 focus:ring-primary focus:border-primary font-mono"
                 />
-                <div className="mt-1.5 flex items-center gap-2">
+                <div className="flex items-center gap-2">
                   <label
                     htmlFor="banner-desktop-file"
-                    className="cursor-pointer text-[11px] text-primary hover:underline font-medium inline-flex items-center gap-1"
+                    className={`cursor-pointer inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-xs border border-hairline bg-surface hover:bg-neutral-100 text-ink transition-colors ${
+                      isUploadingDesktop ? 'opacity-50 pointer-events-none' : ''
+                    }`}
                   >
-                    <span>Pilih Berkas untuk Cek Ukuran</span>
+                    <span>{isUploadingDesktop ? 'Mengunggah...' : 'Unggah Gambar Desktop'}</span>
                     <input
                       id="banner-desktop-file"
                       type="file"
-                      accept="image/*"
+                      accept="image/png,image/jpeg,image/webp"
                       className="hidden"
+                      disabled={isUploadingDesktop}
                       onChange={(e) => {
                         const file = e.target.files?.[0];
-                        if (!file) return;
-                        if (file.size <= 102400) {
-                          setImageSizeWarning(
-                            `Perhatian: Ukuran file ${(file.size / 1024).toFixed(1)} KB (≤ 100 KB). Gambar ini di bawah batas minimum 100 KB dan tidak akan memenuhi syarat tayang di hero beranda.`
-                          );
-                        } else {
-                          setImageSizeWarning(null);
-                        }
-                        setDesktopImagePath(file.name);
+                        if (file) handleFileUpload('desktop', file);
                       }}
                     />
                   </label>
-                  <span className="text-[11px] text-muted">
-                    (Min. 100 KB / 102.400 byte untuk hero)
-                  </span>
+                  <span className="text-[11px] text-muted">Maks. 5 MB (JPG, PNG, WebP)</span>
                 </div>
-                {imageSizeWarning && (
-                  <div
-                    role="alert"
-                    className="mt-1.5 p-2 bg-amber-50 border border-amber-200 text-amber-800 rounded-xs text-[11px] flex items-center gap-1.5"
-                  >
-                    <span>⚠️</span>
-                    <span>{imageSizeWarning}</span>
+
+                {desktopImagePath && (
+                  <div className="mt-2 p-2 bg-neutral-50 rounded-xs border border-hairline flex items-center gap-3">
+                    <div className="relative w-16 h-12 bg-white rounded-xs overflow-hidden border border-hairline shrink-0">
+                      <Image
+                        src={getStorageImageUrl(desktopImagePath, '/images/motorcycle-placeholder.svg', 'hero-banners')}
+                        alt="Pratinjau Desktop"
+                        fill
+                        className="object-contain"
+                      />
+                    </div>
+                    <div className="text-[11px] text-muted truncate">
+                      <span className="font-semibold text-ink block">Pratinjau Desktop:</span>
+                      <span className="font-mono text-[10px] truncate block">{desktopImagePath}</span>
+                    </div>
                   </div>
                 )}
+
                 {fieldErrors.desktopImagePath && (
                   <p className="mt-1 text-[11px] text-status-error">
                     {fieldErrors.desktopImagePath.join(', ')}
@@ -338,11 +416,11 @@ export function BannerManagementView({ initialBanners }: BannerManagementViewPro
                 )}
               </div>
 
-              {/* Mobile Image Path */}
-              <div>
+              {/* Mobile Image Upload & Path */}
+              <div className="space-y-2">
                 <label
                   htmlFor="banner-mobile-image"
-                  className="block text-xs font-semibold text-ink mb-1.5"
+                  className="block text-xs font-semibold text-ink"
                 >
                   {dealershipCopy.adminBanners.mobileImageLabel}
                 </label>
@@ -354,6 +432,45 @@ export function BannerManagementView({ initialBanners }: BannerManagementViewPro
                   placeholder={dealershipCopy.adminBanners.mobileImagePlaceholder}
                   className="w-full h-10 px-3 text-xs bg-canvas text-ink border border-hairline rounded-xs focus:ring-1 focus:ring-primary focus:border-primary font-mono"
                 />
+                <div className="flex items-center gap-2">
+                  <label
+                    htmlFor="banner-mobile-file"
+                    className={`cursor-pointer inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-xs border border-hairline bg-surface hover:bg-neutral-100 text-ink transition-colors ${
+                      isUploadingMobile ? 'opacity-50 pointer-events-none' : ''
+                    }`}
+                  >
+                    <span>{isUploadingMobile ? 'Mengunggah...' : 'Unggah Gambar Mobile'}</span>
+                    <input
+                      id="banner-mobile-file"
+                      type="file"
+                      accept="image/png,image/jpeg,image/webp"
+                      className="hidden"
+                      disabled={isUploadingMobile}
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) handleFileUpload('mobile', file);
+                      }}
+                    />
+                  </label>
+                  <span className="text-[11px] text-muted">Maks. 5 MB (Opsional)</span>
+                </div>
+
+                {mobileImagePath && (
+                  <div className="mt-2 p-2 bg-neutral-50 rounded-xs border border-hairline flex items-center gap-3">
+                    <div className="relative w-12 h-16 bg-white rounded-xs overflow-hidden border border-hairline shrink-0">
+                      <Image
+                        src={getStorageImageUrl(mobileImagePath, '/images/motorcycle-placeholder.svg', 'hero-banners')}
+                        alt="Pratinjau Mobile"
+                        fill
+                        className="object-contain"
+                      />
+                    </div>
+                    <div className="text-[11px] text-muted truncate">
+                      <span className="font-semibold text-ink block">Pratinjau Mobile:</span>
+                      <span className="font-mono text-[10px] truncate block">{mobileImagePath}</span>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
 
@@ -363,7 +480,7 @@ export function BannerManagementView({ initialBanners }: BannerManagementViewPro
                 htmlFor="banner-alt-text"
                 className="block text-xs font-semibold text-ink mb-1.5"
               >
-                {dealershipCopy.adminBanners.altTextLabel}
+                {dealershipCopy.adminBanners.altTextLabel} *
               </label>
               <input
                 id="banner-alt-text"
@@ -501,7 +618,7 @@ export function BannerManagementView({ initialBanners }: BannerManagementViewPro
                 variant="outline"
                 size="sm"
                 onClick={() => setIsEditing(false)}
-                disabled={isPending}
+                disabled={isPending || isUploadingDesktop || isUploadingMobile}
               >
                 {dealershipCopy.common.cancel}
               </Button>
@@ -509,7 +626,7 @@ export function BannerManagementView({ initialBanners }: BannerManagementViewPro
                 type="submit"
                 variant="primary"
                 size="sm"
-                disabled={isPending}
+                disabled={isPending || isUploadingDesktop || isUploadingMobile}
                 aria-busy={isPending}
               >
                 {isPending ? 'Menyimpan...' : dealershipCopy.common.save}
