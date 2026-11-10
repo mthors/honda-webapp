@@ -126,4 +126,53 @@ test.describe('Showroom Smoke Tests', () => {
     await expect(page.locator('text=INQ-')).toBeVisible();
     await expect(page.locator('text=Lanjutkan Obrolan via WhatsApp')).toBeVisible();
   });
+
+  test('promotional banner progress indicator fills over time and pauses on hover', async ({
+    page,
+  }) => {
+    await page.goto('/');
+
+    const fill = page.locator('[data-testid="banner-progress-fill"]');
+    if ((await fill.count()) > 0) {
+      // Helper to extract scaleX from CSS matrix
+      const getScaleX = async () => {
+        const transform = await fill.evaluate((el) => window.getComputedStyle(el).transform);
+        if (!transform || transform === 'none') return 1;
+        const match = transform.match(/matrix\(([^,]+)/);
+        return match ? parseFloat(match[1]) : 0;
+      };
+
+      // Progress begins near 0
+      const initialScale = await getScaleX();
+      expect(initialScale).toBeLessThan(0.3);
+
+      // Advances over 1.5s
+      await page.waitForTimeout(1500);
+      const midScale = await getScaleX();
+      expect(midScale).toBeGreaterThan(initialScale);
+      expect(midScale).toBeGreaterThanOrEqual(0.15);
+
+      // Pauses when hovered
+      const section = page.locator('section[aria-label^="Spanduk Promosi"]');
+      await section.hover();
+      const playStateHover = await fill.evaluate(
+        (el) => window.getComputedStyle(el).animationPlayState
+      );
+      expect(playStateHover).toBe('paused');
+
+      const scaleAtHover = await getScaleX();
+      await page.waitForTimeout(1000);
+      const scaleAfterHoverWait = await getScaleX();
+      // Frozen while hovered (difference within small float tolerance)
+      expect(Math.abs(scaleAfterHoverWait - scaleAtHover)).toBeLessThan(0.05);
+
+      // Resumes when unhovered
+      await page.mouse.move(0, 0);
+      await page.waitForTimeout(100);
+      const playStateUnhover = await fill.evaluate(
+        (el) => window.getComputedStyle(el).animationPlayState
+      );
+      expect(playStateUnhover).toBe('running');
+    }
+  });
 });

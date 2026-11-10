@@ -16,7 +16,6 @@ import { FloatingHeroFilter } from '@/components/public/home/FloatingHeroFilter'
 import { getStorageImageUrl } from '@/lib/catalog/image';
 import { isHeroImageEligibleBySize } from '@/lib/catalog/image-quality';
 import type { CatalogCategory, CatalogModelSummary } from '@/types/catalog';
-import type { HeroBanner } from '@/types/promotions';
 
 export interface ShowcaseSlide {
   id: string;
@@ -27,9 +26,12 @@ export interface ShowcaseSlide {
 interface SplitHeroShowroomProps {
   categories: CatalogCategory[];
   models?: CatalogModelSummary[];
-  banners?: HeroBanner[];
   imageSizes?: Record<string, number>;
 }
+
+const SHOWCASE_AUTOPLAY_INTERVAL = 5500; // 5.5 seconds (refined 5–6s range)
+const SHOWCASE_TRANSITION_DURATION = 550; // 550ms (refined 500–600ms range)
+const SHOWCASE_FALLBACK_TIMEOUT = 650; // 650ms safety reset
 
 function subscribeReducedMotion(callback: () => void) {
   if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') return () => {};
@@ -48,45 +50,21 @@ function getServerSnapshot() {
 }
 
 /**
- * Builds the list of eligible showcase slides strictly enforcing the minimum 100 KB
- * image file size requirement.
+ * Builds the list of eligible showcase slides strictly driven by the published
+ * motorcycle catalog data and enforcing the minimum 100 KB image file size requirement.
  *
  * Requirements:
- * - Only images larger than 100 KB (102,400 bytes) are eligible.
- * - Ineligible banners or model images (<= 100 KB) are skipped.
- * - If no eligible images are available, returns empty array to trigger the graceful fallback.
+ * - Powered exclusively by motorcycle product catalog data.
+ * - Categories ordered strictly: Matic, Cub/Bebek, Sport, EV.
+ * - Prioritizes featured models (isFeatured = true) first within each category.
+ * - Takes up to 2 models per category when available.
+ * - Image file size must exceed 100 KB (102,400 bytes).
+ * - Gracefully skips unavailable or ineligible images.
  */
 export function buildShowcaseSlides(
   models: CatalogModelSummary[],
-  banners?: HeroBanner[],
   imageSizes?: Record<string, number>
 ): ShowcaseSlide[] {
-  // 1. Process CMS Hero Banners if present
-  if (banners && banners.length > 0) {
-    const eligibleBanners: ShowcaseSlide[] = [];
-
-    for (const b of banners) {
-      const barePath = b.desktopImagePath.replace(/^hero-banners\//, '');
-      const size = imageSizes?.[b.desktopImagePath] ?? imageSizes?.[barePath];
-
-      // If size is tracked, strictly require > 100 KB
-      if (size !== undefined && !isHeroImageEligibleBySize(size)) {
-        continue; // Skip ineligible banner
-      }
-
-      eligibleBanners.push({
-        id: b.id,
-        modelName: b.altText || b.title,
-        imagePath: b.desktopImagePath,
-      });
-    }
-
-    if (eligibleBanners.length > 0) {
-      return eligibleBanners;
-    }
-  }
-
-  // 2. Select eligible models with high-resolution images (> 100 KB)
   const targetCategorySlugs = ['matic', 'cub', 'sport', 'ev'];
   const slides: ShowcaseSlide[] = [];
 
@@ -136,7 +114,6 @@ export function buildShowcaseSlides(
 export function SplitHeroShowroom({
   categories,
   models = [],
-  banners = [],
   imageSizes = {},
 }: SplitHeroShowroomProps) {
   const prefersReducedMotion = useSyncExternalStore(
@@ -146,8 +123,8 @@ export function SplitHeroShowroom({
   );
 
   const slides = useMemo(
-    () => buildShowcaseSlides(models, banners, imageSizes),
-    [models, banners, imageSizes]
+    () => buildShowcaseSlides(models, imageSizes),
+    [models, imageSizes]
   );
   const totalSlides = slides.length;
 
@@ -198,19 +175,22 @@ export function SplitHeroShowroom({
     }
 
     if (totalSlides >= 2) {
-      if (trackIndex === totalSlides + 1) {
-        // Hit appended clone of first slide (index N+1) -> instantly snap to real first slide (index 1)
-        setIsTransitioning(false);
-        setTrackIndex(1);
-      } else if (trackIndex === 0) {
-        // Hit prepended clone of last slide (index 0) -> instantly snap to real last slide (index N)
-        setIsTransitioning(false);
-        setTrackIndex(totalSlides);
-      }
+      setTrackIndex((currentTrackIndex) => {
+        if (currentTrackIndex === totalSlides + 1) {
+          // Hit appended clone of first slide (index N+1) -> instantly snap to real first slide (index 1)
+          setIsTransitioning(false);
+          return 1;
+        } else if (currentTrackIndex === 0) {
+          // Hit prepended clone of last slide (index 0) -> instantly snap to real last slide (index N)
+          setIsTransitioning(false);
+          return totalSlides;
+        }
+        return currentTrackIndex;
+      });
     }
 
     isAnimatingRef.current = false;
-  }, [totalSlides, trackIndex]);
+  }, [totalSlides]);
 
   const handleNext = useCallback(() => {
     if (totalSlides <= 1 || isAnimatingRef.current) return;
@@ -233,7 +213,7 @@ export function SplitHeroShowroom({
     if (fallbackResetTimerRef.current) clearTimeout(fallbackResetTimerRef.current);
     fallbackResetTimerRef.current = setTimeout(() => {
       handleTransitionEnd();
-    }, 850);
+    }, SHOWCASE_FALLBACK_TIMEOUT);
   }, [totalSlides, prefersReducedMotion, handleTransitionEnd]);
 
   const handlePrev = useCallback(() => {
@@ -257,10 +237,10 @@ export function SplitHeroShowroom({
     if (fallbackResetTimerRef.current) clearTimeout(fallbackResetTimerRef.current);
     fallbackResetTimerRef.current = setTimeout(() => {
       handleTransitionEnd();
-    }, 850);
+    }, SHOWCASE_FALLBACK_TIMEOUT);
   }, [totalSlides, prefersReducedMotion, handleTransitionEnd]);
 
-  // Automatic slide rotation at relaxed pace (7s), paused on hover/focus or reduced motion
+  // Automatic slide rotation (5.5s), paused on hover/focus or reduced motion
   useEffect(() => {
     if (prefersReducedMotion || totalSlides <= 1 || isPaused) {
       if (timerRef.current) clearInterval(timerRef.current);
@@ -269,7 +249,7 @@ export function SplitHeroShowroom({
 
     timerRef.current = setInterval(() => {
       handleNext();
-    }, 7000);
+    }, SHOWCASE_AUTOPLAY_INTERVAL);
 
     return () => {
       if (timerRef.current) clearInterval(timerRef.current);
@@ -384,7 +364,7 @@ export function SplitHeroShowroom({
                       transform: `translate3d(-${trackIndex * 100}%, 0, 0)`,
                       transition:
                         isTransitioning && !prefersReducedMotion
-                          ? 'transform 750ms cubic-bezier(0.22, 1, 0.36, 1)'
+                          ? `transform ${SHOWCASE_TRANSITION_DURATION}ms cubic-bezier(0.22, 1, 0.36, 1)`
                           : 'none',
                       willChange: 'transform',
                     }}

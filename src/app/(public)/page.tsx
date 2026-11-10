@@ -24,13 +24,14 @@ export const metadata: Metadata = {
 };
 
 export default async function HomePage() {
-  const [allModels, featuredModels, categories, heroBanners, imageSizes] = await Promise.all([
-    getPublishedModels(),
-    getFeaturedModels(),
-    getActiveCategories(),
-    getActiveHeroBanners(),
-    getStorageImageSizes(),
-  ]);
+  const [allModels, featuredModels, categories, heroBanners, imageSizes] =
+    await Promise.all([
+      getPublishedModels(),
+      getFeaturedModels(),
+      getActiveCategories(),
+      getActiveHeroBanners(),
+      getStorageImageSizes(),
+    ]);
 
   return (
     <div className="flex flex-col w-full">
@@ -38,18 +39,14 @@ export default async function HomePage() {
       <SplitHeroShowroom
         categories={categories}
         models={allModels}
-        banners={heroBanners}
         imageSizes={imageSizes}
       />
 
       {/* 2. Popular Body Type: Category Discovery with Consistent Cards */}
       <ReferenceCategoryDiscovery categories={categories} models={allModels} />
 
-      {/* 3. Wide Dark Editorial Promotional Banner with Radiant Circle & Motorcycle Cutout */}
-      <ReferencePromoBanner
-        imageStoragePath="pcx-160-1793861131468-1.webp"
-        promoTitle="Honda PCX 160 eSP+ Teknologi Terdepan"
-      />
+      {/* 3. Wide Dark Editorial Promotional Banner Driven by CMS Hero Banners */}
+      {heroBanners.length > 0 && <ReferencePromoBanner banners={heroBanners} />}
 
       {/* 4. Most Popular Listings: Featured Motorcycle Product Discovery (Only Unggulan Models) */}
       <ReferenceFeaturedListings models={featuredModels} />
