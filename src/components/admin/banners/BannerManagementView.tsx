@@ -244,11 +244,11 @@ export function BannerManagementView({ initialBanners }: BannerManagementViewPro
       <div className="p-4 rounded-xs border border-blue-200 bg-blue-50/70 text-blue-900 text-xs sm:text-sm flex items-start gap-3">
         <span className="text-base leading-none">ℹ️</span>
         <div className="space-y-1">
-          <p className="font-semibold text-xs sm:text-sm">Pemisahan Materi Promosi dan Etalase Beranda</p>
+          <p className="font-semibold text-xs sm:text-sm">Sistem Spanduk Promosi Image-First</p>
           <p className="text-muted text-[11px] sm:text-xs leading-relaxed">
-            Spanduk di menu ini khusus digunakan untuk pengelolaan spanduk promosi grafis kampanye dealer.
-            Etalase sepeda motor pada bagian atas beranda (motorcycle showcase) ditenagai secara langsung
-            oleh data motor yang dipublikasikan di katalog produk (menu Motor).
+            Spanduk promosi beranda ditampilkan utuh sesuai desain visual yang diunggah tanpa overlay teks atau tombol tambahan di atas gambar.
+            Judul dan teks alt digunakan untuk pencatatan admin dan aksesibilitas pembaca layar.
+            Jika URL Tujuan diisi, seluruh spanduk di beranda dapat diklik menuju halaman tujuan tersebut.
           </p>
         </div>
       </div>

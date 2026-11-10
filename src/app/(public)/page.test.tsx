@@ -198,20 +198,23 @@ describe('Public HomePage (Reference Redesign)', () => {
     const Component = await HomePage();
     render(Component);
 
+    // Image-First CMS: Entire banner is an accessible link, and artwork image is rendered
+    const bannerLink = screen.getByRole('link', { name: 'Gebyar Promo Honda Satrya' });
+    expect(bannerLink).toBeInTheDocument();
+    expect(bannerLink).toHaveAttribute('href', '/hubungi?promo=gebyar');
+
+    expect(screen.getByAltText('Gebyar Promo Honda Satrya')).toBeInTheDocument();
+
+    // No overlaid headings, body copy, or secondary buttons are rendered on the artwork
     expect(
-      screen.getByRole('heading', {
+      screen.queryByRole('heading', {
         level: 2,
         name: /Gebyar Promo Honda Satrya/i,
       })
-    ).toBeInTheDocument();
-
+    ).not.toBeInTheDocument();
     expect(
-      screen.getByText(/Dapatkan diskon DP dan angsuran ringan/i)
-    ).toBeInTheDocument();
-
-    expect(
-      screen.getByRole('link', { name: /Klaim Promo/i })
-    ).toHaveAttribute('href', '/hubungi?promo=gebyar');
+      screen.queryByText(/Dapatkan diskon DP dan angsuran ringan/i)
+    ).not.toBeInTheDocument();
   });
 
   it('gracefully hides promotional banner when no active hero banner exists', async () => {
@@ -220,11 +223,9 @@ describe('Public HomePage (Reference Redesign)', () => {
     const Component = await HomePage();
     render(Component);
 
+    expect(screen.queryByAltText('Gebyar Promo Honda Satrya')).not.toBeInTheDocument();
     expect(
-      screen.queryByRole('heading', {
-        level: 2,
-        name: /Gebyar Promo Honda Satrya/i,
-      })
+      screen.queryByRole('link', { name: 'Gebyar Promo Honda Satrya' })
     ).not.toBeInTheDocument();
   });
 

@@ -50,7 +50,7 @@ describe('BannerManagementView (Promotional Banner CMS)', () => {
     expect(screen.getByText('Pengelolaan Spanduk Promosi')).toBeInTheDocument();
     expect(screen.getByText('Belum Ada Spanduk Promosi')).toBeInTheDocument();
     expect(
-      screen.getByText(/Pemisahan Materi Promosi dan Etalase Beranda/i)
+      screen.getByText(/Sistem Spanduk Promosi Image-First/i)
     ).toBeInTheDocument();
   });
 
