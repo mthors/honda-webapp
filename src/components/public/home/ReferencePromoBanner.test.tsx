@@ -4,7 +4,7 @@ import { render, screen, fireEvent, act } from '@testing-library/react';
 import { ReferencePromoBanner } from './ReferencePromoBanner';
 import type { HeroBanner } from '@/types/promotions';
 
-describe('ReferencePromoBanner Component (Image-First CMS Promotional Banner with Smooth Autoplay)', () => {
+describe('ReferencePromoBanner Component (Image-First CMS Promotional Banner with Refined Timing and Progress Indicator)', () => {
   const mockBanners: HeroBanner[] = [
     {
       id: 'banner-genio',
@@ -90,7 +90,6 @@ describe('ReferencePromoBanner Component (Image-First CMS Promotional Banner wit
     render(<ReferencePromoBanner banners={[mockBanners[0]]} />);
 
     const images = screen.getAllByAltText('Banner Promo Honda Genio');
-    // Mobile (< sm) and desktop (>= sm) representations
     expect(images.length).toBe(2);
   });
 
@@ -101,15 +100,16 @@ describe('ReferencePromoBanner Component (Image-First CMS Promotional Banner wit
     expect(images.length).toBe(1);
   });
 
-  it('does not render navigation controls or autoplay when only 1 banner exists', () => {
+  it('does not render navigation controls, progress indicator, or autoplay when only 1 banner exists', () => {
     render(<ReferencePromoBanner banners={[mockBanners[0]]} />);
 
     expect(screen.queryByRole('button', { name: /Spanduk berikutnya/i })).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /Spanduk sebelumnya/i })).not.toBeInTheDocument();
     expect(screen.queryByRole('tablist')).not.toBeInTheDocument();
+    expect(screen.queryByRole('progressbar')).not.toBeInTheDocument();
   });
 
-  describe('Slideshow Autoplay, Loop, and Manual Navigation', () => {
+  describe('Refined Slideshow Autoplay (5s), Transition Duration (550ms), and Loop', () => {
     beforeEach(() => {
       vi.useFakeTimers();
     });
@@ -118,16 +118,16 @@ describe('ReferencePromoBanner Component (Image-First CMS Promotional Banner wit
       vi.useRealTimers();
     });
 
-    it('automatically advances to the next banner after interval', () => {
+    it('automatically advances to the next banner after refined 5s interval', () => {
       render(<ReferencePromoBanner banners={mockBanners} />);
 
       const tabs = screen.getAllByRole('tab');
       expect(tabs[0]).toHaveAttribute('aria-selected', 'true');
       expect(tabs[1]).toHaveAttribute('aria-selected', 'false');
 
-      // Fast-forward 7 seconds
+      // Fast-forward 5 seconds (refined interval)
       act(() => {
-        vi.advanceTimersByTime(7000);
+        vi.advanceTimersByTime(5000);
       });
 
       // Active slide advanced to second banner
@@ -138,25 +138,25 @@ describe('ReferencePromoBanner Component (Image-First CMS Promotional Banner wit
       ).toBeInTheDocument();
     });
 
-    it('loops continuously from the last banner back to the first', () => {
+    it('loops continuously from the last banner back to the first with refined timing', () => {
       render(<ReferencePromoBanner banners={mockBanners} />);
 
       const tabs = screen.getAllByRole('tab');
 
       // Advance to banner 2
       act(() => {
-        vi.advanceTimersByTime(7000);
+        vi.advanceTimersByTime(5000);
       });
       expect(tabs[1]).toHaveAttribute('aria-selected', 'true');
 
       // Advance again (hits clone of first banner at index 3)
       act(() => {
-        vi.advanceTimersByTime(7000);
+        vi.advanceTimersByTime(5000);
       });
 
-      // Advance safety transition end timer
+      // Advance safety transition end timer (650ms)
       act(() => {
-        vi.advanceTimersByTime(850);
+        vi.advanceTimersByTime(650);
       });
 
       // Seamlessly loops back to banner 1
@@ -179,34 +179,34 @@ describe('ReferencePromoBanner Component (Image-First CMS Promotional Banner wit
       // Click Next manually
       act(() => {
         fireEvent.click(nextBtn);
-        vi.advanceTimersByTime(850);
+        vi.advanceTimersByTime(650);
       });
       expect(tabs[1]).toHaveAttribute('aria-selected', 'true');
 
       // Click Prev manually
       act(() => {
         fireEvent.click(prevBtn);
-        vi.advanceTimersByTime(850);
+        vi.advanceTimersByTime(650);
       });
       expect(tabs[0]).toHaveAttribute('aria-selected', 'true');
 
       // Click Tab dot directly
       act(() => {
         fireEvent.click(tabs[1]);
-        vi.advanceTimersByTime(850);
+        vi.advanceTimersByTime(650);
       });
       expect(tabs[1]).toHaveAttribute('aria-selected', 'true');
     });
 
-    it('resets the autoplay interval after manual navigation so it does not jump immediately', () => {
+    it('resets the autoplay interval after manual navigation', () => {
       render(<ReferencePromoBanner banners={mockBanners} />);
 
       const tabs = screen.getAllByRole('tab');
       const nextBtn = screen.getByRole('button', { name: 'Spanduk berikutnya' });
 
-      // Advance 5 seconds (not yet reaching the 7s mark)
+      // Advance 3 seconds (not yet reaching 5s mark)
       act(() => {
-        vi.advanceTimersByTime(5000);
+        vi.advanceTimersByTime(3000);
       });
       expect(tabs[0]).toHaveAttribute('aria-selected', 'true');
 
@@ -216,14 +216,14 @@ describe('ReferencePromoBanner Component (Image-First CMS Promotional Banner wit
       });
       expect(tabs[1]).toHaveAttribute('aria-selected', 'true');
 
-      // Advance 5 seconds more (total 10s elapsed, but only 5s since manual interaction)
+      // Advance 3 seconds more (total 6s elapsed, but only 3s since manual interaction)
       act(() => {
-        vi.advanceTimersByTime(5000);
+        vi.advanceTimersByTime(3000);
       });
-      // Should STILL be on banner 2 because manual click reset the 7s countdown
+      // Should STILL be on banner 2 because manual click reset the 5s countdown
       expect(tabs[1]).toHaveAttribute('aria-selected', 'true');
 
-      // Advance 2 seconds more (now 7s since manual click)
+      // Advance 2 seconds more (now 5s since manual click)
       act(() => {
         vi.advanceTimersByTime(2000);
       });
@@ -231,36 +231,46 @@ describe('ReferencePromoBanner Component (Image-First CMS Promotional Banner wit
       expect(tabs[0]).toHaveAttribute('aria-selected', 'true');
     });
 
-    it('pauses autoplay on hover and resumes on mouse leave', () => {
+    it('pauses autoplay on hover and resumes with remaining time on mouse leave', () => {
       render(<ReferencePromoBanner banners={mockBanners} />);
 
       const section = screen.getByRole('region', { name: /Spanduk Promosi/i });
       const tabs = screen.getAllByRole('tab');
 
-      // Hover over banner
+      // Advance 2s into the 5s interval (3s remaining)
+      act(() => {
+        vi.advanceTimersByTime(2000);
+      });
+
+      // Hover over banner (pauses)
       act(() => {
         fireEvent.mouseEnter(section);
       });
 
-      // Advance 14 seconds (twice the normal interval)
+      // Advance 10 seconds while paused
       act(() => {
-        vi.advanceTimersByTime(14000);
+        vi.advanceTimersByTime(10000);
       });
 
-      // Should remain paused on banner 1
+      // Remains paused on banner 1
       expect(tabs[0]).toHaveAttribute('aria-selected', 'true');
 
-      // Unhover
+      // Unhover (resumes with the remaining 3s)
       act(() => {
         fireEvent.mouseLeave(section);
       });
 
-      // Advance 7 seconds
+      // Advance 2s (still within the 3s remaining window)
       act(() => {
-        vi.advanceTimersByTime(7000);
+        vi.advanceTimersByTime(2000);
       });
+      expect(tabs[0]).toHaveAttribute('aria-selected', 'true');
 
-      // Resumed and advanced to banner 2
+      // Advance remaining 1s
+      act(() => {
+        vi.advanceTimersByTime(1000);
+      });
+      // Now it advances to banner 2!
       expect(tabs[1]).toHaveAttribute('aria-selected', 'true');
     });
 
@@ -289,13 +299,105 @@ describe('ReferencePromoBanner Component (Image-First CMS Promotional Banner wit
         fireEvent.blur(section, { relatedTarget: document.body });
       });
 
-      // Advance 7 seconds
+      // Advance 5 seconds
       act(() => {
-        vi.advanceTimersByTime(7000);
+        vi.advanceTimersByTime(5000);
       });
 
-      // Resumes
+      // Resumes and advances
       expect(tabs[1]).toHaveAttribute('aria-selected', 'true');
+    });
+  });
+
+  describe('Autoplay Progress Indicator', () => {
+    beforeEach(() => {
+      vi.useFakeTimers();
+    });
+
+    afterEach(() => {
+      vi.useRealTimers();
+    });
+
+    it('renders subtle progress indicator below artwork with 5000ms linear fill animation', () => {
+      render(<ReferencePromoBanner banners={mockBanners} />);
+
+      const progressBar = screen.getByRole('progressbar', {
+        name: /Waktu jeda tayang spanduk promosi/i,
+      });
+      expect(progressBar).toBeInTheDocument();
+      expect(progressBar).toHaveAttribute('aria-valuemin', '0');
+      expect(progressBar).toHaveAttribute('aria-valuemax', '100');
+
+      const fill = screen.getByTestId('banner-progress-fill');
+      expect(fill).toHaveStyle({
+        animation: 'bannerProgress 5000ms linear forwards',
+        animationPlayState: 'running',
+      });
+    });
+
+    it('pauses the progress indicator animation on hover and resumes on mouse leave', () => {
+      render(<ReferencePromoBanner banners={mockBanners} />);
+
+      const section = screen.getByRole('region', { name: /Spanduk Promosi/i });
+      const fill = screen.getByTestId('banner-progress-fill');
+
+      expect(fill).toHaveStyle({ animationPlayState: 'running' });
+
+      // Hover
+      act(() => {
+        fireEvent.mouseEnter(section);
+      });
+      expect(fill).toHaveStyle({ animationPlayState: 'paused' });
+
+      // Mouse leave
+      act(() => {
+        fireEvent.mouseLeave(section);
+      });
+      expect(fill).toHaveStyle({ animationPlayState: 'running' });
+    });
+
+    it('pauses the progress indicator when focused and resumes on blur', () => {
+      render(<ReferencePromoBanner banners={mockBanners} />);
+
+      const section = screen.getByRole('region', { name: /Spanduk Promosi/i });
+      const nextBtn = screen.getByRole('button', { name: 'Spanduk berikutnya' });
+      const fill = screen.getByTestId('banner-progress-fill');
+
+      // Focus
+      act(() => {
+        fireEvent.focus(nextBtn);
+      });
+      expect(fill).toHaveStyle({ animationPlayState: 'paused' });
+
+      // Blur outside
+      act(() => {
+        fireEvent.blur(section, { relatedTarget: document.body });
+      });
+      expect(fill).toHaveStyle({ animationPlayState: 'running' });
+    });
+
+    it('resets progress indicator upon manual slide navigation', () => {
+      const { rerender } = render(<ReferencePromoBanner banners={mockBanners} />);
+
+      const nextBtn = screen.getByRole('button', { name: 'Spanduk berikutnya' });
+
+      // Advance 2s
+      act(() => {
+        vi.advanceTimersByTime(2000);
+      });
+
+      // Manual click
+      act(() => {
+        fireEvent.click(nextBtn);
+      });
+
+      // Fresh fill element is remounted for the new slide
+      rerender(<ReferencePromoBanner banners={mockBanners} />);
+      const fill = screen.getByTestId('banner-progress-fill');
+      expect(fill).toHaveStyle({
+        animation: 'bannerProgress 5000ms linear forwards',
+        animationPlayState: 'running',
+      });
     });
   });
 
@@ -319,8 +421,11 @@ describe('ReferencePromoBanner Component (Image-First CMS Promotional Banner wit
       vi.useRealTimers();
     });
 
-    it('disables autoplay rotation when reduced motion is preferred', () => {
+    it('disables autoplay rotation and hides progress indicator when reduced motion is preferred', () => {
       render(<ReferencePromoBanner banners={mockBanners} />);
+
+      // Progress bar should NOT be rendered when reduced motion is requested
+      expect(screen.queryByRole('progressbar')).not.toBeInTheDocument();
 
       const tabs = screen.getAllByRole('tab');
       expect(tabs[0]).toHaveAttribute('aria-selected', 'true');

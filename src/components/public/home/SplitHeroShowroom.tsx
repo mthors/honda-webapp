@@ -29,6 +29,10 @@ interface SplitHeroShowroomProps {
   imageSizes?: Record<string, number>;
 }
 
+const SHOWCASE_AUTOPLAY_INTERVAL = 5500; // 5.5 seconds (refined 5–6s range)
+const SHOWCASE_TRANSITION_DURATION = 550; // 550ms (refined 500–600ms range)
+const SHOWCASE_FALLBACK_TIMEOUT = 650; // 650ms safety reset
+
 function subscribeReducedMotion(callback: () => void) {
   if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') return () => {};
   const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
@@ -171,19 +175,22 @@ export function SplitHeroShowroom({
     }
 
     if (totalSlides >= 2) {
-      if (trackIndex === totalSlides + 1) {
-        // Hit appended clone of first slide (index N+1) -> instantly snap to real first slide (index 1)
-        setIsTransitioning(false);
-        setTrackIndex(1);
-      } else if (trackIndex === 0) {
-        // Hit prepended clone of last slide (index 0) -> instantly snap to real last slide (index N)
-        setIsTransitioning(false);
-        setTrackIndex(totalSlides);
-      }
+      setTrackIndex((currentTrackIndex) => {
+        if (currentTrackIndex === totalSlides + 1) {
+          // Hit appended clone of first slide (index N+1) -> instantly snap to real first slide (index 1)
+          setIsTransitioning(false);
+          return 1;
+        } else if (currentTrackIndex === 0) {
+          // Hit prepended clone of last slide (index 0) -> instantly snap to real last slide (index N)
+          setIsTransitioning(false);
+          return totalSlides;
+        }
+        return currentTrackIndex;
+      });
     }
 
     isAnimatingRef.current = false;
-  }, [totalSlides, trackIndex]);
+  }, [totalSlides]);
 
   const handleNext = useCallback(() => {
     if (totalSlides <= 1 || isAnimatingRef.current) return;
@@ -206,7 +213,7 @@ export function SplitHeroShowroom({
     if (fallbackResetTimerRef.current) clearTimeout(fallbackResetTimerRef.current);
     fallbackResetTimerRef.current = setTimeout(() => {
       handleTransitionEnd();
-    }, 850);
+    }, SHOWCASE_FALLBACK_TIMEOUT);
   }, [totalSlides, prefersReducedMotion, handleTransitionEnd]);
 
   const handlePrev = useCallback(() => {
@@ -230,10 +237,10 @@ export function SplitHeroShowroom({
     if (fallbackResetTimerRef.current) clearTimeout(fallbackResetTimerRef.current);
     fallbackResetTimerRef.current = setTimeout(() => {
       handleTransitionEnd();
-    }, 850);
+    }, SHOWCASE_FALLBACK_TIMEOUT);
   }, [totalSlides, prefersReducedMotion, handleTransitionEnd]);
 
-  // Automatic slide rotation at relaxed pace (7s), paused on hover/focus or reduced motion
+  // Automatic slide rotation (5.5s), paused on hover/focus or reduced motion
   useEffect(() => {
     if (prefersReducedMotion || totalSlides <= 1 || isPaused) {
       if (timerRef.current) clearInterval(timerRef.current);
@@ -242,7 +249,7 @@ export function SplitHeroShowroom({
 
     timerRef.current = setInterval(() => {
       handleNext();
-    }, 7000);
+    }, SHOWCASE_AUTOPLAY_INTERVAL);
 
     return () => {
       if (timerRef.current) clearInterval(timerRef.current);
@@ -357,7 +364,7 @@ export function SplitHeroShowroom({
                       transform: `translate3d(-${trackIndex * 100}%, 0, 0)`,
                       transition:
                         isTransitioning && !prefersReducedMotion
-                          ? 'transform 750ms cubic-bezier(0.22, 1, 0.36, 1)'
+                          ? `transform ${SHOWCASE_TRANSITION_DURATION}ms cubic-bezier(0.22, 1, 0.36, 1)`
                           : 'none',
                       willChange: 'transform',
                     }}

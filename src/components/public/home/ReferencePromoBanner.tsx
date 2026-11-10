@@ -18,6 +18,10 @@ interface ReferencePromoBannerProps {
   banners: HeroBanner[];
 }
 
+const PROMO_AUTOPLAY_INTERVAL = 5000; // Refined 5 seconds
+const PROMO_TRANSITION_DURATION = 550; // Refined 550ms (in 500–600ms range)
+const PROMO_FALLBACK_TIMEOUT = 650; // 650ms safety reset
+
 function subscribeReducedMotion(callback: () => void) {
   if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') return () => {};
   const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
@@ -53,11 +57,13 @@ export function ReferencePromoBanner({ banners }: ReferencePromoBannerProps) {
   const [prevTotalSlides, setPrevTotalSlides] = useState(totalSlides);
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
-  const [timerKey, setTimerKey] = useState(0);
+  const [progressKey, setProgressKey] = useState(0);
 
   const isAnimatingRef = useRef(false);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const fallbackResetTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const remainingTimeRef = useRef(PROMO_AUTOPLAY_INTERVAL);
+  const startTimeRef = useRef<number | null>(null);
 
   // Sync track index if banners change
   if (prevTotalSlides !== totalSlides) {
@@ -86,58 +92,58 @@ export function ReferencePromoBanner({ banners }: ReferencePromoBannerProps) {
     }
 
     if (totalSlides >= 2) {
-      if (trackIndex === totalSlides + 1) {
-        // Appended clone of first slide reached -> snap instantly to real first slide (index 1)
-        setIsTransitioning(false);
-        setTrackIndex(1);
-      } else if (trackIndex === 0) {
-        // Prepended clone of last slide reached -> snap instantly to real last slide (index totalSlides)
-        setIsTransitioning(false);
-        setTrackIndex(totalSlides);
-      }
+      setTrackIndex((currentTrackIndex) => {
+        if (currentTrackIndex === totalSlides + 1) {
+          // Appended clone of first slide reached -> snap instantly to real first slide (index 1)
+          setIsTransitioning(false);
+          return 1;
+        } else if (currentTrackIndex === 0) {
+          // Prepended clone of last slide reached -> snap instantly to real last slide (index totalSlides)
+          setIsTransitioning(false);
+          return totalSlides;
+        }
+        return currentTrackIndex;
+      });
     }
 
     isAnimatingRef.current = false;
-  }, [totalSlides, trackIndex]);
+  }, [totalSlides]);
 
-  const resetAutoplayTimer = useCallback(() => {
-    setTimerKey((k) => k + 1);
-  }, []);
+  const handleNext = useCallback(() => {
+    if (totalSlides <= 1 || isAnimatingRef.current) return;
+    isAnimatingRef.current = true;
 
-  const handleNext = useCallback(
-    (isManual = false) => {
-      if (totalSlides <= 1 || isAnimatingRef.current) return;
-      isAnimatingRef.current = true;
+    // Reset autoplay duration tracking for next cycle
+    remainingTimeRef.current = PROMO_AUTOPLAY_INTERVAL;
+    startTimeRef.current = Date.now();
+    setProgressKey((k) => k + 1);
 
-      if (isManual) {
-        resetAutoplayTimer();
-      }
+    if (prefersReducedMotion) {
+      setIsTransitioning(false);
+      setTrackIndex((prev) => {
+        const next = (prev % totalSlides) + 1;
+        return next;
+      });
+      isAnimatingRef.current = false;
+      return;
+    }
 
-      if (prefersReducedMotion) {
-        setIsTransitioning(false);
-        setTrackIndex((prev) => {
-          const next = (prev % totalSlides) + 1;
-          return next;
-        });
-        isAnimatingRef.current = false;
-        return;
-      }
+    setIsTransitioning(true);
+    setTrackIndex((prev) => prev + 1);
 
-      setIsTransitioning(true);
-      setTrackIndex((prev) => prev + 1);
-
-      if (fallbackResetTimerRef.current) clearTimeout(fallbackResetTimerRef.current);
-      fallbackResetTimerRef.current = setTimeout(() => {
-        handleTransitionEnd();
-      }, 850);
-    },
-    [totalSlides, prefersReducedMotion, handleTransitionEnd, resetAutoplayTimer]
-  );
+    if (fallbackResetTimerRef.current) clearTimeout(fallbackResetTimerRef.current);
+    fallbackResetTimerRef.current = setTimeout(() => {
+      handleTransitionEnd();
+    }, PROMO_FALLBACK_TIMEOUT);
+  }, [totalSlides, prefersReducedMotion, handleTransitionEnd]);
 
   const handlePrev = useCallback(() => {
     if (totalSlides <= 1 || isAnimatingRef.current) return;
     isAnimatingRef.current = true;
-    resetAutoplayTimer();
+
+    remainingTimeRef.current = PROMO_AUTOPLAY_INTERVAL;
+    startTimeRef.current = Date.now();
+    setProgressKey((k) => k + 1);
 
     if (prefersReducedMotion) {
       setIsTransitioning(false);
@@ -155,15 +161,17 @@ export function ReferencePromoBanner({ banners }: ReferencePromoBannerProps) {
     if (fallbackResetTimerRef.current) clearTimeout(fallbackResetTimerRef.current);
     fallbackResetTimerRef.current = setTimeout(() => {
       handleTransitionEnd();
-    }, 850);
-  }, [totalSlides, prefersReducedMotion, handleTransitionEnd, resetAutoplayTimer]);
+    }, PROMO_FALLBACK_TIMEOUT);
+  }, [totalSlides, prefersReducedMotion, handleTransitionEnd]);
 
   const handleSelect = useCallback(
     (targetRealIndex: number) => {
       if (totalSlides <= 1 || isAnimatingRef.current || targetRealIndex === realIndex) return;
 
       const targetTrackIndex = targetRealIndex + 1;
-      resetAutoplayTimer();
+      remainingTimeRef.current = PROMO_AUTOPLAY_INTERVAL;
+      startTimeRef.current = Date.now();
+      setProgressKey((k) => k + 1);
 
       if (prefersReducedMotion) {
         setIsTransitioning(false);
@@ -178,26 +186,40 @@ export function ReferencePromoBanner({ banners }: ReferencePromoBannerProps) {
       if (fallbackResetTimerRef.current) clearTimeout(fallbackResetTimerRef.current);
       fallbackResetTimerRef.current = setTimeout(() => {
         handleTransitionEnd();
-      }, 850);
+      }, PROMO_FALLBACK_TIMEOUT);
     },
-    [totalSlides, realIndex, prefersReducedMotion, resetAutoplayTimer, handleTransitionEnd]
+    [totalSlides, realIndex, prefersReducedMotion, handleTransitionEnd]
   );
 
-  // Set up automatic slide rotation at relaxed pace (7s), paused on hover/focus or reduced motion
+  // Synchronized Autoplay & Progress Timer with Drift-Free Pause/Resume
   useEffect(() => {
-    if (prefersReducedMotion || totalSlides <= 1 || isPaused) {
-      if (timerRef.current) clearInterval(timerRef.current);
+    if (prefersReducedMotion || totalSlides <= 1) {
+      if (timerRef.current) clearTimeout(timerRef.current);
       return;
     }
 
-    timerRef.current = setInterval(() => {
-      handleNext(false);
-    }, 7000);
+    if (isPaused) {
+      // Pause: capture used duration, calculate remaining time, clear timeout
+      if (startTimeRef.current !== null) {
+        const elapsed = Date.now() - startTimeRef.current;
+        remainingTimeRef.current = Math.max(0, remainingTimeRef.current - elapsed);
+      }
+      if (timerRef.current) clearTimeout(timerRef.current);
+      return;
+    }
+
+    // Start / Resume: set timeout for remaining duration
+    startTimeRef.current = Date.now();
+    const timeoutDuration = remainingTimeRef.current;
+
+    timerRef.current = setTimeout(() => {
+      handleNext();
+    }, timeoutDuration);
 
     return () => {
-      if (timerRef.current) clearInterval(timerRef.current);
+      if (timerRef.current) clearTimeout(timerRef.current);
     };
-  }, [prefersReducedMotion, totalSlides, isPaused, handleNext, timerKey]);
+  }, [prefersReducedMotion, totalSlides, isPaused, handleNext, progressKey]);
 
   useEffect(() => {
     return () => {
@@ -237,7 +259,7 @@ export function ReferencePromoBanner({ banners }: ReferencePromoBannerProps) {
                 transform: `translate3d(-${trackIndex * 100}%, 0, 0)`,
                 transition:
                   isTransitioning && !prefersReducedMotion
-                    ? 'transform 800ms cubic-bezier(0.22, 1, 0.36, 1)'
+                    ? `transform ${PROMO_TRANSITION_DURATION}ms cubic-bezier(0.22, 1, 0.36, 1)`
                     : 'none',
                 willChange: 'transform',
               }}
@@ -331,6 +353,30 @@ export function ReferencePromoBanner({ banners }: ReferencePromoBannerProps) {
             </div>
           </div>
 
+          {/* Subtle Autoplay Progress Indicator (fills over 5s interval, pauses on hover/focus) */}
+          {totalSlides > 1 && !prefersReducedMotion && (
+            <div
+              className="mt-2.5 w-full h-0.5 sm:h-1 bg-neutral-200/70 overflow-hidden rounded-full"
+              role="progressbar"
+              aria-label="Waktu jeda tayang spanduk promosi"
+              aria-valuemin={0}
+              aria-valuemax={100}
+              data-testid="banner-progress-bar"
+            >
+              <div
+                key={progressKey}
+                data-testid="banner-progress-fill"
+                className="h-full bg-primary origin-left rounded-full w-full"
+                style={{
+                  transform: 'scaleX(0)',
+                  animation: `bannerProgress ${PROMO_AUTOPLAY_INTERVAL}ms linear forwards`,
+                  animationPlayState: isPaused ? 'paused' : 'running',
+                  willChange: 'transform',
+                }}
+              />
+            </div>
+          )}
+
           {/* Carousel Controls (when multiple active campaign artworks exist) */}
           {totalSlides > 1 && (
             <div className="mt-3 flex items-center justify-between px-1">
@@ -376,7 +422,7 @@ export function ReferencePromoBanner({ banners }: ReferencePromoBannerProps) {
                 </button>
                 <button
                   type="button"
-                  onClick={() => handleNext(true)}
+                  onClick={handleNext}
                   aria-label="Spanduk berikutnya"
                   className="w-8 h-8 rounded-full bg-white border border-hairline hover:border-primary text-ink hover:text-primary flex items-center justify-center transition-colors shadow-xs cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary"
                 >
