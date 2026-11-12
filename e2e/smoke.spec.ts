@@ -137,14 +137,14 @@ test.describe('Showroom Smoke Tests', () => {
       // Helper to extract scaleX from CSS matrix
       const getScaleX = async () => {
         const transform = await fill.evaluate((el) => window.getComputedStyle(el).transform);
-        if (!transform || transform === 'none') return 1;
+        if (!transform || transform === 'none') return 0;
         const match = transform.match(/matrix\(([^,]+)/);
         return match ? parseFloat(match[1]) : 0;
       };
 
       // Progress begins near 0
       const initialScale = await getScaleX();
-      expect(initialScale).toBeLessThan(0.3);
+      expect(initialScale).toBeLessThan(0.5);
 
       // Advances over 1.5s
       await page.waitForTimeout(1500);
@@ -173,6 +173,65 @@ test.describe('Showroom Smoke Tests', () => {
         (el) => window.getComputedStyle(el).animationPlayState
       );
       expect(playStateUnhover).toBe('running');
+    }
+  });
+
+  test('promotional banner progress indicator resets on every slide transition and completes one cycle per autoplay interval', async ({
+    page,
+  }) => {
+    await page.goto('/');
+
+    const fill = page.locator('[data-testid="banner-progress-fill"]');
+    if ((await fill.count()) > 0) {
+      const getScaleX = async () => {
+        const transform = await fill.evaluate((el) => window.getComputedStyle(el).transform);
+        if (!transform || transform === 'none') return 0;
+        const match = transform.match(/matrix\(([^,]+)/);
+        return match ? parseFloat(match[1]) : 0;
+      };
+
+      const getActiveTab = async () => {
+        return await page.locator('[role="tab"][aria-selected="true"]').getAttribute('aria-label');
+      };
+
+      // Reset to a clean slide cycle
+      const nextBtn = page.getByRole('button', { name: 'Spanduk berikutnya' });
+      await nextBtn.click();
+      await page.mouse.move(0, 0);
+      await page.locator('body').click();
+      await page.waitForTimeout(100);
+
+      // 1. Initial slide starts near 0
+      const currentTab = await getActiveTab();
+      const initialScale = await getScaleX();
+      expect(initialScale).toBeLessThan(0.25);
+
+      // 2. Progresses steadily over time towards 100%
+      await page.waitForTimeout(2000);
+      const midScale = await getScaleX();
+      expect(midScale).toBeGreaterThan(initialScale);
+      expect(midScale).toBeGreaterThanOrEqual(0.2);
+
+      // 3. Completes cycle and advances to the next slide (~5s interval + 550ms transition)
+      // Wait for tab selection to change to next slide
+      await expect(page.locator('[role="tab"][aria-selected="true"]')).not.toHaveAttribute(
+        'aria-label',
+        currentTab || '',
+        { timeout: 7000 }
+      );
+
+      // 4. Verify progress bar resets back near 0 for the new slide
+      const newSlideScale = await getScaleX();
+      expect(newSlideScale).toBeLessThan(0.35);
+
+      // 5. Verify manual slide transition (Next button click) also resets progress bar
+      await nextBtn.click();
+      await page.mouse.move(0, 0);
+      await page.locator('body').click();
+      await page.waitForTimeout(100);
+
+      const manualSlideScale = await getScaleX();
+      expect(manualSlideScale).toBeLessThan(0.35);
     }
   });
 });

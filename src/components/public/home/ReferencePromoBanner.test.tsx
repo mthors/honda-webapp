@@ -331,6 +331,7 @@ describe('ReferencePromoBanner Component (Image-First CMS Promotional Banner wit
       const fill = screen.getByTestId('banner-progress-fill');
       expect(fill).toHaveClass('animate-banner-progress');
       expect(fill).toHaveStyle({
+        transform: 'scaleX(0)',
         animationDuration: '5000ms',
         animationPlayState: 'running',
       });
@@ -397,6 +398,33 @@ describe('ReferencePromoBanner Component (Image-First CMS Promotional Banner wit
       const fill = screen.getByTestId('banner-progress-fill');
       expect(fill).toHaveClass('animate-banner-progress');
       expect(fill).toHaveStyle({
+        transform: 'scaleX(0)',
+        animationDuration: '5000ms',
+        animationPlayState: 'running',
+      });
+    });
+
+    it('resets and remounts progress indicator on every automatic slide transition', () => {
+      render(<ReferencePromoBanner banners={mockBanners} />);
+
+      const tabs = screen.getAllByRole('tab');
+      expect(tabs[0]).toHaveAttribute('aria-selected', 'true');
+
+      let fill = screen.getByTestId('banner-progress-fill');
+      expect(fill).toHaveStyle({ transform: 'scaleX(0)' });
+
+      // Advance full autoplay interval (5000ms)
+      act(() => {
+        vi.advanceTimersByTime(5000);
+      });
+
+      // Carousel advances to second slide
+      expect(tabs[1]).toHaveAttribute('aria-selected', 'true');
+
+      // Progress bar fill is remounted for the active slide with initial scaleX(0)
+      fill = screen.getByTestId('banner-progress-fill');
+      expect(fill).toHaveStyle({
+        transform: 'scaleX(0)',
         animationDuration: '5000ms',
         animationPlayState: 'running',
       });

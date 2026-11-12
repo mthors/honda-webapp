@@ -112,7 +112,8 @@ input:disabled,
 .animate-banner-progress {
   animation-name: bannerProgress;
   animation-timing-function: linear;
-  animation-fill-mode: forwards;
+  animation-fill-mode: both;
+  transform: scaleX(0);
 }
 
 .animate-hero-fade {
