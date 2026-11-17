@@ -5,6 +5,7 @@ export type VariantStatus = 'active' | 'inactive';
 export type PriceType = 'otr' | 'cash' | 'promo';
 export type PromotionStatus = 'draft' | 'published' | 'archived';
 export type BannerStatus = 'draft' | 'published' | 'archived';
+export type EventStatus = 'draft' | 'published';
 export type ImageRole = 'hero' | 'card' | 'gallery' | 'color';
 export type StaffRole = 'admin';
 export type LeadStatus =
@@ -634,6 +635,79 @@ export interface Database {
           summary?: string;
           metadata?: Record<string, Json>;
           created_at?: string;
+        };
+      };
+      dealer_locations: {
+        Row: {
+          id: string;
+          name: string;
+          address: string;
+          city: string;
+          phone: string | null;
+          is_active: boolean;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          name: string;
+          address: string;
+          city: string;
+          phone?: string | null;
+          is_active?: boolean;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          name?: string;
+          address?: string;
+          city?: string;
+          phone?: string | null;
+          is_active?: boolean;
+          created_at?: string;
+          updated_at?: string;
+        };
+      };
+      events: {
+        Row: {
+          id: string;
+          title: string;
+          slug: string;
+          description: string;
+          location_id: string;
+          start_at: string;
+          end_at: string;
+          image_url: string | null;
+          status: EventStatus;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          title: string;
+          slug: string;
+          description: string;
+          location_id: string;
+          start_at: string;
+          end_at: string;
+          image_url?: string | null;
+          status?: EventStatus;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          title?: string;
+          slug?: string;
+          description?: string;
+          location_id?: string;
+          start_at?: string;
+          end_at?: string;
+          image_url?: string | null;
+          status?: EventStatus;
+          created_at?: string;
+          updated_at?: string;
         };
       };
     };

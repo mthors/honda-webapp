@@ -111,6 +111,10 @@ describe('PublicFooter component', () => {
     expect(screen.getByRole('link', { name: /Sepeda Motor/i })).toHaveAttribute('href', '/motor');
     expect(screen.getByRole('link', { name: /Daftar Harga/i })).toHaveAttribute('href', '/harga');
     expect(screen.getByRole('link', { name: /Promo/i })).toHaveAttribute('href', '/promo');
+    expect(screen.getByRole('link', { name: /Agenda Kegiatan/i })).toHaveAttribute(
+      'href',
+      '/events'
+    );
     expect(screen.getByRole('link', { name: /Tentang & Kontak/i })).toHaveAttribute(
       'href',
       '/hubungi'

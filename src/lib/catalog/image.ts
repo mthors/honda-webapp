@@ -30,7 +30,8 @@ export function getStorageImageUrl(
     if (
       cleanPath.startsWith('motorcycles/') ||
       cleanPath.startsWith('promotions/') ||
-      cleanPath.startsWith('hero-banners/')
+      cleanPath.startsWith('hero-banners/') ||
+      cleanPath.startsWith('events/')
     ) {
       return `${cleanUrl}/storage/v1/object/public/${cleanPath}`;
     }

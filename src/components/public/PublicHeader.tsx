@@ -45,6 +45,7 @@ export function PublicHeader({ settings }: PublicHeaderProps) {
     { href: '/motor', label: dealershipCopy.nav.motorcycles },
     { href: '/harga', label: dealershipCopy.nav.priceList },
     { href: '/promo', label: dealershipCopy.nav.promotions },
+    { href: '/events', label: dealershipCopy.nav.events },
     { href: '/hubungi', label: dealershipCopy.nav.aboutContact },
   ];
 
