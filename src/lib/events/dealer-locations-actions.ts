@@ -15,6 +15,9 @@ import type { ActionResponse } from '@/lib/admin/actions';
 import type { Database } from '@/types/database';
 
 function isNextRedirectError(err: unknown): boolean {
+  if (err instanceof Error && err.message.startsWith('NEXT_REDIRECT')) {
+    return true;
+  }
   return (
     typeof err === 'object' &&
     err !== null &&

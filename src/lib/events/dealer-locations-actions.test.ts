@@ -247,4 +247,19 @@ describe('Dealer Location Actions', () => {
       })
     );
   });
+
+  it('rejects dealer location operations when caller is unauthenticated or not an authorized admin', async () => {
+    vi.spyOn(adminAuth, 'requireAdmin').mockRejectedValueOnce(
+      new Error('NEXT_REDIRECT:/admin/login')
+    );
+
+    await expect(
+      createDealerLocationAction({
+        name: 'Unauthorized Location',
+        address: 'Jl. Unauthorized No. 1',
+        city: 'Surabaya',
+        isActive: true,
+      })
+    ).rejects.toThrow('NEXT_REDIRECT:/admin/login');
+  });
 });

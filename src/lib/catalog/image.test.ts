@@ -38,7 +38,7 @@ describe('getStorageImageUrl Helper', () => {
     );
   });
 
-  it('preserves bucket prefix when path already begins with promotions or hero-banners', () => {
+  it('preserves bucket prefix when path already begins with promotions, hero-banners, or events', () => {
     const promoUrl = getStorageImageUrl('promotions/ramadhan-deal.webp');
     expect(promoUrl).toBe(
       'https://vnnceqvppickvkwxgxua.supabase.co/storage/v1/object/public/promotions/ramadhan-deal.webp'
@@ -47,6 +47,11 @@ describe('getStorageImageUrl Helper', () => {
     const bannerUrl = getStorageImageUrl('hero-banners/desktop-hero-1.webp');
     expect(bannerUrl).toBe(
       'https://vnnceqvppickvkwxgxua.supabase.co/storage/v1/object/public/hero-banners/desktop-hero-1.webp'
+    );
+
+    const eventPosterUrl = getStorageImageUrl('events/launching-vario-poster.webp');
+    expect(eventPosterUrl).toBe(
+      'https://vnnceqvppickvkwxgxua.supabase.co/storage/v1/object/public/events/launching-vario-poster.webp'
     );
   });
 

@@ -218,7 +218,7 @@ export function DealerLocationManagementView({
             variant="primary"
             size="sm"
             onClick={handleOpenCreate}
-            className="rounded-none font-bold"
+            className="font-bold"
           >
             {dealershipCopy.adminDealerLocations.createNew}
           </Button>
@@ -501,7 +501,6 @@ export function DealerLocationManagementView({
                   size="sm"
                   onClick={() => setIsEditing(false)}
                   disabled={isPending}
-                  className="rounded-none"
                 >
                   Batal
                 </Button>
@@ -510,7 +509,7 @@ export function DealerLocationManagementView({
                   variant="primary"
                   size="sm"
                   disabled={isPending}
-                  className="rounded-none font-bold"
+                  className="font-bold"
                 >
                   {isPending
                     ? dealershipCopy.adminDealerLocations.savingButton
@@ -550,7 +549,6 @@ export function DealerLocationManagementView({
                 size="sm"
                 onClick={() => setDeletingRecord(null)}
                 disabled={isPending}
-                className="rounded-none"
               >
                 Batal
               </Button>
@@ -560,7 +558,7 @@ export function DealerLocationManagementView({
                 size="sm"
                 onClick={handleDeleteConfirm}
                 disabled={isPending}
-                className="rounded-none bg-primary text-on-primary font-bold hover:bg-primary/90"
+                className="bg-primary text-on-primary font-bold hover:bg-primary/90"
               >
                 {isPending ? 'Menghapus...' : dealershipCopy.adminDealerLocations.deleteButton}
               </Button>

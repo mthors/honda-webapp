@@ -131,7 +131,7 @@ export function UpcomingEventsSection({ upcomingEvents }: UpcomingEventsSectionP
                   variant="outline"
                   size="sm"
                   onClick={() => setSelectedEvent(evt)}
-                  className="w-full rounded-none font-bold text-xs"
+                  className="w-full font-bold text-xs"
                 >
                   {dealershipCopy.events.viewDetails}
                 </Button>

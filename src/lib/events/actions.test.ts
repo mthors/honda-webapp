@@ -325,4 +325,22 @@ describe('Event Management Actions', () => {
       })
     );
   });
+
+  it('rejects event operations when caller is unauthenticated or not an authorized admin', async () => {
+    vi.spyOn(adminAuth, 'requireAdmin').mockRejectedValueOnce(
+      new Error('NEXT_REDIRECT:/admin/login')
+    );
+
+    await expect(
+      createEventAction({
+        title: 'Unauthorized Event',
+        slug: 'unauthorized-event',
+        description: 'Unauthorized attempt to create event.',
+        locationId: 'c1111111-1111-4111-a111-111111111111',
+        startAt: '2026-11-20T02:00:00.000Z',
+        endAt: '2026-11-20T08:00:00.000Z',
+        status: 'draft',
+      })
+    ).rejects.toThrow('NEXT_REDIRECT:/admin/login');
+  });
 });

@@ -136,7 +136,7 @@ export function EventDetailModal({ event, onClose }: EventDetailModalProps) {
               variant="outline"
               size="sm"
               onClick={onClose}
-              className="rounded-none font-semibold"
+              className="font-semibold"
             >
               {dealershipCopy.common.close}
             </Button>

@@ -355,7 +355,7 @@ export function EventManagementView({ initialEvents, activeLocations }: EventMan
             variant="primary"
             size="sm"
             onClick={handleOpenCreate}
-            className="rounded-none font-bold"
+            className="font-bold"
           >
             {dealershipCopy.adminEvents.createNew}
           </Button>
@@ -820,7 +820,6 @@ export function EventManagementView({ initialEvents, activeLocations }: EventMan
                   size="sm"
                   onClick={() => setIsEditing(false)}
                   disabled={isPending || isUploadingPoster}
-                  className="rounded-none"
                 >
                   Batal
                 </Button>
@@ -829,7 +828,7 @@ export function EventManagementView({ initialEvents, activeLocations }: EventMan
                   variant="primary"
                   size="sm"
                   disabled={isPending || isUploadingPoster}
-                  className="rounded-none font-bold"
+                  className="font-bold"
                 >
                   {isPending
                     ? dealershipCopy.adminEvents.savingButton
@@ -869,7 +868,6 @@ export function EventManagementView({ initialEvents, activeLocations }: EventMan
                 size="sm"
                 onClick={() => setDeletingRecord(null)}
                 disabled={isPending}
-                className="rounded-none"
               >
                 Batal
               </Button>
@@ -879,7 +877,7 @@ export function EventManagementView({ initialEvents, activeLocations }: EventMan
                 size="sm"
                 onClick={handleDeleteConfirm}
                 disabled={isPending}
-                className="rounded-none bg-primary text-on-primary font-bold hover:bg-primary/90"
+                className="bg-primary text-on-primary font-bold hover:bg-primary/90"
               >
                 {isPending ? 'Menghapus...' : dealershipCopy.adminEvents.deleteButton}
               </Button>

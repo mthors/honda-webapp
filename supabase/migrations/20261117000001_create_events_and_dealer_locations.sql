@@ -159,38 +159,3 @@ create policy "Admins can delete event images"
     bucket_id = 'events'
     and public.is_admin()
   );
-
--- 5. Seed placeholder dealer locations for development/testing
-insert into public.dealer_locations (
-  id,
-  name,
-  address,
-  city,
-  phone,
-  is_active
-) values
-  (
-    'c1111111-1111-4111-a111-111111111111',
-    'Demo Dealer – Sidoarjo',
-    'Jl. Raya Sidoarjo No. 123',
-    'Sidoarjo',
-    '(031) 894-1234',
-    true
-  ),
-  (
-    'c2222222-2222-4222-a222-222222222222',
-    'Demo Dealer – Surabaya',
-    'Jl. Ahmad Yani No. 45',
-    'Surabaya',
-    '(031) 828-5678',
-    true
-  ),
-  (
-    'c3333333-3333-4333-a333-333333333333',
-    'Demo Dealer – Gresik',
-    'Jl. Veteran No. 88',
-    'Gresik',
-    '(031) 398-9012',
-    true
-  )
-on conflict (id) do nothing;
