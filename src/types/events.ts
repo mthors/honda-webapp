@@ -1,41 +1,28 @@
 import { z } from 'zod';
 import type { EventStatus } from './database';
+import type { DealershipItem } from './dealership';
 
-export type { EventStatus };
+export type { EventStatus, DealershipItem };
 
-// ============================================================================
-// 1. DEALER LOCATION TYPES & SCHEMAS
-// ============================================================================
-
+/** Backward-compatible interface for branch/location references */
 export interface DealerLocationItem {
   id: string;
   name: string;
-  address: string;
+  address: string | null;
   city: string;
   phone: string | null;
   isActive: boolean;
   createdAt: string;
   updatedAt: string;
+  code?: string | null;
+  whatsappNumber?: string | null;
+  openingHours?: string | null;
+  isSynthetic?: boolean;
+  sortOrder?: number;
 }
 
-export const createDealerLocationSchema = z.object({
-  name: z.string().trim().min(3, 'Nama dealer minimal 3 karakter.'),
-  address: z.string().trim().min(5, 'Alamat dealer minimal 5 karakter.'),
-  city: z.string().trim().min(2, 'Kota dealer minimal 2 karakter.'),
-  phone: z.string().trim().nullable().optional(),
-  isActive: z.boolean().default(true),
-});
-
-export type CreateDealerLocationInput = z.infer<typeof createDealerLocationSchema>;
-
-export const updateDealerLocationSchema = createDealerLocationSchema.extend({
-  id: z.string().uuid('ID dealer tidak valid.'),
-});
-
-export type UpdateDealerLocationInput = z.infer<typeof updateDealerLocationSchema>;
-
 // ============================================================================
-// 2. EVENT TYPES & SCHEMAS
+// EVENT TYPES & SCHEMAS (Consolidated with canonical public.dealerships)
 // ============================================================================
 
 export interface EventItem {
@@ -43,7 +30,11 @@ export interface EventItem {
   title: string;
   slug: string;
   description: string;
-  locationId: string;
+  dealershipId: string;
+  dealership?: DealershipItem | null;
+  /** @deprecated Backward-compatible alias for dealershipId */
+  locationId?: string;
+  /** @deprecated Backward-compatible alias for dealership */
   location?: DealerLocationItem | null;
   startAt: string;
   endAt: string;
@@ -65,7 +56,8 @@ export const createEventSchema = z
         'Slug hanya boleh berisi huruf kecil, angka, dan tanda hubung.'
       ),
     description: z.string().trim().min(10, 'Deskripsi acara minimal 10 karakter.'),
-    locationId: z.string().uuid('Pilih lokasi dealer yang valid.'),
+    dealershipId: z.string().uuid('Pilih dealer resmi yang valid.').optional(),
+    locationId: z.string().uuid('Pilih dealer resmi yang valid.').optional(),
     startAt: z
       .string()
       .min(1, 'Waktu mulai acara wajib diisi.')
@@ -76,6 +68,10 @@ export const createEventSchema = z
       .refine((val) => !isNaN(Date.parse(val)), 'Format waktu selesai tidak valid.'),
     imageUrl: z.string().trim().nullable().optional(),
     status: z.enum(['draft', 'published']).default('draft'),
+  })
+  .refine((data) => Boolean(data.dealershipId || data.locationId), {
+    message: 'Pilih dealer resmi yang valid.',
+    path: ['dealershipId'],
   })
   .refine(
     (data) => {
@@ -104,7 +100,8 @@ export const updateEventSchema = z
         'Slug hanya boleh berisi huruf kecil, angka, dan tanda hubung.'
       ),
     description: z.string().trim().min(10, 'Deskripsi acara minimal 10 karakter.'),
-    locationId: z.string().uuid('Pilih lokasi dealer yang valid.'),
+    dealershipId: z.string().uuid('Pilih dealer resmi yang valid.').optional(),
+    locationId: z.string().uuid('Pilih dealer resmi yang valid.').optional(),
     startAt: z
       .string()
       .min(1, 'Waktu mulai acara wajib diisi.')
@@ -115,6 +112,10 @@ export const updateEventSchema = z
       .refine((val) => !isNaN(Date.parse(val)), 'Format waktu selesai tidak valid.'),
     imageUrl: z.string().trim().nullable().optional(),
     status: z.enum(['draft', 'published']).default('draft'),
+  })
+  .refine((data) => Boolean(data.dealershipId || data.locationId), {
+    message: 'Pilih dealer resmi yang valid.',
+    path: ['dealershipId'],
   })
   .refine(
     (data) => {

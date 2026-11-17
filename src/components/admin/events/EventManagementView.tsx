@@ -4,6 +4,7 @@ import React, { useState, useTransition, useMemo } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import type { EventItem, DealerLocationItem, EventStatus } from '@/types/events';
+import type { DealershipItem } from '@/types/dealership';
 import {
   createEventAction,
   updateEventAction,
@@ -24,22 +25,39 @@ import { Card } from '@/components/ui/Card';
 
 interface EventManagementViewProps {
   initialEvents: EventItem[];
-  activeLocations: DealerLocationItem[];
+  activeDealerships?: DealershipItem[];
+  /** @deprecated Backward-compatible alias during consolidation */
+  activeLocations?: DealerLocationItem[];
 }
 
 type FilterStatus = 'all' | 'draft' | 'published';
 type FilterTime = 'all' | 'upcoming' | 'past';
 
-export function EventManagementView({ initialEvents, activeLocations }: EventManagementViewProps) {
+export function EventManagementView({
+  initialEvents,
+  activeDealerships,
+  activeLocations,
+}: EventManagementViewProps) {
   const [events, setEvents] = useState<EventItem[]>(initialEvents);
   const [isEditing, setIsEditing] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
+
+  // Canonical active dealerships list (with fallback to activeLocations)
+  const dealerships = useMemo(() => {
+    if (activeDealerships && activeDealerships.length > 0) {
+      return activeDealerships;
+    }
+    if (activeLocations && activeLocations.length > 0) {
+      return activeLocations;
+    }
+    return [];
+  }, [activeDealerships, activeLocations]);
 
   // Form State
   const [title, setTitle] = useState('');
   const [slug, setSlug] = useState('');
   const [description, setDescription] = useState('');
-  const [locationId, setLocationId] = useState('');
+  const [dealershipId, setDealershipId] = useState('');
   const [startDate, setStartDate] = useState('');
   const [startTime, setStartTime] = useState('09:00');
   const [endDate, setEndDate] = useState('');
@@ -71,7 +89,7 @@ export function EventManagementView({ initialEvents, activeLocations }: EventMan
     setTitle('');
     setSlug('');
     setDescription('');
-    setLocationId(activeLocations[0]?.id || '');
+    setDealershipId(dealerships[0]?.id || '');
 
     const now = new Date();
     const todayParts = getJakartaDateParts(now);
@@ -96,7 +114,7 @@ export function EventManagementView({ initialEvents, activeLocations }: EventMan
     setTitle(evt.title);
     setSlug(evt.slug);
     setDescription(evt.description);
-    setLocationId(evt.locationId);
+    setDealershipId(evt.dealershipId || evt.locationId || '');
 
     const startParts = getJakartaDateParts(evt.startAt);
     const endParts = getJakartaDateParts(evt.endAt);
@@ -198,8 +216,8 @@ export function EventManagementView({ initialEvents, activeLocations }: EventMan
       return;
     }
 
-    if (!locationId) {
-      setFormError('Pilih lokasi dealer penyelenggara.');
+    if (!dealershipId) {
+      setFormError('Pilih dealer resmi penyelenggara.');
       return;
     }
 
@@ -211,7 +229,8 @@ export function EventManagementView({ initialEvents, activeLocations }: EventMan
             title,
             slug,
             description,
-            locationId,
+            dealershipId,
+            locationId: dealershipId,
             startAt: startIso,
             endAt: endIso,
             imageUrl,
@@ -236,7 +255,8 @@ export function EventManagementView({ initialEvents, activeLocations }: EventMan
             title,
             slug,
             description,
-            locationId,
+            dealershipId,
+            locationId: dealershipId,
             startAt: startIso,
             endAt: endIso,
             imageUrl,
@@ -312,12 +332,12 @@ export function EventManagementView({ initialEvents, activeLocations }: EventMan
 
   const filteredEvents = useMemo(() => {
     return events.filter((evt) => {
+      const branch = evt.dealership || evt.location;
       const matchesSearch =
         evt.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
         evt.slug.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        (evt.location?.name &&
-          evt.location.name.toLowerCase().includes(searchQuery.toLowerCase())) ||
-        (evt.location?.city && evt.location.city.toLowerCase().includes(searchQuery.toLowerCase()));
+        (branch?.name && branch.name.toLowerCase().includes(searchQuery.toLowerCase())) ||
+        (branch?.city && branch.city.toLowerCase().includes(searchQuery.toLowerCase()));
 
       if (!matchesSearch) return false;
 
@@ -345,10 +365,10 @@ export function EventManagementView({ initialEvents, activeLocations }: EventMan
 
         <div className="flex items-center space-x-3">
           <Link
-            href="/admin/events/locations"
+            href="/admin/dealerships"
             className="inline-flex items-center px-3 py-2 text-xs font-semibold text-body hover:text-ink border border-hairline hover:bg-neutral-2/50 transition-colors"
           >
-            {dealershipCopy.adminDealerLocations.title} &rarr;
+            {dealershipCopy.adminSettings.manageDealershipsButton} &rarr;
           </Link>
           <Button
             type="button"
@@ -491,10 +511,14 @@ export function EventManagementView({ initialEvents, activeLocations }: EventMan
 
                     {/* Dealer Location */}
                     <td className="p-3 text-body">
-                      {evt.location ? (
+                      {evt.dealership || evt.location ? (
                         <div>
-                          <span className="font-semibold">{evt.location.name}</span>
-                          <span className="block text-[11px] text-muted">{evt.location.city}</span>
+                          <span className="font-semibold">
+                            {(evt.dealership || evt.location)?.name}
+                          </span>
+                          <span className="block text-[11px] text-muted">
+                            {(evt.dealership || evt.location)?.city}
+                          </span>
                         </div>
                       ) : (
                         <span className="text-muted italic">Lokasi belum ditentukan</span>
@@ -625,29 +649,32 @@ export function EventManagementView({ initialEvents, activeLocations }: EventMan
 
               {/* Location Select */}
               <div>
-                <label className="block text-xs font-semibold text-ink mb-1">
+                <label htmlFor="event-dealership-select" className="block text-xs font-semibold text-ink mb-1">
                   {dealershipCopy.adminEvents.formLocation} <span className="text-primary">*</span>
                 </label>
                 <select
+                  id="event-dealership-select"
                   required
-                  value={locationId}
-                  onChange={(e) => setLocationId(e.target.value)}
+                  value={dealershipId}
+                  onChange={(e) => setDealershipId(e.target.value)}
                   className="w-full px-3 py-2 text-xs border border-hairline bg-canvas text-ink focus:outline-none focus:ring-1 focus:ring-primary"
                 >
                   <option value="">{dealershipCopy.adminEvents.formSelectLocation}</option>
-                  {activeLocations.map((loc) => (
+                  {dealerships.map((loc) => (
                     <option key={loc.id} value={loc.id}>
                       {loc.name} ({loc.city})
                     </option>
                   ))}
                 </select>
-                {activeLocations.length === 0 && (
+                {dealerships.length === 0 && (
                   <p className="text-[11px] text-amber-700 mt-1">
-                    Belum ada lokasi dealer aktif. Silakan tambahkan lokasi dealer terlebih dahulu.
+                    Belum ada dealer cabang aktif. Silakan tambahkan showroom dealer terlebih dahulu.
                   </p>
                 )}
-                {fieldErrors.locationId && (
-                  <p className="text-[11px] text-primary mt-1">{fieldErrors.locationId[0]}</p>
+                {(fieldErrors.dealershipId || fieldErrors.locationId) && (
+                  <p className="text-[11px] text-primary mt-1">
+                    {(fieldErrors.dealershipId || fieldErrors.locationId)?.[0]}
+                  </p>
                 )}
               </div>
 
@@ -877,7 +904,7 @@ export function EventManagementView({ initialEvents, activeLocations }: EventMan
                 size="sm"
                 onClick={handleDeleteConfirm}
                 disabled={isPending}
-                className="bg-primary text-on-primary font-bold hover:bg-primary/90"
+                className="font-bold"
               >
                 {isPending ? 'Menghapus...' : dealershipCopy.adminEvents.deleteButton}
               </Button>

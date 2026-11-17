@@ -1,86 +1,46 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { Database } from '@/types/database';
-import type { DealerLocationItem, EventItem } from '@/types/events';
+import type { EventItem } from '@/types/events';
+import type { DealershipItem } from '@/types/dealership';
 import { createClient } from '@/lib/supabase/server';
 
 type ClientType = SupabaseClient<Database>;
 
-function mapDealerLocationRow(
-  row: Database['public']['Tables']['dealer_locations']['Row']
-): DealerLocationItem {
+function mapDealershipRow(
+  row: Database['public']['Tables']['dealerships']['Row']
+): DealershipItem {
   return {
     id: row.id,
     name: row.name,
-    address: row.address,
+    code: row.code,
     city: row.city,
+    address: row.address,
     phone: row.phone,
+    whatsappNumber: row.whatsapp_number,
+    openingHours: row.opening_hours,
+    isSynthetic: row.is_synthetic,
     isActive: row.is_active,
+    sortOrder: row.sort_order,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   };
 }
 
-export async function getAdminDealerLocations(client?: ClientType): Promise<DealerLocationItem[]> {
-  try {
-    const supabase = client ?? (await createClient());
-    const { data, error } = await supabase
-      .from('dealer_locations')
-      .select('*')
-      .order('city', { ascending: true })
-      .order('name', { ascending: true });
-
-    if (error) {
-      console.error('Error fetching admin dealer locations:', error.message);
-      return [];
-    }
-
-    return (data || []).map(mapDealerLocationRow);
-  } catch (err) {
-    if ((err as { digest?: string })?.digest === 'DYNAMIC_SERVER_USAGE') {
-      throw err;
-    }
-    console.error('Failed to load admin dealer locations:', err);
-    return [];
-  }
-}
-
-export async function getActiveDealerLocations(client?: ClientType): Promise<DealerLocationItem[]> {
-  try {
-    const supabase = client ?? (await createClient());
-    const { data, error } = await supabase
-      .from('dealer_locations')
-      .select('*')
-      .eq('is_active', true)
-      .order('city', { ascending: true })
-      .order('name', { ascending: true });
-
-    if (error) {
-      console.error('Error fetching active dealer locations:', error.message);
-      return [];
-    }
-
-    return (data || []).map(mapDealerLocationRow);
-  } catch (err) {
-    if ((err as { digest?: string })?.digest === 'DYNAMIC_SERVER_USAGE') {
-      throw err;
-    }
-    console.error('Failed to load active dealer locations:', err);
-    return [];
-  }
-}
-
-type EventRowWithLocation = Database['public']['Tables']['events']['Row'] & {
-  dealer_locations: Database['public']['Tables']['dealer_locations']['Row'] | null;
+type EventRowWithDealership = Database['public']['Tables']['events']['Row'] & {
+  dealerships: Database['public']['Tables']['dealerships']['Row'] | null;
 };
 
-function mapEventRow(row: EventRowWithLocation): EventItem {
+function mapEventRow(row: EventRowWithDealership): EventItem {
+  const mappedDealership = row.dealerships ? mapDealershipRow(row.dealerships) : null;
   return {
     id: row.id,
     title: row.title,
     slug: row.slug,
     description: row.description,
-    locationId: row.location_id,
-    location: row.dealer_locations ? mapDealerLocationRow(row.dealer_locations) : null,
+    dealershipId: row.dealership_id,
+    dealership: mappedDealership,
+    locationId: row.dealership_id,
+    location: mappedDealership,
     startAt: row.start_at,
     endAt: row.end_at,
     imageUrl: row.image_url,
@@ -101,20 +61,25 @@ export async function getAdminEvents(client?: ClientType): Promise<EventItem[]> 
         title,
         slug,
         description,
-        location_id,
+        dealership_id,
         start_at,
         end_at,
         image_url,
         status,
         created_at,
         updated_at,
-        dealer_locations (
+        dealerships (
           id,
           name,
-          address,
+          code,
           city,
+          address,
           phone,
+          whatsapp_number,
+          opening_hours,
+          is_synthetic,
           is_active,
+          sort_order,
           created_at,
           updated_at
         )
@@ -127,7 +92,7 @@ export async function getAdminEvents(client?: ClientType): Promise<EventItem[]> 
       return [];
     }
 
-    return (data || []).map((row) => mapEventRow(row as unknown as EventRowWithLocation));
+    return (data || []).map((row) => mapEventRow(row as unknown as EventRowWithDealership));
   } catch (err) {
     if ((err as { digest?: string })?.digest === 'DYNAMIC_SERVER_USAGE') {
       throw err;
@@ -154,20 +119,25 @@ export async function getPublicEvents(
         title,
         slug,
         description,
-        location_id,
+        dealership_id,
         start_at,
         end_at,
         image_url,
         status,
         created_at,
         updated_at,
-        dealer_locations!inner (
+        dealerships!inner (
           id,
           name,
-          address,
+          code,
           city,
+          address,
           phone,
+          whatsapp_number,
+          opening_hours,
+          is_synthetic,
           is_active,
+          sort_order,
           created_at,
           updated_at
         )
@@ -190,7 +160,7 @@ export async function getPublicEvents(
       return [];
     }
 
-    return (data || []).map((row) => mapEventRow(row as unknown as EventRowWithLocation));
+    return (data || []).map((row) => mapEventRow(row as unknown as EventRowWithDealership));
   } catch (err) {
     if ((err as { digest?: string })?.digest === 'DYNAMIC_SERVER_USAGE') {
       throw err;
@@ -216,20 +186,25 @@ export async function getPublicUpcomingEvents(
         title,
         slug,
         description,
-        location_id,
+        dealership_id,
         start_at,
         end_at,
         image_url,
         status,
         created_at,
         updated_at,
-        dealer_locations!inner (
+        dealerships!inner (
           id,
           name,
-          address,
+          code,
           city,
+          address,
           phone,
+          whatsapp_number,
+          opening_hours,
+          is_synthetic,
           is_active,
+          sort_order,
           created_at,
           updated_at
         )
@@ -245,7 +220,7 @@ export async function getPublicUpcomingEvents(
       return [];
     }
 
-    return (data || []).map((row) => mapEventRow(row as unknown as EventRowWithLocation));
+    return (data || []).map((row) => mapEventRow(row as unknown as EventRowWithDealership));
   } catch (err) {
     if ((err as { digest?: string })?.digest === 'DYNAMIC_SERVER_USAGE') {
       throw err;
@@ -269,20 +244,25 @@ export async function getPublicEventBySlug(
         title,
         slug,
         description,
-        location_id,
+        dealership_id,
         start_at,
         end_at,
         image_url,
         status,
         created_at,
         updated_at,
-        dealer_locations (
+        dealerships (
           id,
           name,
-          address,
+          code,
           city,
+          address,
           phone,
+          whatsapp_number,
+          opening_hours,
+          is_synthetic,
           is_active,
+          sort_order,
           created_at,
           updated_at
         )
@@ -296,7 +276,7 @@ export async function getPublicEventBySlug(
       return null;
     }
 
-    return mapEventRow(data as unknown as EventRowWithLocation);
+    return mapEventRow(data as unknown as EventRowWithDealership);
   } catch (err) {
     if ((err as { digest?: string })?.digest === 'DYNAMIC_SERVER_USAGE') {
       throw err;

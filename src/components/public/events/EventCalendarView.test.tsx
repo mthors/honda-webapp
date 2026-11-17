@@ -22,6 +22,7 @@ describe('EventCalendarView', () => {
       title: 'Honda Riding Experience Sidoarjo',
       slug: 'honda-riding-experience-sidoarjo',
       description: 'Uji kendara motor Honda terbaru bersama instruktur profesional.',
+      dealershipId: 'loc-1',
       locationId: 'loc-1',
       location: mockLocation,
       startAt: '2026-11-20T02:00:00.000Z', // 09:00 WIB
@@ -36,6 +37,7 @@ describe('EventCalendarView', () => {
       title: 'Pameran Akhir Pekan Honda',
       slug: 'pameran-akhir-pekan-honda',
       description: 'Pameran promo akhir pekan Honda di showroom Sidoarjo.',
+      dealershipId: 'loc-1',
       locationId: 'loc-1',
       location: mockLocation,
       startAt: '2026-11-20T02:00:00.000Z', // 20 Nov

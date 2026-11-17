@@ -117,19 +117,24 @@ export default async function EventDetailPage({ params }: EventDetailPageProps) 
             </div>
 
             {/* Dealership Location Card */}
-            {event.location && (
+            {(event.dealership || event.location) && (
               <div className="p-5 bg-neutral-2/40 border-l-4 border-primary space-y-2">
                 <div className="text-xs font-bold text-ink uppercase tracking-wider">
                   {dealershipCopy.events.locationLabel}
                 </div>
-                <div className="text-base font-bold text-ink">{event.location.name}</div>
-                <div className="text-xs sm:text-sm text-body">{event.location.address}</div>
+                <div className="text-base font-bold text-ink">
+                  {(event.dealership || event.location)?.name}
+                </div>
+                <div className="text-xs sm:text-sm text-body">
+                  {(event.dealership || event.location)?.address}
+                </div>
                 <div className="text-xs text-muted pt-1">
-                  <span className="font-semibold text-ink">Wilayah:</span> {event.location.city}
-                  {event.location.phone && (
+                  <span className="font-semibold text-ink">Wilayah:</span>{' '}
+                  {(event.dealership || event.location)?.city}
+                  {(event.dealership || event.location)?.phone && (
                     <span className="ml-4">
                       <span className="font-semibold text-ink">Telepon:</span>{' '}
-                      {event.location.phone}
+                      {(event.dealership || event.location)?.phone}
                     </span>
                   )}
                 </div>

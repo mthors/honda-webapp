@@ -100,10 +100,7 @@ describe('Events and Dealer Locations Migration & Security (20261117000001_creat
     expect(sql).not.toMatch(/insert\s+into\s+public\.dealer_locations/i);
   });
 
-  it('provides placeholder demo dealer locations in development seed file (seed.sql)', () => {
-    expect(seedSql).toMatch(/insert\s+into\s+public\.dealer_locations/i);
-    expect(seedSql).toMatch(/Demo Dealer – Sidoarjo/i);
-    expect(seedSql).toMatch(/Demo Dealer – Surabaya/i);
-    expect(seedSql).toMatch(/Demo Dealer – Gresik/i);
+  it('ensures obsolete dealer_locations placeholder inserts are cleanly removed from seed.sql upon consolidation', () => {
+    expect(seedSql).not.toMatch(/insert\s+into\s+public\.dealer_locations/i);
   });
 });

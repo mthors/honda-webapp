@@ -637,45 +637,13 @@ export interface Database {
           created_at?: string;
         };
       };
-      dealer_locations: {
-        Row: {
-          id: string;
-          name: string;
-          address: string;
-          city: string;
-          phone: string | null;
-          is_active: boolean;
-          created_at: string;
-          updated_at: string;
-        };
-        Insert: {
-          id?: string;
-          name: string;
-          address: string;
-          city: string;
-          phone?: string | null;
-          is_active?: boolean;
-          created_at?: string;
-          updated_at?: string;
-        };
-        Update: {
-          id?: string;
-          name?: string;
-          address?: string;
-          city?: string;
-          phone?: string | null;
-          is_active?: boolean;
-          created_at?: string;
-          updated_at?: string;
-        };
-      };
       events: {
         Row: {
           id: string;
           title: string;
           slug: string;
           description: string;
-          location_id: string;
+          dealership_id: string;
           start_at: string;
           end_at: string;
           image_url: string | null;
@@ -688,7 +656,7 @@ export interface Database {
           title: string;
           slug: string;
           description: string;
-          location_id: string;
+          dealership_id: string;
           start_at: string;
           end_at: string;
           image_url?: string | null;
@@ -701,7 +669,7 @@ export interface Database {
           title?: string;
           slug?: string;
           description?: string;
-          location_id?: string;
+          dealership_id?: string;
           start_at?: string;
           end_at?: string;
           image_url?: string | null;

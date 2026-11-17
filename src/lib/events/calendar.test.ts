@@ -8,6 +8,7 @@ describe('Calendar Grid Generation', () => {
     title: 'Honda Riding Experience',
     slug: 'honda-riding-experience',
     description: 'Uji kendara motor Honda terbaru',
+    dealershipId: 'loc-1',
     locationId: 'loc-1',
     startAt: '2026-11-20T02:00:00.000Z', // 20 Nov 09:00 WIB
     endAt: '2026-11-20T08:00:00.000Z', // 20 Nov 15:00 WIB
@@ -22,6 +23,7 @@ describe('Calendar Grid Generation', () => {
     title: 'Pameran Akhir Pekan',
     slug: 'pameran-akhir-pekan',
     description: 'Pameran promo akhir pekan Honda',
+    dealershipId: 'loc-1',
     locationId: 'loc-1',
     startAt: '2026-11-20T02:00:00.000Z', // 20 Nov
     endAt: '2026-11-22T10:00:00.000Z', // 22 Nov

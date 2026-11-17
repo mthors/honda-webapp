@@ -1,7 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import {
-  getAdminDealerLocations,
-  getActiveDealerLocations,
   getAdminEvents,
   getPublicEvents,
   getPublicUpcomingEvents,
@@ -9,59 +7,9 @@ import {
 } from './queries';
 import * as serverSupabase from '@/lib/supabase/server';
 
-describe('Event and Dealer Location Queries', () => {
+describe('Event Queries (Consolidated with canonical dealerships)', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-  });
-
-  it('getAdminDealerLocations queries dealer_locations ordered by city and name', async () => {
-    const mockOrder2 = vi.fn().mockResolvedValue({
-      data: [
-        {
-          id: 'c1',
-          name: 'Demo Dealer – Sidoarjo',
-          address: 'Jl. Raya Sidoarjo No. 123',
-          city: 'Sidoarjo',
-          phone: null,
-          is_active: true,
-          created_at: '2026-11-17T00:00:00Z',
-          updated_at: '2026-11-17T00:00:00Z',
-        },
-      ],
-      error: null,
-    });
-    const mockOrder1 = vi.fn().mockReturnValue({ order: mockOrder2 });
-    const mockSelect = vi.fn().mockReturnValue({ order: mockOrder1 });
-    const mockFrom = vi.fn().mockReturnValue({ select: mockSelect });
-
-    const mockSupabase = { from: mockFrom };
-    vi.spyOn(serverSupabase, 'createClient').mockResolvedValue(
-      mockSupabase as unknown as Awaited<ReturnType<typeof serverSupabase.createClient>>
-    );
-
-    const locations = await getAdminDealerLocations();
-    expect(mockFrom).toHaveBeenCalledWith('dealer_locations');
-    expect(locations).toHaveLength(1);
-    expect(locations[0].name).toBe('Demo Dealer – Sidoarjo');
-  });
-
-  it('getActiveDealerLocations queries active locations only', async () => {
-    const mockOrder2 = vi.fn().mockResolvedValue({
-      data: [],
-      error: null,
-    });
-    const mockOrder1 = vi.fn().mockReturnValue({ order: mockOrder2 });
-    const mockEq = vi.fn().mockReturnValue({ order: mockOrder1 });
-    const mockSelect = vi.fn().mockReturnValue({ eq: mockEq });
-    const mockFrom = vi.fn().mockReturnValue({ select: mockSelect });
-
-    const mockSupabase = { from: mockFrom };
-    vi.spyOn(serverSupabase, 'createClient').mockResolvedValue(
-      mockSupabase as unknown as Awaited<ReturnType<typeof serverSupabase.createClient>>
-    );
-
-    await getActiveDealerLocations();
-    expect(mockEq).toHaveBeenCalledWith('is_active', true);
   });
 
   it('getPublicEvents queries published events only', async () => {
@@ -130,14 +78,23 @@ describe('Event and Dealer Location Queries', () => {
         title: 'Honda Riding Experience Sidoarjo',
         slug: 'honda-riding-experience-sidoarjo',
         description: 'Test ride',
-        location_id: 'loc-1',
+        dealership_id: 'd-1',
         start_at: '2026-11-20T02:00:00Z',
         end_at: '2026-11-20T08:00:00Z',
         image_url: null,
         status: 'published',
         created_at: '2026-11-17T00:00:00Z',
         updated_at: '2026-11-17T00:00:00Z',
-        dealer_locations: null,
+        dealerships: {
+          id: 'd-1',
+          name: 'Showroom Sidoarjo Pusat',
+          address: 'Jl. Raya Sidoarjo No. 123',
+          city: 'Sidoarjo',
+          phone: '(031) 894-1234',
+          is_active: true,
+          created_at: '2026-11-17T00:00:00Z',
+          updated_at: '2026-11-17T00:00:00Z',
+        },
       },
       error: null,
     });
@@ -155,5 +112,7 @@ describe('Event and Dealer Location Queries', () => {
     expect(mockEqSlug).toHaveBeenCalledWith('slug', 'honda-riding-experience-sidoarjo');
     expect(mockEqStatus).toHaveBeenCalledWith('status', 'published');
     expect(event?.title).toBe('Honda Riding Experience Sidoarjo');
+    expect(event?.dealershipId).toBe('d-1');
+    expect(event?.dealership?.name).toBe('Showroom Sidoarjo Pusat');
   });
 });

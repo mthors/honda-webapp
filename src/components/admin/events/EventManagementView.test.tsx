@@ -2,7 +2,8 @@ import React from 'react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { EventManagementView } from './EventManagementView';
-import type { EventItem, DealerLocationItem } from '@/types/events';
+import type { EventItem } from '@/types/events';
+import type { DealershipItem } from '@/types/dealership';
 import * as actions from '@/lib/events/actions';
 
 vi.mock('@/lib/events/actions', () => ({
@@ -26,14 +27,19 @@ vi.mock('@/lib/supabase/client', () => ({
 }));
 
 describe('EventManagementView', () => {
-  const mockLocations: DealerLocationItem[] = [
+  const mockDealerships: DealershipItem[] = [
     {
-      id: 'loc-1',
-      name: 'Demo Dealer – Sidoarjo',
+      id: 'd1111111-1111-4111-a111-111111111111',
+      name: 'Showroom Sidoarjo Pusat',
+      code: 'SDA-01',
       city: 'Sidoarjo',
       address: 'Jl. Raya Sidoarjo No. 123',
       phone: '(031) 894-1234',
+      whatsappNumber: '081234567890',
+      openingHours: '08:00 - 17:00',
+      isSynthetic: false,
       isActive: true,
+      sortOrder: 1,
       createdAt: '2026-11-17T08:00:00.000Z',
       updatedAt: '2026-11-17T08:00:00.000Z',
     },
@@ -46,8 +52,10 @@ describe('EventManagementView', () => {
       slug: 'honda-riding-experience-sidoarjo',
       description:
         'Rasakan sensasi berkendara motor Honda terbaru bersama instruktur berpengalaman.',
-      locationId: 'loc-1',
-      location: mockLocations[0],
+      dealershipId: 'd1111111-1111-4111-a111-111111111111',
+      dealership: mockDealerships[0],
+      locationId: 'd1111111-1111-4111-a111-111111111111',
+      location: mockDealerships[0],
       startAt: '2026-11-20T02:00:00.000Z', // 09:00 WIB
       endAt: '2026-11-20T08:00:00.000Z', // 15:00 WIB
       imageUrl: 'events/poster-1.webp',
@@ -60,8 +68,10 @@ describe('EventManagementView', () => {
       title: 'Draf Pameran Motor Matic',
       slug: 'draf-pameran-motor-matic',
       description: 'Pameran jajaran motor matic Honda terbaru dengan promo potongan angsuran.',
-      locationId: 'loc-1',
-      location: mockLocations[0],
+      dealershipId: 'd1111111-1111-4111-a111-111111111111',
+      dealership: mockDealerships[0],
+      locationId: 'd1111111-1111-4111-a111-111111111111',
+      location: mockDealerships[0],
       startAt: '2026-12-01T02:00:00.000Z',
       endAt: '2026-12-03T10:00:00.000Z',
       imageUrl: null,
@@ -76,7 +86,7 @@ describe('EventManagementView', () => {
   });
 
   it('renders event list with title, date, location, and status badges', () => {
-    render(<EventManagementView initialEvents={mockEvents} activeLocations={mockLocations} />);
+    render(<EventManagementView initialEvents={mockEvents} activeDealerships={mockDealerships} />);
 
     expect(screen.getByText('Manajemen Acara')).toBeInTheDocument();
     expect(screen.getByText('Honda Riding Experience Sidoarjo')).toBeInTheDocument();
@@ -86,7 +96,7 @@ describe('EventManagementView', () => {
   });
 
   it('filters events by search query', () => {
-    render(<EventManagementView initialEvents={mockEvents} activeLocations={mockLocations} />);
+    render(<EventManagementView initialEvents={mockEvents} activeDealerships={mockDealerships} />);
 
     const searchInput = screen.getByLabelText('Cari judul acara');
     fireEvent.change(searchInput, { target: { value: 'Riding' } });
@@ -96,7 +106,7 @@ describe('EventManagementView', () => {
   });
 
   it('filters events by publication status', () => {
-    render(<EventManagementView initialEvents={mockEvents} activeLocations={mockLocations} />);
+    render(<EventManagementView initialEvents={mockEvents} activeDealerships={mockDealerships} />);
 
     const filterSelect = screen.getByLabelText('Filter status publikasi');
     fireEvent.change(filterSelect, { target: { value: 'draft' } });
@@ -111,8 +121,10 @@ describe('EventManagementView', () => {
       title: 'Peluncuran Motor Listrik',
       slug: 'peluncuran-motor-listrik',
       description: 'Acara pengenalan dan uji coba motor listrik Honda terbaru.',
-      locationId: 'loc-1',
-      location: mockLocations[0],
+      dealershipId: 'd1111111-1111-4111-a111-111111111111',
+      dealership: mockDealerships[0],
+      locationId: 'd1111111-1111-4111-a111-111111111111',
+      location: mockDealerships[0],
       startAt: '2026-11-25T02:00:00.000Z',
       endAt: '2026-11-25T08:00:00.000Z',
       imageUrl: null,
@@ -126,7 +138,7 @@ describe('EventManagementView', () => {
       data: createdEvent,
     });
 
-    render(<EventManagementView initialEvents={mockEvents} activeLocations={mockLocations} />);
+    render(<EventManagementView initialEvents={mockEvents} activeDealerships={mockDealerships} />);
 
     fireEvent.click(screen.getByRole('button', { name: 'Tambah Acara Baru' }));
     expect(screen.getByRole('dialog')).toBeInTheDocument();
@@ -157,7 +169,7 @@ describe('EventManagementView', () => {
       data: { ...mockEvents[1], status: 'published' },
     });
 
-    render(<EventManagementView initialEvents={mockEvents} activeLocations={mockLocations} />);
+    render(<EventManagementView initialEvents={mockEvents} activeDealerships={mockDealerships} />);
 
     const publishButtons = screen.getAllByRole('button', { name: 'Publikasikan' });
     fireEvent.click(publishButtons[0]);
@@ -177,7 +189,7 @@ describe('EventManagementView', () => {
       data: { id: 'e1' },
     });
 
-    render(<EventManagementView initialEvents={mockEvents} activeLocations={mockLocations} />);
+    render(<EventManagementView initialEvents={mockEvents} activeDealerships={mockDealerships} />);
 
     const deleteButtons = screen.getAllByRole('button', { name: 'Hapus' });
     fireEvent.click(deleteButtons[0]);

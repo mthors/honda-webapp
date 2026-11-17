@@ -104,16 +104,21 @@ export function EventDetailModal({ event, onClose }: EventDetailModalProps) {
           </div>
 
           {/* Dealership Location Box */}
-          {event.location && (
+          {(event.dealership || event.location) && (
             <div className="p-4 bg-neutral-2/40 border-l-4 border-primary space-y-1">
               <div className="text-xs font-bold text-ink uppercase tracking-wider">
                 {dealershipCopy.events.locationLabel}
               </div>
-              <div className="text-sm font-bold text-ink">{event.location.name}</div>
-              <div className="text-xs text-body leading-relaxed">{event.location.address}</div>
-              {event.location.phone && (
+              <div className="text-sm font-bold text-ink">
+                {(event.dealership || event.location)?.name}
+              </div>
+              <div className="text-xs text-body leading-relaxed">
+                {(event.dealership || event.location)?.address}
+              </div>
+              {(event.dealership || event.location)?.phone && (
                 <div className="text-xs text-muted pt-1">
-                  <span className="font-semibold text-ink">Telepon:</span> {event.location.phone}
+                  <span className="font-semibold text-ink">Telepon:</span>{' '}
+                  {(event.dealership || event.location)?.phone}
                 </div>
               )}
             </div>

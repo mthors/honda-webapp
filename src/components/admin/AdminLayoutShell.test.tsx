@@ -39,10 +39,6 @@ describe('AdminLayoutShell', () => {
     expect(screen.getByRole('link', { name: /Harga/i })).toHaveAttribute('href', '/admin/harga');
     expect(screen.getByRole('link', { name: /Promo/i })).toHaveAttribute('href', '/admin/promo');
     expect(screen.getByRole('link', { name: /^Acara$/i })).toHaveAttribute('href', '/admin/events');
-    expect(screen.getByRole('link', { name: /Lokasi Acara/i })).toHaveAttribute(
-      'href',
-      '/admin/events/locations'
-    );
     expect(screen.getByRole('link', { name: /Spanduk/i })).toHaveAttribute('href', '/admin/banner');
     expect(screen.getByRole('link', { name: /Inquiry/i })).toHaveAttribute('href', '/admin/leads');
     expect(screen.getByRole('link', { name: /^Dealer$/i })).toHaveAttribute(

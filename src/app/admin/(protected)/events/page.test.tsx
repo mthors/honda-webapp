@@ -4,6 +4,7 @@ import type { User } from '@supabase/supabase-js';
 import AdminEventsPage from './page';
 import * as authAdmin from '@/lib/auth/admin';
 import * as eventQueries from '@/lib/events/queries';
+import * as settingsQueries from '@/lib/settings/queries';
 
 vi.mock('@/lib/auth/admin', () => ({
   requireAdmin: vi.fn(),
@@ -11,7 +12,10 @@ vi.mock('@/lib/auth/admin', () => ({
 
 vi.mock('@/lib/events/queries', () => ({
   getAdminEvents: vi.fn(),
-  getActiveDealerLocations: vi.fn(),
+}));
+
+vi.mock('@/lib/settings/queries', () => ({
+  getActiveDealerships: vi.fn(),
 }));
 
 describe('AdminEventsPage', () => {
@@ -28,7 +32,7 @@ describe('AdminEventsPage', () => {
     });
 
     vi.mocked(eventQueries.getAdminEvents).mockResolvedValue([]);
-    vi.mocked(eventQueries.getActiveDealerLocations).mockResolvedValue([]);
+    vi.mocked(settingsQueries.getActiveDealerships).mockResolvedValue([]);
   });
 
   it('enforces requireAdmin and renders EventManagementView', async () => {
@@ -37,7 +41,7 @@ describe('AdminEventsPage', () => {
 
     expect(authAdmin.requireAdmin).toHaveBeenCalled();
     expect(eventQueries.getAdminEvents).toHaveBeenCalled();
-    expect(eventQueries.getActiveDealerLocations).toHaveBeenCalled();
+    expect(settingsQueries.getActiveDealerships).toHaveBeenCalled();
     expect(screen.getByText('Manajemen Acara')).toBeInTheDocument();
   });
 });

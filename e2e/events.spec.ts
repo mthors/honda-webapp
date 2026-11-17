@@ -44,7 +44,7 @@ test.describe('Event Calendar & Management E2E Tests', () => {
     const upcomingSection = page.locator('section[aria-labelledby="upcoming-events-title"]');
     if ((await upcomingSection.count()) > 0) {
       await expect(upcomingSection).toBeVisible();
-      await expect(upcomingSection.locator('h2')).toContainText('Agenda & Kegiatan Mendatang');
+      await expect(upcomingSection.locator('h2')).toContainText('Acara Mendatang');
     }
   });
 
@@ -96,13 +96,8 @@ test.describe('Event Calendar & Management E2E Tests', () => {
     await page.waitForURL('**/admin/login**');
     expect(page.url()).toContain('/admin/login');
 
-    // Attempt /admin/events/locations
-    await page.goto('/admin/events/locations');
-    await page.waitForURL('**/admin/login**');
-    expect(page.url()).toContain('/admin/login');
-
-    // Attempt /admin/dealer-locations alias
-    await page.goto('/admin/dealer-locations');
+    // Attempt /admin/dealerships (canonical branch management)
+    await page.goto('/admin/dealerships');
     await page.waitForURL('**/admin/login**');
     expect(page.url()).toContain('/admin/login');
   });

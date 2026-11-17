@@ -96,7 +96,7 @@ export function UpcomingEventsSection({ upcomingEvents }: UpcomingEventsSectionP
                     {evt.title}
                   </h3>
 
-                  {evt.location && (
+                  {(evt.dealership || evt.location) && (
                     <div className="text-xs text-muted space-y-0.5">
                       <div className="font-semibold text-ink flex items-center space-x-1">
                         <svg
@@ -112,9 +112,9 @@ export function UpcomingEventsSection({ upcomingEvents }: UpcomingEventsSectionP
                             d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
                           />
                         </svg>
-                        <span>{evt.location.name}</span>
+                        <span>{(evt.dealership || evt.location)?.name}</span>
                       </div>
-                      <p className="text-[11px] pl-4">{evt.location.city}</p>
+                      <p className="text-[11px] pl-4">{(evt.dealership || evt.location)?.city}</p>
                     </div>
                   )}
 

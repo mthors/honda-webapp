@@ -30,6 +30,7 @@ describe('EventDetailPage (/events/[slug])', () => {
     title: 'Honda Riding Experience Sidoarjo',
     slug: 'honda-riding-experience-sidoarjo',
     description: 'Uji kendara motor Honda terbaru bersama instruktur profesional.',
+    dealershipId: 'loc-1',
     locationId: 'loc-1',
     location: mockLocation,
     startAt: '2026-11-20T02:00:00.000Z',

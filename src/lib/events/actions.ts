@@ -10,8 +10,8 @@ import {
   type CreateEventInput,
   type UpdateEventInput,
   type EventItem,
-  type EventStatus,
 } from '@/types/events';
+import type { DealershipItem } from '@/types/dealership';
 import type { ActionResponse } from '@/lib/admin/actions';
 import type { Database } from '@/types/database';
 
@@ -36,19 +36,21 @@ function cleanOptionalField(val: string | null | undefined): string | null {
 
 async function removeStoragePoster(storagePathOrUrl: string | null | undefined) {
   if (!storagePathOrUrl) return;
+
   try {
     const supabase = await createClient();
-    // If it's a relative path in 'events' bucket or 'events/fileName'
     let cleanPath = storagePathOrUrl.trim();
+
+    // If it's a full URL, parse the relative storage path inside events/ bucket
     if (cleanPath.startsWith('http://') || cleanPath.startsWith('https://')) {
       const match = cleanPath.match(/\/storage\/v1\/object\/public\/events\/(.+)$/);
       if (match && match[1]) {
         cleanPath = match[1];
       } else {
-        return; // External or non-events bucket URL
+        return; // External image, nothing to remove
       }
     } else if (cleanPath.startsWith('events/')) {
-      cleanPath = cleanPath.slice('events/'.length);
+      cleanPath = cleanPath.replace(/^events\//, '');
     }
 
     if (cleanPath) {
@@ -57,6 +59,51 @@ async function removeStoragePoster(storagePathOrUrl: string | null | undefined) 
   } catch (err) {
     console.error('Failed to cleanup poster from storage:', err);
   }
+}
+
+function mapDealershipFromRow(
+  row: Database['public']['Tables']['dealerships']['Row'] | null | undefined
+): DealershipItem | null {
+  if (!row) return null;
+  return {
+    id: row.id,
+    name: row.name,
+    code: row.code,
+    city: row.city,
+    address: row.address,
+    phone: row.phone,
+    whatsappNumber: row.whatsapp_number,
+    openingHours: row.opening_hours,
+    isSynthetic: row.is_synthetic,
+    isActive: row.is_active,
+    sortOrder: row.sort_order,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+  };
+}
+
+type EventRowWithDealership = Database['public']['Tables']['events']['Row'] & {
+  dealerships: Database['public']['Tables']['dealerships']['Row'] | null;
+};
+
+function mapEventItemFromRow(row: EventRowWithDealership): EventItem {
+  const dealership = mapDealershipFromRow(row.dealerships);
+  return {
+    id: row.id,
+    title: row.title,
+    slug: row.slug,
+    description: row.description,
+    dealershipId: row.dealership_id,
+    dealership,
+    locationId: row.dealership_id,
+    location: dealership,
+    startAt: row.start_at,
+    endAt: row.end_at,
+    imageUrl: row.image_url,
+    status: row.status,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+  };
 }
 
 export async function createEventAction(
@@ -78,38 +125,39 @@ export async function createEventAction(
     }
 
     const data = parsed.data;
+    const targetDealershipId = (data.dealershipId || data.locationId) as string;
     const supabase = await createClient();
 
-    // 1. Validate that referenced dealership location is active
-    const { data: locationData, error: locationError } = await supabase
-      .from('dealer_locations')
+    // 1. Validate that referenced dealership is active
+    const { data: dealershipData, error: dealershipError } = await supabase
+      .from('dealerships')
       .select('id, name, is_active, city')
-      .eq('id', data.locationId)
+      .eq('id', targetDealershipId)
       .maybeSingle();
 
-    const location = locationData as {
+    const dealership = dealershipData as {
       id: string;
       name: string;
       is_active: boolean;
       city: string;
     } | null;
 
-    if (locationError || !location) {
+    if (dealershipError || !dealership) {
       return {
         success: false,
-        error: 'Lokasi dealer yang dipilih tidak ditemukan.',
+        error: 'Dealer resmi yang dipilih tidak ditemukan dalam sistem.',
         fieldErrors: {
-          locationId: ['Lokasi dealer yang dipilih tidak ditemukan.'],
+          dealershipId: ['Dealer resmi yang dipilih tidak ditemukan.'],
         },
       };
     }
 
-    if (!location.is_active) {
+    if (!dealership.is_active) {
       return {
         success: false,
-        error: 'Lokasi dealer yang dipilih sedang tidak aktif. Pilih dealer yang berstatus aktif.',
+        error: 'Dealer yang dipilih sedang berstatus nonaktif. Silakan pilih dealer yang aktif.',
         fieldErrors: {
-          locationId: ['Lokasi dealer yang dipilih sedang tidak aktif.'],
+          dealershipId: ['Dealer yang dipilih sedang berstatus nonaktif.'],
         },
       };
     }
@@ -136,7 +184,7 @@ export async function createEventAction(
       title: data.title.trim(),
       slug: data.slug.trim().toLowerCase(),
       description: data.description.trim(),
-      location_id: data.locationId,
+      dealership_id: targetDealershipId,
       start_at: new Date(data.startAt).toISOString(),
       end_at: new Date(data.endAt).toISOString(),
       image_url: cleanOptionalField(data.imageUrl),
@@ -152,20 +200,25 @@ export async function createEventAction(
         title,
         slug,
         description,
-        location_id,
+        dealership_id,
         start_at,
         end_at,
         image_url,
         status,
         created_at,
         updated_at,
-        dealer_locations (
+        dealerships (
           id,
           name,
-          address,
+          code,
           city,
+          address,
           phone,
+          whatsapp_number,
+          opening_hours,
+          is_synthetic,
           is_active,
+          sort_order,
           created_at,
           updated_at
         )
@@ -180,55 +233,25 @@ export async function createEventAction(
       };
     }
 
-    type ReturnedRow = Database['public']['Tables']['events']['Row'] & {
-      dealer_locations: Database['public']['Tables']['dealer_locations']['Row'] | null;
-    };
-    const row = insertedRow as unknown as ReturnedRow;
-
-    const eventItem: EventItem = {
-      id: row.id,
-      title: row.title,
-      slug: row.slug,
-      description: row.description,
-      locationId: row.location_id,
-      location: row.dealer_locations
-        ? {
-            id: row.dealer_locations.id,
-            name: row.dealer_locations.name,
-            address: row.dealer_locations.address,
-            city: row.dealer_locations.city,
-            phone: row.dealer_locations.phone,
-            isActive: row.dealer_locations.is_active,
-            createdAt: row.dealer_locations.created_at,
-            updatedAt: row.dealer_locations.updated_at,
-          }
-        : null,
-      startAt: row.start_at,
-      endAt: row.end_at,
-      imageUrl: row.image_url,
-      status: row.status,
-      createdAt: row.created_at,
-      updatedAt: row.updated_at,
-    };
+    const eventItem = mapEventItemFromRow(insertedRow as unknown as EventRowWithDealership);
 
     await logAdminAction({
       action: 'create_event',
       entityType: 'event',
       entityId: eventItem.id,
-      summary: `Menambahkan acara "${eventItem.title}" (${eventItem.status}) di lokasi ${location.name} oleh ${session.profile.displayName}`,
+      summary: `Menambahkan acara "${eventItem.title}" (${eventItem.status}) di dealer ${dealership.name} oleh ${session.profile.displayName}`,
       metadata: {
         title: eventItem.title,
         slug: eventItem.slug,
+        dealershipId: targetDealershipId,
+        dealershipName: dealership.name,
         status: eventItem.status,
-        locationId: eventItem.locationId,
-        startAt: eventItem.startAt,
-        endAt: eventItem.endAt,
       },
     });
 
     revalidatePath('/admin/events');
     revalidatePath('/events');
-    revalidatePath('/');
+    revalidatePath('/', 'layout');
 
     return {
       success: true,
@@ -264,52 +287,62 @@ export async function updateEventAction(
     }
 
     const data = parsed.data;
+    const targetDealershipId = (data.dealershipId || data.locationId) as string;
     const supabase = await createClient();
 
-    // 1. Fetch existing event to check old poster and existence
-    const { data: existingEvent, error: fetchError } = await supabase
+    // 1. Fetch existing event
+    const { data: existingRow, error: fetchError } = await supabase
       .from('events')
-      .select('id, image_url')
+      .select('id, title, slug, image_url, dealership_id')
       .eq('id', data.id)
       .maybeSingle();
 
-    if (fetchError || !existingEvent) {
+    type ExistingEventRow = {
+      id: string;
+      title: string;
+      slug: string;
+      image_url: string | null;
+      dealership_id: string;
+    };
+    const existing = existingRow as unknown as ExistingEventRow | null;
+
+    if (fetchError || !existing) {
       return {
         success: false,
-        error: 'Data acara tidak ditemukan.',
+        error: 'Acara tidak ditemukan atau sudah dihapus.',
       };
     }
 
-    // 2. Validate that referenced dealership location is active
-    const { data: locationData, error: locationError } = await supabase
-      .from('dealer_locations')
+    // 2. Validate that referenced dealership is active
+    const { data: dealershipData, error: dealershipError } = await supabase
+      .from('dealerships')
       .select('id, name, is_active, city')
-      .eq('id', data.locationId)
+      .eq('id', targetDealershipId)
       .maybeSingle();
 
-    const location = locationData as {
+    const dealership = dealershipData as {
       id: string;
       name: string;
       is_active: boolean;
       city: string;
     } | null;
 
-    if (locationError || !location) {
+    if (dealershipError || !dealership) {
       return {
         success: false,
-        error: 'Lokasi dealer yang dipilih tidak ditemukan.',
+        error: 'Dealer resmi yang dipilih tidak ditemukan dalam sistem.',
         fieldErrors: {
-          locationId: ['Lokasi dealer yang dipilih tidak ditemukan.'],
+          dealershipId: ['Dealer resmi yang dipilih tidak ditemukan.'],
         },
       };
     }
 
-    if (!location.is_active) {
+    if (!dealership.is_active) {
       return {
         success: false,
-        error: 'Lokasi dealer yang dipilih sedang tidak aktif. Pilih dealer yang berstatus aktif.',
+        error: 'Dealer yang dipilih sedang berstatus nonaktif. Silakan pilih dealer yang aktif.',
         fieldErrors: {
-          locationId: ['Lokasi dealer yang dipilih sedang tidak aktif.'],
+          dealershipId: ['Dealer yang dipilih sedang berstatus nonaktif.'],
         },
       };
     }
@@ -332,24 +365,23 @@ export async function updateEventAction(
       };
     }
 
+    // 4. Poster replacement cleanup
+    const oldImageUrl = existing.image_url;
     const newImageUrl = cleanOptionalField(data.imageUrl);
-    const existingImageUrl = (existingEvent as { image_url?: string | null })?.image_url;
-
-    // If poster was replaced or removed, cleanup old file
-    if (existingImageUrl && existingImageUrl !== newImageUrl) {
-      await removeStoragePoster(existingImageUrl);
+    if (oldImageUrl && oldImageUrl !== newImageUrl) {
+      await removeStoragePoster(oldImageUrl);
     }
 
+    // 5. Update event
     const updatePayload: Database['public']['Tables']['events']['Update'] = {
       title: data.title.trim(),
       slug: data.slug.trim().toLowerCase(),
       description: data.description.trim(),
-      location_id: data.locationId,
+      dealership_id: targetDealershipId,
       start_at: new Date(data.startAt).toISOString(),
       end_at: new Date(data.endAt).toISOString(),
       image_url: newImageUrl,
       status: data.status,
-      updated_at: new Date().toISOString(),
     };
 
     const { data: updatedRow, error: updateError } = await supabase
@@ -362,20 +394,25 @@ export async function updateEventAction(
         title,
         slug,
         description,
-        location_id,
+        dealership_id,
         start_at,
         end_at,
         image_url,
         status,
         created_at,
         updated_at,
-        dealer_locations (
+        dealerships (
           id,
           name,
-          address,
+          code,
           city,
+          address,
           phone,
+          whatsapp_number,
+          opening_hours,
+          is_synthetic,
           is_active,
+          sort_order,
           created_at,
           updated_at
         )
@@ -390,55 +427,26 @@ export async function updateEventAction(
       };
     }
 
-    type ReturnedRow = Database['public']['Tables']['events']['Row'] & {
-      dealer_locations: Database['public']['Tables']['dealer_locations']['Row'] | null;
-    };
-    const row = updatedRow as unknown as ReturnedRow;
-
-    const eventItem: EventItem = {
-      id: row.id,
-      title: row.title,
-      slug: row.slug,
-      description: row.description,
-      locationId: row.location_id,
-      location: row.dealer_locations
-        ? {
-            id: row.dealer_locations.id,
-            name: row.dealer_locations.name,
-            address: row.dealer_locations.address,
-            city: row.dealer_locations.city,
-            phone: row.dealer_locations.phone,
-            isActive: row.dealer_locations.is_active,
-            createdAt: row.dealer_locations.created_at,
-            updatedAt: row.dealer_locations.updated_at,
-          }
-        : null,
-      startAt: row.start_at,
-      endAt: row.end_at,
-      imageUrl: row.image_url,
-      status: row.status,
-      createdAt: row.created_at,
-      updatedAt: row.updated_at,
-    };
+    const eventItem = mapEventItemFromRow(updatedRow as unknown as EventRowWithDealership);
 
     await logAdminAction({
       action: 'update_event',
       entityType: 'event',
       entityId: eventItem.id,
-      summary: `Memperbarui acara "${eventItem.title}" (${eventItem.status}) oleh ${session.profile.displayName}`,
+      summary: `Memperbarui acara "${eventItem.title}" (${eventItem.status}) di dealer ${dealership.name} oleh ${session.profile.displayName}`,
       metadata: {
         title: eventItem.title,
         slug: eventItem.slug,
+        dealershipId: targetDealershipId,
+        dealershipName: dealership.name,
         status: eventItem.status,
-        locationId: eventItem.locationId,
-        startAt: eventItem.startAt,
-        endAt: eventItem.endAt,
       },
     });
 
     revalidatePath('/admin/events');
     revalidatePath('/events');
-    revalidatePath('/');
+    revalidatePath(`/events/${eventItem.slug}`);
+    revalidatePath('/', 'layout');
 
     return {
       success: true,
@@ -455,41 +463,61 @@ export async function updateEventAction(
   }
 }
 
-export async function toggleEventPublishAction(input: {
-  id: string;
-  status: EventStatus;
-}): Promise<ActionResponse<EventItem>> {
+export async function toggleEventPublishAction(
+  idOrPayload: string | { id: string; status: 'draft' | 'published' },
+  targetStatusParam?: 'draft' | 'published'
+): Promise<ActionResponse<EventItem>> {
   try {
     const session = await requireAdmin();
+
+    const id = typeof idOrPayload === 'string' ? idOrPayload : idOrPayload?.id;
+    const targetStatus = typeof idOrPayload === 'string' ? targetStatusParam : idOrPayload?.status;
+
+    if (!id || typeof id !== 'string') {
+      return {
+        success: false,
+        error: 'ID acara tidak valid.',
+      };
+    }
+
+    if (targetStatus !== 'draft' && targetStatus !== 'published') {
+      return {
+        success: false,
+        error: 'Status acara tidak valid.',
+      };
+    }
+
     const supabase = await createClient();
 
     const { data: updatedRow, error: updateError } = await supabase
       .from('events')
-      .update({
-        status: input.status,
-        updated_at: new Date().toISOString(),
-      } as never)
-      .eq('id', input.id)
+      .update({ status: targetStatus } as never)
+      .eq('id', id)
       .select(
         `
         id,
         title,
         slug,
         description,
-        location_id,
+        dealership_id,
         start_at,
         end_at,
         image_url,
         status,
         created_at,
         updated_at,
-        dealer_locations (
+        dealerships (
           id,
           name,
-          address,
+          code,
           city,
+          address,
           phone,
+          whatsapp_number,
+          opening_hours,
+          is_synthetic,
           is_active,
+          sort_order,
           created_at,
           updated_at
         )
@@ -500,54 +528,27 @@ export async function toggleEventPublishAction(input: {
     if (updateError || !updatedRow) {
       return {
         success: false,
-        error: updateError?.message || 'Gagal mengubah status publikasi acara.',
+        error: updateError?.message || 'Gagal memperbarui status publikasi acara.',
       };
     }
 
-    type ReturnedRow = Database['public']['Tables']['events']['Row'] & {
-      dealer_locations: Database['public']['Tables']['dealer_locations']['Row'] | null;
-    };
-    const row = updatedRow as unknown as ReturnedRow;
-
-    const eventItem: EventItem = {
-      id: row.id,
-      title: row.title,
-      slug: row.slug,
-      description: row.description,
-      locationId: row.location_id,
-      location: row.dealer_locations
-        ? {
-            id: row.dealer_locations.id,
-            name: row.dealer_locations.name,
-            address: row.dealer_locations.address,
-            city: row.dealer_locations.city,
-            phone: row.dealer_locations.phone,
-            isActive: row.dealer_locations.is_active,
-            createdAt: row.dealer_locations.created_at,
-            updatedAt: row.dealer_locations.updated_at,
-          }
-        : null,
-      startAt: row.start_at,
-      endAt: row.end_at,
-      imageUrl: row.image_url,
-      status: row.status,
-      createdAt: row.created_at,
-      updatedAt: row.updated_at,
-    };
+    const eventItem = mapEventItemFromRow(updatedRow as unknown as EventRowWithDealership);
 
     await logAdminAction({
-      action: 'toggle_event_status',
+      action: targetStatus === 'published' ? 'publish_event' : 'unpublish_event',
       entityType: 'event',
       entityId: eventItem.id,
-      summary: `${eventItem.status === 'published' ? 'Mempublikasikan' : 'Menjadikan draf'} acara "${eventItem.title}" oleh ${session.profile.displayName}`,
+      summary: `${targetStatus === 'published' ? 'Mempublikasikan' : 'Menarik draf'} acara "${eventItem.title}" oleh ${session.profile.displayName}`,
       metadata: {
-        status: eventItem.status,
+        title: eventItem.title,
+        status: targetStatus,
       },
     });
 
     revalidatePath('/admin/events');
     revalidatePath('/events');
-    revalidatePath('/');
+    revalidatePath(`/events/${eventItem.slug}`);
+    revalidatePath('/', 'layout');
 
     return {
       success: true,
@@ -567,23 +568,39 @@ export async function toggleEventPublishAction(input: {
 export async function deleteEventAction(id: string): Promise<ActionResponse<{ id: string }>> {
   try {
     const session = await requireAdmin();
+
+    if (!id || typeof id !== 'string') {
+      return {
+        success: false,
+        error: 'ID acara tidak valid.',
+      };
+    }
+
     const supabase = await createClient();
 
-    // 1. Retrieve event to get poster URL and title for cleanup/audit
-    const { data: eventData } = await supabase
+    const { data: existingRow, error: fetchError } = await supabase
       .from('events')
-      .select('id, title, image_url')
+      .select('id, title, slug, image_url')
       .eq('id', id)
       .maybeSingle();
 
-    const existingEvent = eventData as {
+    type ExistingDeleteRow = {
       id: string;
       title: string;
+      slug: string;
       image_url: string | null;
-    } | null;
+    };
+    const existing = existingRow as unknown as ExistingDeleteRow | null;
 
-    if (existingEvent?.image_url) {
-      await removeStoragePoster(existingEvent.image_url);
+    if (fetchError || !existing) {
+      return {
+        success: false,
+        error: 'Acara tidak ditemukan atau sudah dihapus.',
+      };
+    }
+
+    if (existing.image_url) {
+      await removeStoragePoster(existing.image_url);
     }
 
     const { error: deleteError } = await supabase.from('events').delete().eq('id', id);
@@ -591,7 +608,7 @@ export async function deleteEventAction(id: string): Promise<ActionResponse<{ id
     if (deleteError) {
       return {
         success: false,
-        error: deleteError.message || 'Gagal menghapus data acara.',
+        error: deleteError.message || 'Gagal menghapus acara.',
       };
     }
 
@@ -599,15 +616,16 @@ export async function deleteEventAction(id: string): Promise<ActionResponse<{ id
       action: 'delete_event',
       entityType: 'event',
       entityId: id,
-      summary: `Menghapus acara "${existingEvent?.title || id}" oleh ${session.profile.displayName}`,
+      summary: `Menghapus acara "${existing.title}" (${existing.slug}) oleh ${session.profile.displayName}`,
       metadata: {
-        deletedId: id,
+        title: existing.title,
+        slug: existing.slug,
       },
     });
 
     revalidatePath('/admin/events');
     revalidatePath('/events');
-    revalidatePath('/');
+    revalidatePath('/', 'layout');
 
     return {
       success: true,

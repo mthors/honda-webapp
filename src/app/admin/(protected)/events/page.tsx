@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { requireAdmin } from '@/lib/auth/admin';
-import { getAdminEvents, getActiveDealerLocations } from '@/lib/events/queries';
+import { getAdminEvents } from '@/lib/events/queries';
+import { getActiveDealerships } from '@/lib/settings/queries';
 import { EventManagementView } from '@/components/admin/events/EventManagementView';
 
 export const metadata: Metadata = {
@@ -11,10 +12,10 @@ export const metadata: Metadata = {
 export default async function AdminEventsPage() {
   await requireAdmin();
 
-  const [events, activeLocations] = await Promise.all([
+  const [events, activeDealerships] = await Promise.all([
     getAdminEvents(),
-    getActiveDealerLocations(),
+    getActiveDealerships(),
   ]);
 
-  return <EventManagementView initialEvents={events} activeLocations={activeLocations} />;
+  return <EventManagementView initialEvents={events} activeDealerships={activeDealerships} />;
 }

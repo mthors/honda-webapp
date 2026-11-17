@@ -40,14 +40,14 @@ describe('Event Management Actions', () => {
     title: 'Honda Riding Experience Sidoarjo',
     slug: 'honda-riding-experience-sidoarjo',
     description: 'Uji kendara motor Honda terbaru bersama instruktur profesional.',
-    location_id: 'c1111111-1111-4111-a111-111111111111',
+    dealership_id: 'c1111111-1111-4111-a111-111111111111',
     start_at: '2026-11-20T02:00:00.000Z',
     end_at: '2026-11-20T08:00:00.000Z',
     image_url: 'events/poster-1.webp',
     status: 'draft',
     created_at: '2026-11-17T08:00:00.000Z',
     updated_at: '2026-11-17T08:00:00.000Z',
-    dealer_locations: sampleLocation,
+    dealerships: sampleLocation,
   };
 
   beforeEach(() => {
@@ -82,7 +82,7 @@ describe('Event Management Actions', () => {
   it('rejects event creation when referenced dealership location is inactive', async () => {
     const mockSupabase = {
       from: vi.fn().mockImplementation((table: string) => {
-        if (table === 'dealer_locations') {
+        if (table === 'dealerships') {
           return {
             select: vi.fn().mockReturnValue({
               eq: vi.fn().mockReturnValue({
@@ -113,13 +113,13 @@ describe('Event Management Actions', () => {
     });
 
     expect(res.success).toBe(false);
-    expect(res.error).toContain('sedang tidak aktif');
+    expect(res.error).toContain('nonaktif');
   });
 
   it('successfully creates an event and records audit log', async () => {
     const mockSupabase = {
       from: vi.fn().mockImplementation((table: string) => {
-        if (table === 'dealer_locations') {
+        if (table === 'dealerships') {
           return {
             select: vi.fn().mockReturnValue({
               eq: vi.fn().mockReturnValue({
@@ -183,7 +183,7 @@ describe('Event Management Actions', () => {
     const mockRemove = vi.fn().mockResolvedValue({ data: null, error: null });
     const mockSupabase = {
       from: vi.fn().mockImplementation((table: string) => {
-        if (table === 'dealer_locations') {
+        if (table === 'dealerships') {
           return {
             select: vi.fn().mockReturnValue({
               eq: vi.fn().mockReturnValue({
