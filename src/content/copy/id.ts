@@ -21,7 +21,9 @@ export const dealershipCopy = {
   nav: {
     home: 'Beranda',
     motorcycles: 'Sepeda Motor',
+    motorcycleCatalog: 'Daftar Motor',
     priceList: 'Daftar Harga',
+    promoAndAgenda: 'Promo & Agenda',
     promotions: 'Promo',
     events: 'Agenda Kegiatan',
     aboutContact: 'Tentang & Kontak',

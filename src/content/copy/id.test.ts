@@ -19,8 +19,11 @@ describe('dealershipCopy', () => {
   it('has all required Indonesian navigation labels and accessibility descriptions', () => {
     expect(dealershipCopy.nav.home).toBe('Beranda');
     expect(dealershipCopy.nav.motorcycles).toBe('Sepeda Motor');
+    expect(dealershipCopy.nav.motorcycleCatalog).toBe('Daftar Motor');
     expect(dealershipCopy.nav.priceList).toBe('Daftar Harga');
+    expect(dealershipCopy.nav.promoAndAgenda).toBe('Promo & Agenda');
     expect(dealershipCopy.nav.promotions).toBe('Promo');
+    expect(dealershipCopy.nav.events).toBe('Agenda Kegiatan');
     expect(dealershipCopy.nav.aboutContact).toBe('Tentang & Kontak');
     expect(dealershipCopy.nav.menuButtonOpen).toBe('Buka menu navigasi');
     expect(dealershipCopy.nav.menuButtonClose).toBe('Tutup menu navigasi');

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { dealershipCopy } from '@/content/copy/id';
@@ -14,19 +14,123 @@ export interface PublicHeaderProps {
 
 export function PublicHeader({ settings }: PublicHeaderProps) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const pathname = usePathname();
+  const [openDropdown, setOpenDropdown] = useState<'motorcycles' | 'promoAgenda' | null>(null);
+  const [mobileExpandedOverride, setMobileExpandedOverride] = useState<{
+    motorcycles?: boolean;
+    promoAgenda?: boolean;
+  }>({});
 
-  // Close mobile menu on Escape key press
+  const pathname = usePathname();
+  const [prevPathname, setPrevPathname] = useState(pathname);
+
+  const motorcyclesDropdownRef = useRef<HTMLDivElement>(null);
+  const promoAgendaDropdownRef = useRef<HTMLDivElement>(null);
+  const closeTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Sync state during render when pathname changes
+  if (prevPathname !== pathname) {
+    setPrevPathname(pathname);
+    setOpenDropdown(null);
+    setIsMenuOpen(false);
+    setMobileExpandedOverride({});
+  }
+
+  const isHomeActive = pathname === '/';
+  const isMotorcyclesActive = pathname.startsWith('/motor') || pathname.startsWith('/harga');
+  const isPromoAgendaActive = pathname.startsWith('/promo') || pathname.startsWith('/events');
+  const isAboutContactActive = pathname.startsWith('/hubungi');
+
+  const isMobileMotorcyclesExpanded = mobileExpandedOverride.motorcycles ?? isMotorcyclesActive;
+  const isMobilePromoAgendaExpanded = mobileExpandedOverride.promoAgenda ?? isPromoAgendaActive;
+
+  const handleLinkClick = () => {
+    if (closeTimeoutRef.current) {
+      clearTimeout(closeTimeoutRef.current);
+      closeTimeoutRef.current = null;
+    }
+    setOpenDropdown(null);
+    setIsMenuOpen(false);
+  };
+
+  const handleMouseEnter = (dropdown: 'motorcycles' | 'promoAgenda') => {
+    if (closeTimeoutRef.current) {
+      clearTimeout(closeTimeoutRef.current);
+      closeTimeoutRef.current = null;
+    }
+    setOpenDropdown(dropdown);
+  };
+
+  const handleMouseLeave = () => {
+    if (closeTimeoutRef.current) {
+      clearTimeout(closeTimeoutRef.current);
+    }
+    closeTimeoutRef.current = setTimeout(() => {
+      setOpenDropdown(null);
+    }, 180);
+  };
+
+  // Clear closing timeout on component unmount
+  useEffect(() => {
+    return () => {
+      if (closeTimeoutRef.current) {
+        clearTimeout(closeTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  // Close mobile menu or open dropdown on Escape key press
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape' && isMenuOpen) {
-        setIsMenuOpen(false);
+      if (event.key === 'Escape') {
+        if (closeTimeoutRef.current) {
+          clearTimeout(closeTimeoutRef.current);
+          closeTimeoutRef.current = null;
+        }
+        if (openDropdown) {
+          setOpenDropdown(null);
+        }
+        if (isMenuOpen) {
+          setIsMenuOpen(false);
+        }
       }
     };
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isMenuOpen]);
+  }, [isMenuOpen, openDropdown]);
+
+  // Close desktop dropdown on outside click
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (!openDropdown) return;
+
+      const target = event.target as Node;
+      if (
+        openDropdown === 'motorcycles' &&
+        motorcyclesDropdownRef.current &&
+        !motorcyclesDropdownRef.current.contains(target)
+      ) {
+        if (closeTimeoutRef.current) {
+          clearTimeout(closeTimeoutRef.current);
+          closeTimeoutRef.current = null;
+        }
+        setOpenDropdown(null);
+      } else if (
+        openDropdown === 'promoAgenda' &&
+        promoAgendaDropdownRef.current &&
+        !promoAgendaDropdownRef.current.contains(target)
+      ) {
+        if (closeTimeoutRef.current) {
+          clearTimeout(closeTimeoutRef.current);
+          closeTimeoutRef.current = null;
+        }
+        setOpenDropdown(null);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [openDropdown]);
 
   // Prevent background scrolling when mobile drawer is open
   useEffect(() => {
@@ -39,15 +143,6 @@ export function PublicHeader({ settings }: PublicHeaderProps) {
       document.body.style.overflow = '';
     };
   }, [isMenuOpen]);
-
-  const navItems = [
-    { href: '/', label: dealershipCopy.nav.home },
-    { href: '/motor', label: dealershipCopy.nav.motorcycles },
-    { href: '/harga', label: dealershipCopy.nav.priceList },
-    { href: '/promo', label: dealershipCopy.nav.promotions },
-    { href: '/events', label: dealershipCopy.nav.events },
-    { href: '/hubungi', label: dealershipCopy.nav.aboutContact },
-  ];
 
   const dealerName = settings?.dealerName?.trim() || dealershipCopy.dealer.name;
 
@@ -91,7 +186,7 @@ export function PublicHeader({ settings }: PublicHeaderProps) {
           <Link
             href="/"
             className="flex flex-col focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 p-1"
-            onClick={() => setIsMenuOpen(false)}
+            onClick={handleLinkClick}
           >
             <span className="text-lg sm:text-2xl font-bold tracking-tight text-ink font-manrope">
               {brandPrefix} {brandSuffix && <span className="text-primary">{brandSuffix}</span>}
@@ -106,22 +201,213 @@ export function PublicHeader({ settings }: PublicHeaderProps) {
             aria-label="Navigasi Utama"
             className="hidden md:flex items-center space-x-6 lg:space-x-8 text-sm font-medium"
           >
-            {navItems.map((item) => {
-              const isActive =
-                item.href === '/' ? pathname === '/' : pathname.startsWith(item.href);
+            {/* 1. Beranda */}
+            <Link
+              href="/"
+              onClick={handleLinkClick}
+              className={`py-2 transition-colors relative hover:text-primary focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 ${
+                isHomeActive ? 'text-primary font-semibold border-b-2 border-primary' : 'text-ink'
+              }`}
+            >
+              {dealershipCopy.nav.home}
+            </Link>
 
-              return (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  className={`py-2 transition-colors relative hover:text-primary focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 ${
-                    isActive ? 'text-primary font-semibold border-b-2 border-primary' : 'text-ink'
+            {/* 2. Sepeda Motor Dropdown */}
+            <div
+              ref={motorcyclesDropdownRef}
+              className="relative"
+              onMouseEnter={() => handleMouseEnter('motorcycles')}
+              onMouseLeave={handleMouseLeave}
+              onFocus={() => handleMouseEnter('motorcycles')}
+              onBlur={(e) => {
+                if (!motorcyclesDropdownRef.current?.contains(e.relatedTarget as Node)) {
+                  handleMouseLeave();
+                }
+              }}
+            >
+              <button
+                type="button"
+                aria-expanded={openDropdown === 'motorcycles'}
+                aria-haspopup="true"
+                onClick={() => {
+                  if (closeTimeoutRef.current) {
+                    clearTimeout(closeTimeoutRef.current);
+                    closeTimeoutRef.current = null;
+                  }
+                  setOpenDropdown((prev) => (prev === 'motorcycles' ? null : 'motorcycles'));
+                }}
+                className={`inline-flex items-center py-2 transition-colors relative hover:text-primary focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 ${
+                  isMotorcyclesActive
+                    ? 'text-primary font-semibold border-b-2 border-primary'
+                    : 'text-ink'
+                }`}
+              >
+                <span>{dealershipCopy.nav.motorcycles}</span>
+                <svg
+                  className={`w-4 h-4 ml-1 transition-transform duration-200 motion-reduce:transition-none ${
+                    openDropdown === 'motorcycles' ? 'rotate-180 text-primary' : 'text-neutral-5'
                   }`}
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                  aria-hidden="true"
                 >
-                  {item.label}
-                </Link>
-              );
-            })}
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M19 9l-7 7-7-7"
+                  />
+                </svg>
+              </button>
+
+              <div
+                className={`absolute top-full left-0 pt-1.5 z-50 transition-all duration-200 ease-out motion-reduce:transition-none motion-reduce:transform-none ${
+                  openDropdown === 'motorcycles'
+                    ? 'opacity-100 translate-y-0 visible pointer-events-auto'
+                    : 'opacity-0 -translate-y-2 invisible pointer-events-none'
+                }`}
+              >
+                <div
+                  role="menu"
+                  aria-label={dealershipCopy.nav.motorcycles}
+                  aria-hidden={openDropdown !== 'motorcycles'}
+                  className="w-48 bg-canvas border border-hairline shadow-md py-1 rounded-none focus:outline-none"
+                >
+                  <Link
+                    href="/motor"
+                    role="menuitem"
+                    onClick={handleLinkClick}
+                    tabIndex={openDropdown === 'motorcycles' ? 0 : -1}
+                    className={`block px-4 py-2.5 text-sm transition-colors focus:outline-none focus:bg-neutral-2 ${
+                      pathname.startsWith('/motor')
+                        ? 'text-primary font-semibold bg-neutral-2'
+                        : 'text-ink hover:text-primary hover:bg-neutral-2'
+                    }`}
+                  >
+                    {dealershipCopy.nav.motorcycleCatalog}
+                  </Link>
+                  <Link
+                    href="/harga"
+                    role="menuitem"
+                    onClick={handleLinkClick}
+                    tabIndex={openDropdown === 'motorcycles' ? 0 : -1}
+                    className={`block px-4 py-2.5 text-sm transition-colors focus:outline-none focus:bg-neutral-2 ${
+                      pathname.startsWith('/harga')
+                        ? 'text-primary font-semibold bg-neutral-2'
+                        : 'text-ink hover:text-primary hover:bg-neutral-2'
+                    }`}
+                  >
+                    {dealershipCopy.nav.priceList}
+                  </Link>
+                </div>
+              </div>
+            </div>
+
+            {/* 3. Promo & Agenda Dropdown */}
+            <div
+              ref={promoAgendaDropdownRef}
+              className="relative"
+              onMouseEnter={() => handleMouseEnter('promoAgenda')}
+              onMouseLeave={handleMouseLeave}
+              onFocus={() => handleMouseEnter('promoAgenda')}
+              onBlur={(e) => {
+                if (!promoAgendaDropdownRef.current?.contains(e.relatedTarget as Node)) {
+                  handleMouseLeave();
+                }
+              }}
+            >
+              <button
+                type="button"
+                aria-expanded={openDropdown === 'promoAgenda'}
+                aria-haspopup="true"
+                onClick={() => {
+                  if (closeTimeoutRef.current) {
+                    clearTimeout(closeTimeoutRef.current);
+                    closeTimeoutRef.current = null;
+                  }
+                  setOpenDropdown((prev) => (prev === 'promoAgenda' ? null : 'promoAgenda'));
+                }}
+                className={`inline-flex items-center py-2 transition-colors relative hover:text-primary focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 ${
+                  isPromoAgendaActive
+                    ? 'text-primary font-semibold border-b-2 border-primary'
+                    : 'text-ink'
+                }`}
+              >
+                <span>{dealershipCopy.nav.promoAndAgenda}</span>
+                <svg
+                  className={`w-4 h-4 ml-1 transition-transform duration-200 motion-reduce:transition-none ${
+                    openDropdown === 'promoAgenda' ? 'rotate-180 text-primary' : 'text-neutral-5'
+                  }`}
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                  aria-hidden="true"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M19 9l-7 7-7-7"
+                  />
+                </svg>
+              </button>
+
+              <div
+                className={`absolute top-full left-0 pt-1.5 z-50 transition-all duration-200 ease-out motion-reduce:transition-none motion-reduce:transform-none ${
+                  openDropdown === 'promoAgenda'
+                    ? 'opacity-100 translate-y-0 visible pointer-events-auto'
+                    : 'opacity-0 -translate-y-2 invisible pointer-events-none'
+                }`}
+              >
+                <div
+                  role="menu"
+                  aria-label={dealershipCopy.nav.promoAndAgenda}
+                  aria-hidden={openDropdown !== 'promoAgenda'}
+                  className="w-48 bg-canvas border border-hairline shadow-md py-1 rounded-none focus:outline-none"
+                >
+                  <Link
+                    href="/promo"
+                    role="menuitem"
+                    onClick={handleLinkClick}
+                    tabIndex={openDropdown === 'promoAgenda' ? 0 : -1}
+                    className={`block px-4 py-2.5 text-sm transition-colors focus:outline-none focus:bg-neutral-2 ${
+                      pathname.startsWith('/promo')
+                        ? 'text-primary font-semibold bg-neutral-2'
+                        : 'text-ink hover:text-primary hover:bg-neutral-2'
+                    }`}
+                  >
+                    {dealershipCopy.nav.promotions}
+                  </Link>
+                  <Link
+                    href="/events"
+                    role="menuitem"
+                    onClick={handleLinkClick}
+                    tabIndex={openDropdown === 'promoAgenda' ? 0 : -1}
+                    className={`block px-4 py-2.5 text-sm transition-colors focus:outline-none focus:bg-neutral-2 ${
+                      pathname.startsWith('/events')
+                        ? 'text-primary font-semibold bg-neutral-2'
+                        : 'text-ink hover:text-primary hover:bg-neutral-2'
+                    }`}
+                  >
+                    {dealershipCopy.nav.events}
+                  </Link>
+                </div>
+              </div>
+            </div>
+
+            {/* 4. Tentang & Kontak */}
+            <Link
+              href="/hubungi"
+              onClick={handleLinkClick}
+              className={`py-2 transition-colors relative hover:text-primary focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 ${
+                isAboutContactActive
+                  ? 'text-primary font-semibold border-b-2 border-primary'
+                  : 'text-ink'
+              }`}
+            >
+              {dealershipCopy.nav.aboutContact}
+            </Link>
           </nav>
 
           {/* Desktop Call to Action & Mobile Hamburger Button */}
@@ -206,30 +492,164 @@ export function PublicHeader({ settings }: PublicHeaderProps) {
           aria-label="Menu Navigasi Mobile"
           className={`md:hidden overflow-hidden transition-all duration-200 motion-reduce:transition-none border-t border-hairline bg-canvas ${
             isMenuOpen
-              ? 'max-h-[450px] opacity-100 shadow-lg'
+              ? 'max-h-[600px] opacity-100 shadow-lg overflow-y-auto'
               : 'max-h-0 opacity-0 pointer-events-none'
           }`}
         >
-          <div className="px-4 pt-3 pb-6 space-y-2">
-            {navItems.map((item) => {
-              const isActive =
-                item.href === '/' ? pathname === '/' : pathname.startsWith(item.href);
+          <div className="px-4 pt-3 pb-6 space-y-1">
+            {/* 1. Beranda */}
+            <Link
+              href="/"
+              onClick={handleLinkClick}
+              className={`block px-3 py-3 text-base font-medium rounded-none min-h-[44px] flex items-center transition-colors focus:outline-none focus:ring-2 focus:ring-primary ${
+                isHomeActive
+                  ? 'bg-neutral-2 text-primary font-bold border-l-4 border-primary pl-2'
+                  : 'text-ink hover:bg-neutral-2 hover:text-primary'
+              }`}
+            >
+              {dealershipCopy.nav.home}
+            </Link>
 
-              return (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  onClick={() => setIsMenuOpen(false)}
-                  className={`block px-3 py-3 text-base font-medium rounded-none min-h-[44px] flex items-center transition-colors focus:outline-none focus:ring-2 focus:ring-primary ${
-                    isActive
-                      ? 'bg-neutral-2 text-primary font-bold border-l-4 border-primary pl-2'
-                      : 'text-ink hover:bg-neutral-2 hover:text-primary'
+            {/* 2. Sepeda Motor Accordion */}
+            <div>
+              <button
+                type="button"
+                aria-expanded={isMobileMotorcyclesExpanded}
+                onClick={() =>
+                  setMobileExpandedOverride((prev) => ({
+                    ...prev,
+                    motorcycles: !isMobileMotorcyclesExpanded,
+                  }))
+                }
+                className={`w-full px-3 py-3 text-base font-medium rounded-none min-h-[44px] flex items-center justify-between transition-colors focus:outline-none focus:ring-2 focus:ring-primary ${
+                  isMotorcyclesActive
+                    ? 'bg-neutral-2 text-primary font-bold'
+                    : 'text-ink hover:bg-neutral-2 hover:text-primary'
+                }`}
+              >
+                <span>{dealershipCopy.nav.motorcycles}</span>
+                <svg
+                  className={`w-4 h-4 transition-transform duration-200 ${
+                    isMobileMotorcyclesExpanded ? 'rotate-180 text-primary' : 'text-neutral-5'
                   }`}
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                  aria-hidden="true"
                 >
-                  {item.label}
-                </Link>
-              );
-            })}
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M19 9l-7 7-7-7"
+                  />
+                </svg>
+              </button>
+
+              {isMobileMotorcyclesExpanded && (
+                <div className="pl-3 pr-1 py-1 space-y-1 bg-neutral-2/40 border-l-2 border-hairline ml-3">
+                  <Link
+                    href="/motor"
+                    onClick={handleLinkClick}
+                    className={`block px-3 py-2.5 text-sm font-medium rounded-none min-h-[44px] flex items-center transition-colors focus:outline-none focus:ring-2 focus:ring-primary ${
+                      pathname.startsWith('/motor')
+                        ? 'text-primary font-bold border-l-4 border-primary pl-2 bg-neutral-2'
+                        : 'text-ink hover:text-primary hover:bg-neutral-2'
+                    }`}
+                  >
+                    {dealershipCopy.nav.motorcycleCatalog}
+                  </Link>
+                  <Link
+                    href="/harga"
+                    onClick={handleLinkClick}
+                    className={`block px-3 py-2.5 text-sm font-medium rounded-none min-h-[44px] flex items-center transition-colors focus:outline-none focus:ring-2 focus:ring-primary ${
+                      pathname.startsWith('/harga')
+                        ? 'text-primary font-bold border-l-4 border-primary pl-2 bg-neutral-2'
+                        : 'text-ink hover:text-primary hover:bg-neutral-2'
+                    }`}
+                  >
+                    {dealershipCopy.nav.priceList}
+                  </Link>
+                </div>
+              )}
+            </div>
+
+            {/* 3. Promo & Agenda Accordion */}
+            <div>
+              <button
+                type="button"
+                aria-expanded={isMobilePromoAgendaExpanded}
+                onClick={() =>
+                  setMobileExpandedOverride((prev) => ({
+                    ...prev,
+                    promoAgenda: !isMobilePromoAgendaExpanded,
+                  }))
+                }
+                className={`w-full px-3 py-3 text-base font-medium rounded-none min-h-[44px] flex items-center justify-between transition-colors focus:outline-none focus:ring-2 focus:ring-primary ${
+                  isPromoAgendaActive
+                    ? 'bg-neutral-2 text-primary font-bold'
+                    : 'text-ink hover:bg-neutral-2 hover:text-primary'
+                }`}
+              >
+                <span>{dealershipCopy.nav.promoAndAgenda}</span>
+                <svg
+                  className={`w-4 h-4 transition-transform duration-200 ${
+                    isMobilePromoAgendaExpanded ? 'rotate-180 text-primary' : 'text-neutral-5'
+                  }`}
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                  aria-hidden="true"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M19 9l-7 7-7-7"
+                  />
+                </svg>
+              </button>
+
+              {isMobilePromoAgendaExpanded && (
+                <div className="pl-3 pr-1 py-1 space-y-1 bg-neutral-2/40 border-l-2 border-hairline ml-3">
+                  <Link
+                    href="/promo"
+                    onClick={handleLinkClick}
+                    className={`block px-3 py-2.5 text-sm font-medium rounded-none min-h-[44px] flex items-center transition-colors focus:outline-none focus:ring-2 focus:ring-primary ${
+                      pathname.startsWith('/promo')
+                        ? 'text-primary font-bold border-l-4 border-primary pl-2 bg-neutral-2'
+                        : 'text-ink hover:text-primary hover:bg-neutral-2'
+                    }`}
+                  >
+                    {dealershipCopy.nav.promotions}
+                  </Link>
+                  <Link
+                    href="/events"
+                    onClick={handleLinkClick}
+                    className={`block px-3 py-2.5 text-sm font-medium rounded-none min-h-[44px] flex items-center transition-colors focus:outline-none focus:ring-2 focus:ring-primary ${
+                      pathname.startsWith('/events')
+                        ? 'text-primary font-bold border-l-4 border-primary pl-2 bg-neutral-2'
+                        : 'text-ink hover:text-primary hover:bg-neutral-2'
+                    }`}
+                  >
+                    {dealershipCopy.nav.events}
+                  </Link>
+                </div>
+              )}
+            </div>
+
+            {/* 4. Tentang & Kontak */}
+            <Link
+              href="/hubungi"
+              onClick={handleLinkClick}
+              className={`block px-3 py-3 text-base font-medium rounded-none min-h-[44px] flex items-center transition-colors focus:outline-none focus:ring-2 focus:ring-primary ${
+                isAboutContactActive
+                  ? 'bg-neutral-2 text-primary font-bold border-l-4 border-primary pl-2'
+                  : 'text-ink hover:bg-neutral-2 hover:text-primary'
+              }`}
+            >
+              {dealershipCopy.nav.aboutContact}
+            </Link>
 
             <div className="pt-4 border-t border-hairline mt-4">
               {whatsappUrl ? (
@@ -238,7 +658,7 @@ export function PublicHeader({ settings }: PublicHeaderProps) {
                   target="_blank"
                   rel="noopener noreferrer"
                   className="block w-full focus:outline-none focus:ring-2 focus:ring-primary"
-                  onClick={() => setIsMenuOpen(false)}
+                  onClick={handleLinkClick}
                 >
                   <Button variant="primary" fullWidth size="md">
                     {dealershipCopy.common.contactSales}
@@ -248,7 +668,7 @@ export function PublicHeader({ settings }: PublicHeaderProps) {
                 <Link
                   href="/hubungi"
                   className="block w-full focus:outline-none focus:ring-2 focus:ring-primary"
-                  onClick={() => setIsMenuOpen(false)}
+                  onClick={handleLinkClick}
                 >
                   <Button variant="primary" fullWidth size="md">
                     {dealershipCopy.common.contactSales}

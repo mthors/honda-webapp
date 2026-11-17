@@ -55,15 +55,25 @@ test.describe('Event Calendar & Management E2E Tests', () => {
     await page.goto('/');
 
     if (!isMobile) {
-      // Desktop Header Navigation
+      // Desktop Header Navigation: click 'Promo & Agenda' dropdown trigger
+      const promoAgendaDropdown = page.locator('header nav button', { hasText: 'Promo & Agenda' });
+      await expect(promoAgendaDropdown).toBeVisible();
+      await promoAgendaDropdown.click();
+
       const desktopLink = page.locator('header nav a[href="/events"]').first();
       await expect(desktopLink).toBeVisible();
       await expect(desktopLink).toContainText('Agenda Kegiatan');
     } else {
-      // Mobile Drawer Navigation
+      // Mobile Drawer Navigation: open mobile drawer and expand accordion
       const mobileToggle = page.locator('#mobile-menu-toggle');
       await expect(mobileToggle).toBeVisible();
       await mobileToggle.click();
+
+      const promoAgendaAccordion = page.locator('#mobile-navigation button', {
+        hasText: 'Promo & Agenda',
+      });
+      await expect(promoAgendaAccordion).toBeVisible();
+      await promoAgendaAccordion.click();
 
       const mobileLink = page.locator('#mobile-navigation a[href="/events"]');
       await expect(mobileLink).toBeVisible();
