@@ -204,4 +204,132 @@ describe('EventManagementView', () => {
       expect(screen.queryByText('Honda Riding Experience Sidoarjo')).not.toBeInTheDocument();
     });
   });
+
+  describe('URL Slug Generation and Synchronization', () => {
+    it('automatically updates slug as user types multi-character title', () => {
+      render(
+        <EventManagementView initialEvents={mockEvents} activeDealerships={mockDealerships} />
+      );
+
+      fireEvent.click(screen.getByRole('button', { name: 'Tambah Acara Baru' }));
+
+      const titleInput = screen.getByPlaceholderText(
+        'contoh: Honda Riding Experience Sidoarjo 2026'
+      ) as HTMLInputElement;
+      const slugInput = screen.getByPlaceholderText(
+        'contoh: honda-riding-experience-sidoarjo-2026'
+      ) as HTMLInputElement;
+
+      // Keystroke 1: 'T'
+      fireEvent.change(titleInput, { target: { value: 'T' } });
+      expect(slugInput.value).toBe('t');
+
+      // Keystroke 2: 'Te'
+      fireEvent.change(titleInput, { target: { value: 'Te' } });
+      expect(slugInput.value).toBe('te');
+
+      // Keystroke 3: 'Test'
+      fireEvent.change(titleInput, { target: { value: 'Test' } });
+      expect(slugInput.value).toBe('test');
+
+      // Keystroke 4: 'Test Acara'
+      fireEvent.change(titleInput, { target: { value: 'Test Acara' } });
+      expect(slugInput.value).toBe('test-acara');
+    });
+
+    it('updates slug when title is modified after initial input', () => {
+      render(
+        <EventManagementView initialEvents={mockEvents} activeDealerships={mockDealerships} />
+      );
+
+      fireEvent.click(screen.getByRole('button', { name: 'Tambah Acara Baru' }));
+
+      const titleInput = screen.getByPlaceholderText(
+        'contoh: Honda Riding Experience Sidoarjo 2026'
+      ) as HTMLInputElement;
+      const slugInput = screen.getByPlaceholderText(
+        'contoh: honda-riding-experience-sidoarjo-2026'
+      ) as HTMLInputElement;
+
+      fireEvent.change(titleInput, { target: { value: 'Pameran Motor' } });
+      expect(slugInput.value).toBe('pameran-motor');
+
+      // Modify existing title
+      fireEvent.change(titleInput, { target: { value: 'Pameran Motor Honda 2026' } });
+      expect(slugInput.value).toBe('pameran-motor-honda-2026');
+    });
+
+    it('clears slug when title input is cleared', () => {
+      render(
+        <EventManagementView initialEvents={mockEvents} activeDealerships={mockDealerships} />
+      );
+
+      fireEvent.click(screen.getByRole('button', { name: 'Tambah Acara Baru' }));
+
+      const titleInput = screen.getByPlaceholderText(
+        'contoh: Honda Riding Experience Sidoarjo 2026'
+      ) as HTMLInputElement;
+      const slugInput = screen.getByPlaceholderText(
+        'contoh: honda-riding-experience-sidoarjo-2026'
+      ) as HTMLInputElement;
+
+      fireEvent.change(titleInput, { target: { value: 'Pameran Honda' } });
+      expect(slugInput.value).toBe('pameran-honda');
+
+      // Clear title
+      fireEvent.change(titleInput, { target: { value: '' } });
+      expect(slugInput.value).toBe('');
+    });
+
+    it('handles titles with spaces, punctuation, and Indonesian characters in slug', () => {
+      render(
+        <EventManagementView initialEvents={mockEvents} activeDealerships={mockDealerships} />
+      );
+
+      fireEvent.click(screen.getByRole('button', { name: 'Tambah Acara Baru' }));
+
+      const titleInput = screen.getByPlaceholderText(
+        'contoh: Honda Riding Experience Sidoarjo 2026'
+      ) as HTMLInputElement;
+      const slugInput = screen.getByPlaceholderText(
+        'contoh: honda-riding-experience-sidoarjo-2026'
+      ) as HTMLInputElement;
+
+      fireEvent.change(titleInput, {
+        target: { value: 'Pesta BeAT & Vario: Sidoarjo (Promo 100% Resmi)!' },
+      });
+      expect(slugInput.value).toBe('pesta-beat-vario-sidoarjo-promo-100-resmi');
+
+      fireEvent.change(titleInput, {
+        target: { value: 'Éksibisi Servis & Uji Kendara' },
+      });
+      expect(slugInput.value).toBe('eksibisi-servis-uji-kendara');
+    });
+
+    it('preserves manually edited slug without overwriting it on title change', () => {
+      render(
+        <EventManagementView initialEvents={mockEvents} activeDealerships={mockDealerships} />
+      );
+
+      fireEvent.click(screen.getByRole('button', { name: 'Tambah Acara Baru' }));
+
+      const titleInput = screen.getByPlaceholderText(
+        'contoh: Honda Riding Experience Sidoarjo 2026'
+      ) as HTMLInputElement;
+      const slugInput = screen.getByPlaceholderText(
+        'contoh: honda-riding-experience-sidoarjo-2026'
+      ) as HTMLInputElement;
+
+      fireEvent.change(titleInput, { target: { value: 'Peluncuran BeAT' } });
+      expect(slugInput.value).toBe('peluncuran-beat');
+
+      // Manually edit the slug
+      fireEvent.change(slugInput, { target: { value: 'custom-beat-launch-2026' } });
+      expect(slugInput.value).toBe('custom-beat-launch-2026');
+
+      // Subsequent title changes must NOT overwrite manually customized slug
+      fireEvent.change(titleInput, { target: { value: 'Peluncuran BeAT Series 2026' } });
+      expect(slugInput.value).toBe('custom-beat-launch-2026');
+    });
+  });
 });

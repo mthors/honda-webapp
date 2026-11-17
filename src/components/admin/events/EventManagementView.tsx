@@ -16,6 +16,7 @@ import {
   jakartaToIsoString,
   formatJakartaDateRange,
 } from '@/lib/events/timezone';
+import { toEventSlug } from '@/lib/events/slug';
 import { getStorageImageUrl } from '@/lib/catalog/image';
 import { createClient } from '@/lib/supabase/client';
 import { dealershipCopy } from '@/content/copy/id';
@@ -56,6 +57,7 @@ export function EventManagementView({
   // Form State
   const [title, setTitle] = useState('');
   const [slug, setSlug] = useState('');
+  const [isSlugManual, setIsSlugManual] = useState(false);
   const [description, setDescription] = useState('');
   const [dealershipId, setDealershipId] = useState('');
   const [startDate, setStartDate] = useState('');
@@ -88,6 +90,7 @@ export function EventManagementView({
     setEditingId(null);
     setTitle('');
     setSlug('');
+    setIsSlugManual(false);
     setDescription('');
     setDealershipId(dealerships[0]?.id || '');
 
@@ -113,6 +116,7 @@ export function EventManagementView({
     setEditingId(evt.id);
     setTitle(evt.title);
     setSlug(evt.slug);
+    setIsSlugManual(true);
     setDescription(evt.description);
     setDealershipId(evt.dealershipId || evt.locationId || '');
 
@@ -140,14 +144,14 @@ export function EventManagementView({
 
   const handleTitleChange = (val: string) => {
     setTitle(val);
-    if (!editingId && !slug) {
-      const generated = val
-        .toLowerCase()
-        .replace(/[^a-z0-9\s-]/g, '')
-        .trim()
-        .replace(/\s+/g, '-');
-      setSlug(generated);
+    if (!isSlugManual) {
+      setSlug(toEventSlug(val));
     }
+  };
+
+  const handleSlugChange = (val: string) => {
+    setIsSlugManual(true);
+    setSlug(val.toLowerCase().replace(/[^a-z0-9-]/g, ''));
   };
 
   const handleFileUpload = async (file: File) => {
@@ -635,7 +639,7 @@ export function EventManagementView({
                   type="text"
                   required
                   value={slug}
-                  onChange={(e) => setSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''))}
+                  onChange={(e) => handleSlugChange(e.target.value)}
                   placeholder={dealershipCopy.adminEvents.formSlugPlaceholder}
                   className="w-full px-3 py-2 text-xs font-mono border border-hairline bg-canvas text-ink focus:outline-none focus:ring-1 focus:ring-primary"
                 />
@@ -649,7 +653,10 @@ export function EventManagementView({
 
               {/* Location Select */}
               <div>
-                <label htmlFor="event-dealership-select" className="block text-xs font-semibold text-ink mb-1">
+                <label
+                  htmlFor="event-dealership-select"
+                  className="block text-xs font-semibold text-ink mb-1"
+                >
                   {dealershipCopy.adminEvents.formLocation} <span className="text-primary">*</span>
                 </label>
                 <select
@@ -668,7 +675,8 @@ export function EventManagementView({
                 </select>
                 {dealerships.length === 0 && (
                   <p className="text-[11px] text-amber-700 mt-1">
-                    Belum ada dealer cabang aktif. Silakan tambahkan showroom dealer terlebih dahulu.
+                    Belum ada dealer cabang aktif. Silakan tambahkan showroom dealer terlebih
+                    dahulu.
                   </p>
                 )}
                 {(fieldErrors.dealershipId || fieldErrors.locationId) && (
