@@ -137,6 +137,9 @@ describe('PublicHeader component', () => {
     const promoLink = within(desktopNav).getByRole('link', { name: 'Promo' });
     expect(promoLink).toHaveAttribute('href', '/promo');
 
+    const eventsLink = within(desktopNav).getByRole('link', { name: 'Agenda Kegiatan' });
+    expect(eventsLink).toHaveAttribute('href', '/events');
+
     const hubungiLink = within(desktopNav).getByRole('link', { name: 'Tentang & Kontak' });
     expect(hubungiLink).toHaveAttribute('href', '/hubungi');
   });
