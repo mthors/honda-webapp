@@ -89,6 +89,29 @@ test.describe('Event Calendar & Management E2E Tests', () => {
     await expect(footerLink).toContainText('Agenda Kegiatan');
   });
 
+  test('floating event calendar widget opens and closes on public page', async ({ page }) => {
+    await page.goto('/');
+
+    const floatingTrigger = page.locator('#floating-event-widget-trigger');
+    await expect(floatingTrigger).toBeVisible();
+    await expect(floatingTrigger).toHaveAttribute('aria-expanded', 'false');
+
+    // Click trigger to open panel
+    await floatingTrigger.click();
+    await expect(floatingTrigger).toHaveAttribute('aria-expanded', 'true');
+
+    const panel = page.locator('#floating-event-widget-panel');
+    await expect(panel).toBeVisible();
+    await expect(panel.locator('h2')).toContainText('Agenda Kegiatan');
+
+    // Click close button inside panel
+    const closeBtn = panel.locator('button[aria-label="Tutup Agenda Kegiatan"]');
+    await expect(closeBtn).toBeVisible();
+    await closeBtn.click();
+
+    await expect(floatingTrigger).toHaveAttribute('aria-expanded', 'false');
+  });
+
   test('non-existent event slug returns 404 not found page', async ({ page }) => {
     const res = await page.goto('/events/non-existent-event-slug-12345');
     // Next.js returns 404 status for notFound()

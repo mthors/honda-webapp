@@ -578,6 +578,10 @@ export const dealershipCopy = {
     phoneLabel: 'Kontak Showroom',
     closeModal: 'Tutup Detail Acara',
     multiDayBadge: 'Multi Hari',
+    viewAllEvents: 'Lihat Semua Agenda',
+    floatingTriggerLabel: 'Agenda Kegiatan',
+    floatingWidgetAriaOpen: 'Buka Agenda Kegiatan',
+    floatingWidgetAriaClose: 'Tutup Agenda Kegiatan',
   },
   adminEvents: {
     title: 'Manajemen Acara',
