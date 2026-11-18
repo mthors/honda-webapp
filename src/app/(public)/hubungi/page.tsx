@@ -284,15 +284,7 @@ export default async function HubungiPage() {
           )}
         </section>
 
-        {/* Corporate Disclaimer */}
-        <Card
-          variant="neutral"
-          padding="md"
-          className="border-hairline text-xs text-muted leading-relaxed"
-        >
-          <strong className="text-ink font-semibold block mb-1">Penafian Resmi Dealer:</strong>
-          {dealershipCopy.dealer.corporateDisclaimer}
-        </Card>
+        
       </Container>
     </div>
   );

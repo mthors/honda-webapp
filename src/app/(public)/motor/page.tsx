@@ -106,12 +106,6 @@ export default async function MotorCatalogPage({ searchParams }: MotorCatalogPag
             </div>
           </div>
         )}
-
-        {/* Group Showcase Disclaimer Footer Band */}
-        <div className="mt-16 p-5 bg-neutral-2/30 border border-hairline text-xs text-muted leading-relaxed">
-          <p className="font-semibold text-ink mb-1">Informasi Showroom Digital:</p>
-          <p>{dealershipCopy.dealer.corporateDisclaimer}</p>
-        </div>
       </Container>
     </div>
   );
