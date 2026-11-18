@@ -25,6 +25,8 @@ describe('dealershipCopy', () => {
     expect(dealershipCopy.nav.promotions).toBe('Promo');
     expect(dealershipCopy.nav.events).toBe('Agenda Kegiatan');
     expect(dealershipCopy.nav.aboutContact).toBe('Tentang & Kontak');
+    expect(dealershipCopy.events.viewAllEvents).toBe('Lihat Semua Agenda');
+    expect(dealershipCopy.events.floatingTriggerLabel).toBe('Agenda Kegiatan');
     expect(dealershipCopy.nav.menuButtonOpen).toBe('Buka menu navigasi');
     expect(dealershipCopy.nav.menuButtonClose).toBe('Tutup menu navigasi');
   });
