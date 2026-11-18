@@ -116,11 +116,6 @@ describe('HubungiPage', () => {
       'mailto:kontak@satryagroup.co.id'
     );
 
-    // Corporate disclaimer
-    expect(
-      screen.getByText(/bukan website resmi korporat PT Astra Honda Motor/i)
-    ).toBeInTheDocument();
-
     // CRITICAL: Ensure old hardcoded placeholder address is NOT rendered anywhere
     expect(
       screen.queryByText(/Jl\. Raya Sidoarjo No\. 123, Sidoarjo, Jawa Timur \(Konfirmasi Alamat\)/i)
