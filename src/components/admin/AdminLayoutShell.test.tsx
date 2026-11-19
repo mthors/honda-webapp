@@ -45,6 +45,10 @@ describe('AdminLayoutShell', () => {
       'href',
       '/admin/dealerships'
     );
+    expect(screen.getByRole('link', { name: /Tim Sales/i })).toHaveAttribute(
+      'href',
+      '/admin/sales'
+    );
     expect(screen.getByRole('link', { name: /Pengaturan/i })).toHaveAttribute(
       'href',
       '/admin/settings'

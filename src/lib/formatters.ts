@@ -40,3 +40,18 @@ export function normalizeIndonesianPhone(phone: string): string {
   }
   return cleaned;
 }
+
+/**
+ * Formats a normalized or raw phone number into a readable Indonesian mobile number format (+62 812-3456-7890).
+ */
+export function formatIndonesianPhone(phone: string): string {
+  const norm = normalizeIndonesianPhone(phone);
+  if (norm.startsWith('62') && norm.length >= 10) {
+    const rest = norm.slice(2);
+    if (rest.length <= 10) {
+      return `+62 ${rest.slice(0, 3)}-${rest.slice(3, 6)}-${rest.slice(6)}`;
+    }
+    return `+62 ${rest.slice(0, 3)}-${rest.slice(3, 7)}-${rest.slice(7)}`;
+  }
+  return phone;
+}

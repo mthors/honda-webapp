@@ -678,6 +678,128 @@ export interface Database {
           updated_at?: string;
         };
       };
+      provinces: {
+        Row: {
+          id: string;
+          name: string;
+          sort_order: number;
+          is_active: boolean;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id: string;
+          name: string;
+          sort_order?: number;
+          is_active?: boolean;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          name?: string;
+          sort_order?: number;
+          is_active?: boolean;
+          created_at?: string;
+          updated_at?: string;
+        };
+      };
+      regencies: {
+        Row: {
+          id: string;
+          province_id: string;
+          name: string;
+          type: 'kabupaten' | 'kota';
+          sort_order: number;
+          is_active: boolean;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id: string;
+          province_id: string;
+          name: string;
+          type: 'kabupaten' | 'kota';
+          sort_order?: number;
+          is_active?: boolean;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          province_id?: string;
+          name?: string;
+          type?: 'kabupaten' | 'kota';
+          sort_order?: number;
+          is_active?: boolean;
+          created_at?: string;
+          updated_at?: string;
+        };
+      };
+      dealership_service_areas: {
+        Row: {
+          id: string;
+          dealership_id: string;
+          regency_id: string;
+          is_active: boolean;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          dealership_id: string;
+          regency_id: string;
+          is_active?: boolean;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          dealership_id?: string;
+          regency_id?: string;
+          is_active?: boolean;
+          created_at?: string;
+          updated_at?: string;
+        };
+      };
+      sales_representatives: {
+        Row: {
+          id: string;
+          dealership_id: string;
+          name: string;
+          whatsapp_number: string;
+          photo_url: string | null;
+          position: string | null;
+          is_active: boolean;
+          sort_order: number;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          dealership_id: string;
+          name: string;
+          whatsapp_number: string;
+          photo_url?: string | null;
+          position?: string | null;
+          is_active?: boolean;
+          sort_order?: number;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          dealership_id?: string;
+          name?: string;
+          whatsapp_number?: string;
+          photo_url?: string | null;
+          position?: string | null;
+          is_active?: boolean;
+          sort_order?: number;
+          created_at?: string;
+          updated_at?: string;
+        };
+      };
     };
     Views: Record<string, never>;
     Functions: {

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { formatRupiah, normalizeIndonesianPhone } from './formatters';
+import { formatRupiah, normalizeIndonesianPhone, formatIndonesianPhone } from './formatters';
 
 describe('formatRupiah', () => {
   it('formats positive integers into standard Indonesian Rupiah', () => {
@@ -36,5 +36,12 @@ describe('normalizeIndonesianPhone', () => {
   it('strips non-digit characters like hyphens, spaces, and plus signs', () => {
     expect(normalizeIndonesianPhone('+62 812-3456-7890')).toBe('6281234567890');
     expect(normalizeIndonesianPhone('0812 3456 7890')).toBe('6281234567890');
+  });
+});
+
+describe('formatIndonesianPhone', () => {
+  it('formats Indonesian mobile number into readable pattern', () => {
+    expect(formatIndonesianPhone('081234567890')).toBe('+62 812-3456-7890');
+    expect(formatIndonesianPhone('6281234567890')).toBe('+62 812-3456-7890');
   });
 });
