@@ -8,7 +8,9 @@ import { Button } from '@/components/ui/Button';
 import { InquiryForm } from '@/components/public/inquiry/InquiryForm';
 import { getInquiryModelOptions } from '@/lib/inquiries/queries';
 import { getSiteSettings, getActiveDealerships } from '@/lib/settings/queries';
+import { getActiveProvinces, getActiveRegencies } from '@/lib/sales/queries';
 import { normalizeIndonesianPhone } from '@/lib/formatters';
+import { LocationDealershipDiscovery } from '@/components/public/sales/LocationDealershipDiscovery';
 
 export async function generateMetadata(): Promise<Metadata> {
   const settings = await getSiteSettings();
@@ -22,10 +24,12 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function HubungiPage() {
-  const [modelOptions, settings, dealerships] = await Promise.all([
+  const [modelOptions, settings, dealerships, provinces, regencies] = await Promise.all([
     getInquiryModelOptions(),
     getSiteSettings(),
     getActiveDealerships(),
+    getActiveProvinces(),
+    getActiveRegencies(),
   ]);
 
   const dealerName = settings?.dealerName?.trim() || 'Honda Satrya Dealer Group';
@@ -59,6 +63,13 @@ export default async function HubungiPage() {
             {dealershipCopy.contact.subtitle}
           </p>
         </div>
+
+        {/* Location-Based Dealership Discovery Section */}
+        <LocationDealershipDiscovery
+          provinces={provinces}
+          regencies={regencies}
+          allDealerships={dealerships}
+        />
 
         {/* Main Content Layout: Form & Group Quick Contact */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-start mb-16">
@@ -283,8 +294,6 @@ export default async function HubungiPage() {
             </div>
           )}
         </section>
-
-        
       </Container>
     </div>
   );

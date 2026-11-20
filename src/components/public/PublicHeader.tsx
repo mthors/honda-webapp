@@ -6,6 +6,7 @@ import { usePathname } from 'next/navigation';
 import { dealershipCopy } from '@/content/copy/id';
 import { Button } from '@/components/ui/Button';
 import { normalizeIndonesianPhone } from '@/lib/formatters';
+import { useUserLocation } from '@/lib/sales/useUserLocation';
 import type { SiteSettings } from '@/types/settings';
 
 export interface PublicHeaderProps {
@@ -34,6 +35,15 @@ export function PublicHeader({ settings }: PublicHeaderProps) {
     setIsMenuOpen(false);
     setMobileExpandedOverride({});
   }
+
+  const { location } = useUserLocation();
+  const tLoc = dealershipCopy.locationDiscovery;
+
+  const handleOpenLocationModal = () => {
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new Event('honda-open-location-modal'));
+    }
+  };
 
   const isHomeActive = pathname === '/';
   const isMotorcyclesActive = pathname.startsWith('/motor') || pathname.startsWith('/harga');
@@ -412,6 +422,45 @@ export function PublicHeader({ settings }: PublicHeaderProps) {
 
           {/* Desktop Call to Action & Mobile Hamburger Button */}
           <div className="flex items-center space-x-3">
+            {/* Location Selector Trigger (Desktop) */}
+            <button
+              type="button"
+              onClick={handleOpenLocationModal}
+              className="hidden lg:inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-body hover:text-primary border border-hairline bg-surface hover:bg-neutral-1 transition-colors focus:outline-none focus:ring-2 focus:ring-primary select-none rounded-none"
+              title={
+                location
+                  ? `Lokasi terpilih: ${location.regencyName}. Klik untuk mengubah.`
+                  : 'Pilih wilayah domisili Anda'
+              }
+            >
+              <svg
+                className="w-3.5 h-3.5 text-primary shrink-0"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                aria-hidden="true"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
+                />
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
+                />
+              </svg>
+              <span className="truncate max-w-[140px]">
+                {location ? location.regencyName : tLoc.selectLocationPrompt}
+              </span>
+              <span className="text-[10px] text-muted font-normal uppercase">
+                ({tLoc.changeLocationShort})
+              </span>
+            </button>
+
             <div className="hidden sm:block">
               {whatsappUrl ? (
                 <a
@@ -497,6 +546,47 @@ export function PublicHeader({ settings }: PublicHeaderProps) {
           }`}
         >
           <div className="px-4 pt-3 pb-6 space-y-1">
+            {/* Mobile Location Selector Trigger */}
+            <div className="pb-2 border-b border-hairline mb-2">
+              <button
+                type="button"
+                onClick={() => {
+                  handleLinkClick();
+                  handleOpenLocationModal();
+                }}
+                className="w-full inline-flex items-center justify-between px-3 py-2 text-xs font-semibold text-body hover:text-primary border border-hairline bg-surface hover:bg-neutral-1 transition-colors rounded-none"
+              >
+                <div className="flex items-center gap-2 truncate">
+                  <svg
+                    className="w-4 h-4 text-primary shrink-0"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                    aria-hidden="true"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
+                    />
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
+                    />
+                  </svg>
+                  <span className="truncate">
+                    {location ? location.regencyName : tLoc.selectLocationPrompt}
+                  </span>
+                </div>
+                <span className="text-[11px] text-primary font-bold uppercase shrink-0 pl-2">
+                  {tLoc.changeLocationShort} &rarr;
+                </span>
+              </button>
+            </div>
+
             {/* 1. Beranda */}
             <Link
               href="/"

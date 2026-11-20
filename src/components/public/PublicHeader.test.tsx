@@ -336,4 +336,20 @@ describe('PublicHeader component', () => {
     fireEvent.keyDown(window, { key: 'Escape' });
     expect(toggleButton).toHaveAttribute('aria-expanded', 'false');
   });
+
+  it('renders location selector triggers on desktop and mobile and fires open event on click', () => {
+    const handleOpenEvent = vi.fn();
+    window.addEventListener('honda-open-location-modal', handleOpenEvent);
+
+    render(<PublicHeader />);
+
+    // Location triggers (desktop & mobile)
+    const triggers = screen.getAllByRole('button', { name: /Pilih Lokasi/i });
+    expect(triggers.length).toBeGreaterThanOrEqual(1);
+    fireEvent.click(triggers[0]);
+
+    expect(handleOpenEvent).toHaveBeenCalledTimes(1);
+
+    window.removeEventListener('honda-open-location-modal', handleOpenEvent);
+  });
 });

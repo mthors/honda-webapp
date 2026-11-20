@@ -5,6 +5,9 @@ import {
   getDealershipServiceAreas,
   getSalesRepresentatives,
   getSalesManagementData,
+  getActiveProvinces,
+  getActiveRegencies,
+  getDealershipsByRegency,
   mapProvinceRow,
   mapRegencyRow,
   mapServiceAreaRow,
@@ -288,7 +291,12 @@ describe('Sales Queries', () => {
         },
       ]);
 
-      const mockOrder = vi.fn().mockResolvedValue({ data: [], error: null });
+      const mockOrderChain = {
+        data: [],
+        error: null,
+        order: vi.fn().mockImplementation(() => mockOrderChain),
+      };
+      const mockOrder = vi.fn().mockReturnValue(mockOrderChain);
       const mockSelect = vi.fn().mockReturnValue({ order: mockOrder });
       const mockClient = {
         from: vi.fn().mockReturnValue({ select: mockSelect }),
@@ -300,6 +308,255 @@ describe('Sales Queries', () => {
       expect(Array.isArray(data.regencies)).toBe(true);
       expect(Array.isArray(data.serviceAreas)).toBe(true);
       expect(Array.isArray(data.salesReps)).toBe(true);
+    });
+  });
+
+  describe('getActiveProvinces', () => {
+    it('fetches active provinces sorted by sort_order and name', async () => {
+      const mockOrder2 = vi.fn().mockResolvedValue({
+        data: [
+          {
+            id: 'jawa-timur',
+            name: 'Jawa Timur',
+            sort_order: 1,
+            is_active: true,
+            created_at: '',
+            updated_at: '',
+          },
+        ],
+        error: null,
+      });
+      const mockOrder1 = vi.fn().mockReturnValue({ order: mockOrder2 });
+      const mockEq = vi.fn().mockReturnValue({ order: mockOrder1 });
+      const mockSelect = vi.fn().mockReturnValue({ eq: mockEq });
+      const mockClient = {
+        from: vi.fn().mockReturnValue({ select: mockSelect }),
+      } as unknown as Parameters<typeof getActiveProvinces>[0];
+
+      const provinces = await getActiveProvinces(mockClient);
+      expect(provinces).toHaveLength(1);
+      expect(provinces[0].id).toBe('jawa-timur');
+      expect(provinces[0].name).toBe('Jawa Timur');
+      expect(mockEq).toHaveBeenCalledWith('is_active', true);
+    });
+
+    it('returns empty array on database error', async () => {
+      const mockOrder2 = vi.fn().mockResolvedValue({
+        data: null,
+        error: { message: 'Database failure' },
+      });
+      const mockOrder1 = vi.fn().mockReturnValue({ order: mockOrder2 });
+      const mockEq = vi.fn().mockReturnValue({ order: mockOrder1 });
+      const mockSelect = vi.fn().mockReturnValue({ eq: mockEq });
+      const mockClient = {
+        from: vi.fn().mockReturnValue({ select: mockSelect }),
+      } as unknown as Parameters<typeof getActiveProvinces>[0];
+
+      const provinces = await getActiveProvinces(mockClient);
+      expect(provinces).toEqual([]);
+    });
+  });
+
+  describe('getActiveRegencies', () => {
+    it('fetches active regencies with optional provinceId filter', async () => {
+      const mockOrder2 = vi.fn().mockResolvedValue({
+        data: [
+          {
+            id: 'kab-sidoarjo',
+            province_id: 'jawa-timur',
+            name: 'Sidoarjo',
+            type: 'kabupaten',
+            sort_order: 1,
+            is_active: true,
+            created_at: '',
+            updated_at: '',
+          },
+        ],
+        error: null,
+      });
+      const mockOrder1 = vi.fn().mockReturnValue({ order: mockOrder2 });
+      const mockEq2 = vi.fn().mockReturnValue({ order: mockOrder1 });
+      const mockEq1 = vi.fn().mockReturnValue({ eq: mockEq2, order: mockOrder1 });
+      const mockSelect = vi.fn().mockReturnValue({ eq: mockEq1 });
+      const mockClient = {
+        from: vi.fn().mockReturnValue({ select: mockSelect }),
+      } as unknown as Parameters<typeof getActiveRegencies>[1];
+
+      const regencies = await getActiveRegencies('jawa-timur', mockClient);
+      expect(regencies).toHaveLength(1);
+      expect(regencies[0].name).toBe('Sidoarjo');
+      expect(mockEq1).toHaveBeenCalledWith('is_active', true);
+      expect(mockEq2).toHaveBeenCalledWith('province_id', 'jawa-timur');
+    });
+
+    it('returns empty array on database error', async () => {
+      const mockOrder2 = vi.fn().mockResolvedValue({
+        data: null,
+        error: { message: 'Query error' },
+      });
+      const mockOrder1 = vi.fn().mockReturnValue({ order: mockOrder2 });
+      const mockEq = vi.fn().mockReturnValue({ order: mockOrder1 });
+      const mockSelect = vi.fn().mockReturnValue({ eq: mockEq });
+      const mockClient = {
+        from: vi.fn().mockReturnValue({ select: mockSelect }),
+      } as unknown as Parameters<typeof getActiveRegencies>[1];
+
+      const regencies = await getActiveRegencies(undefined, mockClient);
+      expect(regencies).toEqual([]);
+    });
+  });
+
+  describe('getDealershipsByRegency', () => {
+    it('returns empty array if regencyId is empty', async () => {
+      const dealerships = await getDealershipsByRegency('');
+      expect(dealerships).toEqual([]);
+    });
+
+    it('discovers and deduplicates active dealerships serving the regency', async () => {
+      const mockRows = [
+        {
+          dealership_id: 'd-1',
+          is_active: true,
+          dealerships: {
+            id: 'd-1',
+            name: 'Satrya Sidoarjo',
+            code: 'satrya-sda',
+            city: 'Sidoarjo',
+            address: 'Jl. Raya Sidoarjo No. 1',
+            phone: '031-8941234',
+            whatsapp_number: '6281234567890',
+            opening_hours: '08:00 - 16:30',
+            is_synthetic: false,
+            is_active: true,
+            sort_order: 2,
+            created_at: '',
+            updated_at: '',
+          },
+        },
+        {
+          dealership_id: 'd-2',
+          is_active: true,
+          dealerships: {
+            id: 'd-2',
+            name: 'Satrya Surabaya Utama',
+            code: 'satrya-sby',
+            city: 'Surabaya',
+            address: 'Jl. Basuki Rahmat',
+            phone: null,
+            whatsapp_number: '6281234567891',
+            opening_hours: null,
+            is_synthetic: false,
+            is_active: true,
+            sort_order: 1,
+            created_at: '',
+            updated_at: '',
+          },
+        },
+        // Duplicate junction row test
+        {
+          dealership_id: 'd-1',
+          is_active: true,
+          dealerships: {
+            id: 'd-1',
+            name: 'Satrya Sidoarjo',
+            code: 'satrya-sda',
+            city: 'Sidoarjo',
+            address: 'Jl. Raya Sidoarjo No. 1',
+            phone: '031-8941234',
+            whatsapp_number: '6281234567890',
+            opening_hours: '08:00 - 16:30',
+            is_synthetic: false,
+            is_active: true,
+            sort_order: 2,
+            created_at: '',
+            updated_at: '',
+          },
+        },
+        // Inactive dealership should be filtered out
+        {
+          dealership_id: 'd-3',
+          is_active: true,
+          dealerships: {
+            id: 'd-3',
+            name: 'Satrya Malang Inactive',
+            code: 'satrya-mlg',
+            city: 'Malang',
+            address: null,
+            phone: null,
+            whatsapp_number: null,
+            opening_hours: null,
+            is_synthetic: false,
+            is_active: false,
+            sort_order: 3,
+            created_at: '',
+            updated_at: '',
+          },
+        },
+      ];
+
+      const mockEq2 = vi.fn().mockResolvedValue({ data: mockRows, error: null });
+      const mockEq1 = vi.fn().mockReturnValue({ eq: mockEq2 });
+      const mockSelect = vi.fn().mockReturnValue({ eq: mockEq1 });
+      const mockClient = {
+        from: vi.fn().mockReturnValue({ select: mockSelect }),
+      } as unknown as Parameters<typeof getDealershipsByRegency>[1];
+
+      const dealerships = await getDealershipsByRegency('kab-sidoarjo', mockClient);
+      expect(dealerships).toHaveLength(2);
+      // Checked sort order: d-2 (sort_order 1) comes before d-1 (sort_order 2)
+      expect(dealerships[0].id).toBe('d-2');
+      expect(dealerships[1].id).toBe('d-1');
+      expect(mockEq1).toHaveBeenCalledWith('regency_id', 'kab-sidoarjo');
+      expect(mockEq2).toHaveBeenCalledWith('is_active', true);
+    });
+
+    it('correctly handles PostgREST returning joined dealerships as an array', async () => {
+      const mockRows = [
+        {
+          dealership_id: 'd-1',
+          is_active: true,
+          dealerships: [
+            {
+              id: 'd-1',
+              name: 'Satrya Sidoarjo',
+              code: 'satrya-sda',
+              city: 'Sidoarjo',
+              address: 'Jl. Raya Sidoarjo No. 1',
+              phone: '031-8941234',
+              whatsapp_number: '6281234567890',
+              opening_hours: '08:00 - 16:30',
+              is_synthetic: false,
+              is_active: true,
+              sort_order: 1,
+              created_at: '',
+              updated_at: '',
+            },
+          ],
+        },
+      ];
+
+      const mockEq2 = vi.fn().mockResolvedValue({ data: mockRows, error: null });
+      const mockEq1 = vi.fn().mockReturnValue({ eq: mockEq2 });
+      const mockSelect = vi.fn().mockReturnValue({ eq: mockEq1 });
+      const mockClient = {
+        from: vi.fn().mockReturnValue({ select: mockSelect }),
+      } as unknown as Parameters<typeof getDealershipsByRegency>[1];
+
+      const dealerships = await getDealershipsByRegency('kab-sidoarjo', mockClient);
+      expect(dealerships).toHaveLength(1);
+      expect(dealerships[0].name).toBe('Satrya Sidoarjo');
+    });
+
+    it('returns empty array when error occurs or no dealerships found', async () => {
+      const mockEq2 = vi.fn().mockResolvedValue({ data: null, error: { message: 'DB Error' } });
+      const mockEq1 = vi.fn().mockReturnValue({ eq: mockEq2 });
+      const mockSelect = vi.fn().mockReturnValue({ eq: mockEq1 });
+      const mockClient = {
+        from: vi.fn().mockReturnValue({ select: mockSelect }),
+      } as unknown as Parameters<typeof getDealershipsByRegency>[1];
+
+      const dealerships = await getDealershipsByRegency('kab-sidoarjo', mockClient);
+      expect(dealerships).toEqual([]);
     });
   });
 });

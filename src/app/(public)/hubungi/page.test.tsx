@@ -3,6 +3,7 @@ import { render, screen } from '@testing-library/react';
 import HubungiPage, { generateMetadata } from './page';
 import * as inquiryQueries from '@/lib/inquiries/queries';
 import * as settingsQueries from '@/lib/settings/queries';
+import * as salesQueries from '@/lib/sales/queries';
 import type { SiteSettings, DealershipItem } from '@/types/settings';
 
 vi.mock('next/navigation', () => ({
@@ -16,6 +17,11 @@ vi.mock('@/lib/inquiries/queries', () => ({
 vi.mock('@/lib/settings/queries', () => ({
   getSiteSettings: vi.fn(),
   getActiveDealerships: vi.fn(),
+}));
+
+vi.mock('@/lib/sales/queries', () => ({
+  getActiveProvinces: vi.fn(),
+  getActiveRegencies: vi.fn(),
 }));
 
 describe('HubungiPage', () => {
@@ -88,6 +94,28 @@ describe('HubungiPage', () => {
     ]);
     vi.mocked(settingsQueries.getSiteSettings).mockResolvedValue(mockSettings);
     vi.mocked(settingsQueries.getActiveDealerships).mockResolvedValue(mockActiveDealerships);
+    vi.mocked(salesQueries.getActiveProvinces).mockResolvedValue([
+      {
+        id: 'jawa-timur',
+        name: 'Jawa Timur',
+        sortOrder: 1,
+        isActive: true,
+        createdAt: '',
+        updatedAt: '',
+      },
+    ]);
+    vi.mocked(salesQueries.getActiveRegencies).mockResolvedValue([
+      {
+        id: 'kab-sidoarjo',
+        provinceId: 'jawa-timur',
+        name: 'Sidoarjo',
+        type: 'kabupaten',
+        sortOrder: 1,
+        isActive: true,
+        createdAt: '',
+        updatedAt: '',
+      },
+    ]);
   });
 
   it('renders page header, inquiry form, and configured dealer contact details', async () => {
@@ -255,5 +283,17 @@ describe('HubungiPage', () => {
     // Branch WhatsApp link: +62 821-9988-7766 -> wa.me/6282199887766
     const branchWaLink = screen.getByRole('link', { name: /Chat Cabang Malang/i });
     expect(branchWaLink).toHaveAttribute('href', expect.stringContaining('wa.me/6282199887766'));
+  });
+
+  it('renders the location selection and dealership discovery section', async () => {
+    const Component = await HubungiPage();
+    render(Component);
+
+    // Discovery heading from locationDiscovery copy
+    expect(
+      screen.getByRole('heading', { level: 2, name: /Temukan Dealer Honda Terdekat/i })
+    ).toBeInTheDocument();
+    expect(screen.getByLabelText(/Provinsi Domisili/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/Kabupaten \/ Kota/i)).toBeInTheDocument();
   });
 });

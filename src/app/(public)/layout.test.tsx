@@ -3,9 +3,11 @@ import { render, screen } from '@testing-library/react';
 import PublicLayout from './layout';
 import * as settingsQueries from '@/lib/settings/queries';
 import * as eventsQueries from '@/lib/events/queries';
+import * as salesQueries from '@/lib/sales/queries';
 
 vi.mock('@/lib/settings/queries');
 vi.mock('@/lib/events/queries');
+vi.mock('@/lib/sales/queries');
 vi.mock('next/navigation', () => ({
   usePathname: () => '/',
 }));
@@ -29,9 +31,31 @@ describe('PublicLayout', () => {
       updatedAt: '2026-01-01T00:00:00Z',
     });
     vi.mocked(eventsQueries.getPublicEvents).mockResolvedValue([]);
+    vi.mocked(salesQueries.getActiveProvinces).mockResolvedValue([
+      {
+        id: 'jawa-timur',
+        name: 'Jawa Timur',
+        sortOrder: 1,
+        isActive: true,
+        createdAt: '',
+        updatedAt: '',
+      },
+    ]);
+    vi.mocked(salesQueries.getActiveRegencies).mockResolvedValue([
+      {
+        id: 'kab-sidoarjo',
+        provinceId: 'jawa-timur',
+        name: 'Sidoarjo',
+        type: 'kabupaten',
+        sortOrder: 1,
+        isActive: true,
+        createdAt: '',
+        updatedAt: '',
+      },
+    ]);
   });
 
-  it('renders PublicHeader, children content, PublicFooter, and FloatingEventWidget', async () => {
+  it('renders PublicHeader, children content, PublicFooter, FloatingEventWidget, and FirstVisitLocationModal', async () => {
     const layoutJsx = await PublicLayout({
       children: <div data-testid="page-child">Konten Halaman</div>,
     });
@@ -40,5 +64,7 @@ describe('PublicLayout', () => {
     expect(screen.getByTestId('page-child')).toBeInTheDocument();
     expect(screen.getByRole('navigation', { name: 'Navigasi Utama' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Buka Agenda Kegiatan/i })).toBeInTheDocument();
+    // Modal opens on first visit
+    expect(screen.getByText('Pilih Wilayah Domisili Anda')).toBeInTheDocument();
   });
 });

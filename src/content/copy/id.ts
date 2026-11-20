@@ -145,6 +145,45 @@ export const dealershipCopy = {
     branchContact: 'Kontak Showroom',
     noShowrooms: 'Belum ada informasi lokasi showroom yang tersedia saat ini.',
   },
+  locationDiscovery: {
+    heading: 'Temukan Dealer Honda Terdekat',
+    subheading:
+      'Pilih lokasi tempat tinggal Anda untuk menemukan dealer dan konsultan sales yang melayani wilayah Anda.',
+    provinceLabel: 'Provinsi Domisili',
+    provincePlaceholder: 'Pilih Provinsi...',
+    regencyLabel: 'Kabupaten / Kota',
+    regencyPlaceholder: 'Pilih Kabupaten / Kota...',
+    useMyLocation: 'Gunakan Lokasi Saya',
+    detectingLocation: 'Mendeteksi lokasi Anda...',
+    viewDealerships: 'Lihat Dealer',
+    changeLocation: 'Ubah Lokasi',
+    activeLocationLabel: 'Lokasi Anda:',
+    detectedConfirmTitle: 'Konfirmasi Lokasi Terdeteksi',
+    detectedConfirmMessage:
+      'Perkiraan lokasi Anda terdeteksi di {regencyName}, {provinceName}. Apakah Anda ingin menggunakan lokasi ini?',
+    useDetectedLocation: 'Gunakan Lokasi Ini',
+    chooseManually: 'Pilih Manual',
+    geoPermissionDenied:
+      'Akses lokasi tidak diizinkan. Silakan pilih provinsi dan kabupaten/kota secara manual.',
+    geoUnavailable:
+      'Layanan lokasi tidak tersedia atau gagal mendeteksi koordinat perangkat Anda. Silakan pilih secara manual.',
+    geoOutsideCoverage:
+      'Lokasi Anda terdeteksi di luar area layanan utama Honda Satrya Dealer Group (Jawa Timur). Silakan pilih lokasi secara manual.',
+    emptyDealershipsTitle: 'Belum Ada Cabang Dealer di Wilayah Ini',
+    emptyDealershipsMessage:
+      'Saat ini belum ada cabang showroom resmi Honda Satrya yang tercatat melayani wilayah {regencyName}. Anda dapat menghubungi layanan konsultasi sentral kami via WhatsApp.',
+    matchingDealershipsTitle: 'Dealer Resmi yang Melayani Wilayah Anda',
+    matchingDealershipsSubtitle:
+      'Cabang dealer resmi Honda Satrya berikut melayani konsultasi pembelian, pemesanan unit, dan pengiriman ke wilayah domisili Anda:',
+    viewCatalogForArea: 'Lihat Motor Tersedia',
+    firstVisitModalTitle: 'Pilih Wilayah Domisili Anda',
+    firstVisitModalSubtitle:
+      'Dapatkan rekomendasi cabang dealer resmi Honda terdekat dan konsultan sales yang melayani area Anda.',
+    dismissPrompt: 'Lewati untuk sekarang',
+    saveLocation: 'Konfirmasi Lokasi',
+    selectLocationPrompt: 'Pilih Lokasi',
+    changeLocationShort: 'Ubah',
+  },
   inquiry: {
     title: 'Konsultasi Pembelian',
     subtitle: 'Kirimkan pertanyaan atau jadwalkan janji temu dengan tim konsultan kami.',

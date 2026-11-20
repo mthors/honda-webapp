@@ -19,7 +19,8 @@ import {
   type DealershipServiceAreaItem,
 } from '@/types/sales';
 import type { Database } from '@/types/database';
-import { mapSalesRepresentativeRow, mapServiceAreaRow } from './queries';
+import type { DealershipItem } from '@/types/dealership';
+import { mapSalesRepresentativeRow, mapServiceAreaRow, getDealershipsByRegency } from './queries';
 
 type SalesRepRowWithJoins = Database['public']['Tables']['sales_representatives']['Row'] & {
   dealerships?: Database['public']['Tables']['dealerships']['Row'] | null;
@@ -643,6 +644,39 @@ export async function deleteServiceAreaAction(id: string): Promise<ActionRespons
         err instanceof Error
           ? err.message
           : 'Terjadi kesalahan sistem saat menghapus pemetaan wilayah layanan.',
+    };
+  }
+}
+
+/**
+ * Public action: Discovers active dealership branches serving the specified regency.
+ * Does not require admin authentication.
+ */
+export async function discoverDealershipsByRegencyAction(
+  regencyId: string
+): Promise<ActionResponse<DealershipItem[]>> {
+  try {
+    if (!regencyId || typeof regencyId !== 'string') {
+      return {
+        success: false,
+        error: 'Wilayah kabupaten/kota tidak valid.',
+      };
+    }
+
+    const dealerships = await getDealershipsByRegency(regencyId.trim());
+
+    return {
+      success: true,
+      data: dealerships,
+    };
+  } catch (err) {
+    console.error('Error discovering dealerships by regency:', err);
+    return {
+      success: false,
+      error:
+        err instanceof Error
+          ? err.message
+          : 'Terjadi kesalahan sistem saat mencari dealer yang melayani wilayah Anda.',
     };
   }
 }
