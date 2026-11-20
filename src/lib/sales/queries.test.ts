@@ -547,15 +547,130 @@ describe('Sales Queries', () => {
       expect(dealerships[0].name).toBe('Satrya Sidoarjo');
     });
 
-    it('returns empty array when error occurs or no dealerships found', async () => {
-      const mockEq2 = vi.fn().mockResolvedValue({ data: null, error: { message: 'DB Error' } });
+    it('throws error when database error occurs during service areas query', async () => {
+      const mockEq2 = vi.fn().mockResolvedValue({ data: null, error: { message: 'Connection terminated' } });
       const mockEq1 = vi.fn().mockReturnValue({ eq: mockEq2 });
       const mockSelect = vi.fn().mockReturnValue({ eq: mockEq1 });
       const mockClient = {
         from: vi.fn().mockReturnValue({ select: mockSelect }),
       } as unknown as Parameters<typeof getDealershipsByRegency>[1];
 
+      await expect(getDealershipsByRegency('kab-sidoarjo', mockClient)).rejects.toThrow(
+        /Database error discovering dealerships: Connection terminated/i
+      );
+    });
+
+    it('falls back to matching canonical active dealerships by city when no service area mapping exists', async () => {
+      // Step 1: dealership_service_areas returns []
+      const mockSaEq2 = vi.fn().mockResolvedValue({ data: [], error: null });
+      const mockSaEq1 = vi.fn().mockReturnValue({ eq: mockSaEq2 });
+      const mockSaSelect = vi.fn().mockReturnValue({ eq: mockSaEq1 });
+
+      // Step 2: regencies returns Sidoarjo
+      const mockRegMaybeSingle = vi.fn().mockResolvedValue({
+        data: { id: 'kab-sidoarjo', name: 'Kabupaten Sidoarjo', type: 'kabupaten' },
+        error: null,
+      });
+      const mockRegEq = vi.fn().mockReturnValue({ maybeSingle: mockRegMaybeSingle });
+      const mockRegSelect = vi.fn().mockReturnValue({ eq: mockRegEq });
+
+      // Step 3: dealerships returns active dealerships
+      const mockDealOrder2 = vi.fn().mockResolvedValue({
+        data: [
+          {
+            id: 'd-1',
+            name: 'Honda Satrya — Sidoarjo Sentral',
+            code: 'demo-satrya-sidoarjo',
+            city: 'Sidoarjo',
+            address: 'Jl. Raya Sidoarjo No. 1',
+            phone: '031-8941234',
+            whatsapp_number: '6281234567890',
+            opening_hours: '08:00 - 16:30',
+            is_synthetic: false,
+            is_active: true,
+            sort_order: 1,
+            created_at: '',
+            updated_at: '',
+          },
+          {
+            id: 'd-2',
+            name: 'Honda Satrya — Surabaya Selatan',
+            code: 'demo-satrya-surabaya',
+            city: 'Surabaya',
+            address: null,
+            phone: null,
+            whatsapp_number: null,
+            opening_hours: null,
+            is_synthetic: false,
+            is_active: true,
+            sort_order: 2,
+            created_at: '',
+            updated_at: '',
+          },
+        ],
+        error: null,
+      });
+      const mockDealOrder1 = vi.fn().mockReturnValue({ order: mockDealOrder2 });
+      const mockDealEq = vi.fn().mockReturnValue({ order: mockDealOrder1 });
+      const mockDealSelect = vi.fn().mockReturnValue({ eq: mockDealEq });
+
+      const mockClient = {
+        from: vi.fn((table: string) => {
+          if (table === 'dealership_service_areas') return { select: mockSaSelect };
+          if (table === 'regencies') return { select: mockRegSelect };
+          if (table === 'dealerships') return { select: mockDealSelect };
+          throw new Error(`Unexpected table ${table}`);
+        }),
+      } as unknown as Parameters<typeof getDealershipsByRegency>[1];
+
       const dealerships = await getDealershipsByRegency('kab-sidoarjo', mockClient);
+      expect(dealerships).toHaveLength(1);
+      expect(dealerships[0].id).toBe('d-1');
+      expect(dealerships[0].name).toBe('Honda Satrya — Sidoarjo Sentral');
+      expect(dealerships[0].city).toBe('Sidoarjo');
+    });
+
+    it('returns empty array when no service areas exist and no dealership city matches regency', async () => {
+      // Step 1: dealership_service_areas returns []
+      const mockSaEq2 = vi.fn().mockResolvedValue({ data: [], error: null });
+      const mockSaEq1 = vi.fn().mockReturnValue({ eq: mockSaEq2 });
+      const mockSaSelect = vi.fn().mockReturnValue({ eq: mockSaEq1 });
+
+      // Step 2: regencies returns Pacitan
+      const mockRegMaybeSingle = vi.fn().mockResolvedValue({
+        data: { id: 'kab-pacitan', name: 'Kabupaten Pacitan', type: 'kabupaten' },
+        error: null,
+      });
+      const mockRegEq = vi.fn().mockReturnValue({ maybeSingle: mockRegMaybeSingle });
+      const mockRegSelect = vi.fn().mockReturnValue({ eq: mockRegEq });
+
+      // Step 3: dealerships returns only Sidoarjo and Surabaya
+      const mockDealOrder2 = vi.fn().mockResolvedValue({
+        data: [
+          {
+            id: 'd-1',
+            name: 'Honda Satrya — Sidoarjo Sentral',
+            city: 'Sidoarjo',
+            is_active: true,
+            sort_order: 1,
+          },
+        ],
+        error: null,
+      });
+      const mockDealOrder1 = vi.fn().mockReturnValue({ order: mockDealOrder2 });
+      const mockDealEq = vi.fn().mockReturnValue({ order: mockDealOrder1 });
+      const mockDealSelect = vi.fn().mockReturnValue({ eq: mockDealEq });
+
+      const mockClient = {
+        from: vi.fn((table: string) => {
+          if (table === 'dealership_service_areas') return { select: mockSaSelect };
+          if (table === 'regencies') return { select: mockRegSelect };
+          if (table === 'dealerships') return { select: mockDealSelect };
+          throw new Error(`Unexpected table ${table}`);
+        }),
+      } as unknown as Parameters<typeof getDealershipsByRegency>[1];
+
+      const dealerships = await getDealershipsByRegency('kab-pacitan', mockClient);
       expect(dealerships).toEqual([]);
     });
   });

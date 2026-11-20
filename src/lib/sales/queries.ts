@@ -353,10 +353,13 @@ export async function getActiveRegencies(
  * Public discovery query: Retrieves active dealership branches that serve the specified regency.
  *
  * Rules:
- * 1. Matches active dealership_service_areas where regency_id = regencyId.
- * 2. Only includes dealerships where is_active = true.
- * 3. Preserves dealership sort_order and name.
- * 4. Multiple dealerships can serve the same regency; all matching branches are returned.
+ * 1. Matches active dealership_service_areas where regency_id = regencyId (authoritative source).
+ * 2. If no explicit service area mappings exist, matches canonical active dealerships by city
+ *    for backward compatibility with established dealership locations.
+ * 3. Only includes dealerships where is_active = true.
+ * 4. Preserves dealership sort_order and name.
+ * 5. Multiple dealerships can serve the same regency; all matching branches are returned.
+ * 6. Throws descriptive errors when database queries fail (does not swallow technical errors into empty arrays).
  */
 export async function getDealershipsByRegency(
   regencyId: string,
@@ -366,10 +369,13 @@ export async function getDealershipsByRegency(
     return [];
   }
 
+  const cleanRegencyId = regencyId.trim();
+
   try {
     const supabase = client ?? (await createClient());
 
-    const { data, error } = await supabase
+    // 1. Authoritative check: dealership_service_areas mapping
+    const { data: serviceAreas, error: saError } = await supabase
       .from('dealership_service_areas')
       .select(
         `
@@ -378,15 +384,13 @@ export async function getDealershipsByRegency(
         dealerships (*)
       `
       )
-      .eq('regency_id', regencyId.trim())
+      .eq('regency_id', cleanRegencyId)
       .eq('is_active', true);
 
-    if (error) {
-      console.error('Error discovering dealerships for regency:', error.message);
-      return [];
+    if (saError) {
+      console.error('Error discovering dealerships from service areas:', saError.message);
+      throw new Error(`Database error discovering dealerships: ${saError.message}`);
     }
-
-    if (!data) return [];
 
     type ServiceAreaWithDealership = {
       dealership_id: string;
@@ -397,9 +401,9 @@ export async function getDealershipsByRegency(
         | null;
     };
 
-    const rows = data as unknown as ServiceAreaWithDealership[];
+    const rows = (serviceAreas ?? []) as unknown as ServiceAreaWithDealership[];
 
-    const activeDealerships = rows
+    const activeDealershipsFromServiceAreas = rows
       .map((row) => {
         if (!row.dealerships) return null;
         if (Array.isArray(row.dealerships)) {
@@ -409,8 +413,11 @@ export async function getDealershipsByRegency(
       })
       .filter((d): d is Database['public']['Tables']['dealerships']['Row'] =>
         Boolean(d && d.is_active)
-      )
-      .map((d) => ({
+      );
+
+    // If explicit service area mappings exist for this regency, use them (authoritative)
+    if (activeDealershipsFromServiceAreas.length > 0) {
+      const mapped = activeDealershipsFromServiceAreas.map((d) => ({
         id: d.id,
         name: d.name,
         code: d.code,
@@ -426,21 +433,84 @@ export async function getDealershipsByRegency(
         updatedAt: d.updated_at,
       }));
 
-    // Deduplicate by id if any duplicate junction rows exist
-    const seen = new Set<string>();
-    const unique = activeDealerships.filter((d) => {
-      if (seen.has(d.id)) return false;
-      seen.add(d.id);
-      return true;
+      const seen = new Set<string>();
+      const unique = mapped.filter((d) => {
+        if (seen.has(d.id)) return false;
+        seen.add(d.id);
+        return true;
+      });
+
+      return unique.sort((a, b) => a.sortOrder - b.sortOrder || a.name.localeCompare(b.name));
+    }
+
+    // 2. Compatibility check: match canonical dealerships by city
+    // Query regency to retrieve its canonical name and type
+    const { data: regencyData, error: regError } = await supabase
+      .from('regencies')
+      .select('id, name, type')
+      .eq('id', cleanRegencyId)
+      .maybeSingle();
+
+    if (regError) {
+      console.error('Error fetching regency details:', regError.message);
+      throw new Error(`Database error fetching regency details: ${regError.message}`);
+    }
+
+    if (!regencyData) {
+      return [];
+    }
+
+    const regency = regencyData as unknown as Pick<
+      Database['public']['Tables']['regencies']['Row'],
+      'id' | 'name' | 'type'
+    >;
+    const normalizedRegencyName = regency.name.toLowerCase();
+
+    // Query active dealerships
+    const { data: allDealerships, error: dError } = await supabase
+      .from('dealerships')
+      .select('*')
+      .eq('is_active', true)
+      .order('sort_order', { ascending: true })
+      .order('name', { ascending: true });
+
+    if (dError) {
+      console.error('Error fetching dealerships for city matching:', dError.message);
+      throw new Error(`Database error discovering dealerships: ${dError.message}`);
+    }
+
+    if (!allDealerships) return [];
+
+    const dealershipsList = allDealerships as unknown as Database['public']['Tables']['dealerships']['Row'][];
+
+    const cityMatchedDealerships = dealershipsList.filter((d) => {
+      if (!d.city) return false;
+      const cleanCity = d.city.trim().toLowerCase();
+      return (
+        normalizedRegencyName.includes(cleanCity) || cleanCity.includes(normalizedRegencyName)
+      );
     });
 
-    // Sort by sortOrder, then name
-    return unique.sort((a, b) => a.sortOrder - b.sortOrder || a.name.localeCompare(b.name));
+    return cityMatchedDealerships.map((d) => ({
+      id: d.id,
+      name: d.name,
+      code: d.code,
+      city: d.city,
+      address: d.address,
+      phone: d.phone,
+      whatsappNumber: d.whatsapp_number,
+      openingHours: d.opening_hours,
+      isSynthetic: d.is_synthetic,
+      isActive: d.is_active,
+      sortOrder: d.sort_order,
+      createdAt: d.created_at,
+      updatedAt: d.updated_at,
+    }));
   } catch (err) {
     if ((err as { digest?: string })?.digest === 'DYNAMIC_SERVER_USAGE') {
       throw err;
     }
     console.error('Exception discovering dealerships for regency:', err);
-    return [];
+    throw err;
   }
 }

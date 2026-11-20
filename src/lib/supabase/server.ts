@@ -21,14 +21,25 @@ export async function createClient(
     );
   }
 
-  const cookieStore = customCookieStore ?? (await cookies());
+  let cookieStore: Awaited<ReturnType<typeof cookies>> | null = null;
+  if (customCookieStore) {
+    cookieStore = customCookieStore;
+  } else {
+    try {
+      cookieStore = await cookies();
+    } catch {
+      // Called outside request scope (e.g. background job, test, or static generation)
+      cookieStore = null;
+    }
+  }
 
   return createServerClient<Database>(url, anonKey, {
     cookies: {
       getAll() {
-        return cookieStore.getAll();
+        return cookieStore ? cookieStore.getAll() : [];
       },
       setAll(cookiesToSet) {
+        if (!cookieStore) return;
         try {
           cookiesToSet.forEach(({ name, value, options }) => {
             cookieStore.set(name, value, options);

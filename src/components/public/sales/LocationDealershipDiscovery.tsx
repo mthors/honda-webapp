@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useTransition } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { dealershipCopy } from '@/content/copy/id';
 import { Button } from '@/components/ui/Button';
@@ -30,10 +30,10 @@ export function LocationDealershipDiscovery({
   const [loadedRegencyId, setLoadedRegencyId] = useState<string | null>(null);
   const [discoveryError, setDiscoveryError] = useState<string | null>(null);
 
-  const [isPending, startTransition] = useTransition();
+  const activeFetchIdRef = useRef(0);
 
   const isFetchingDealerships =
-    isPending || (Boolean(location?.regencyId) && loadedRegencyId !== location?.regencyId);
+    Boolean(location?.regencyId) && loadedRegencyId !== location?.regencyId;
 
   const t = dealershipCopy.locationDiscovery;
 
@@ -44,12 +44,13 @@ export function LocationDealershipDiscovery({
       return;
     }
 
+    const currentFetchId = ++activeFetchIdRef.current;
     let isMounted = true;
 
-    startTransition(async () => {
+    void (async () => {
       try {
         const res = await discoverDealershipsByRegencyAction(regencyId);
-        if (!isMounted) return;
+        if (!isMounted || activeFetchIdRef.current !== currentFetchId) return;
 
         if (res.success && res.data) {
           setMatchedDealerships(res.data);
@@ -58,15 +59,15 @@ export function LocationDealershipDiscovery({
           setDiscoveryError(res.error || 'Gagal mencari dealer yang melayani wilayah Anda.');
         }
       } catch (err) {
-        if (!isMounted) return;
+        if (!isMounted || activeFetchIdRef.current !== currentFetchId) return;
         console.error('Error discovering dealerships:', err);
         setDiscoveryError('Terjadi kendala sistem saat mencari dealer yang melayani wilayah Anda.');
       } finally {
-        if (isMounted) {
+        if (isMounted && activeFetchIdRef.current === currentFetchId) {
           setLoadedRegencyId(regencyId);
         }
       }
-    });
+    })();
 
     return () => {
       isMounted = false;

@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
 import { LocationDealershipDiscovery } from './LocationDealershipDiscovery';
 import * as useUserLocationModule from '@/lib/sales/useUserLocation';
 import * as salesActions from '@/lib/sales/actions';
@@ -225,5 +225,149 @@ describe('LocationDealershipDiscovery Component', () => {
     // Clicking Batal closes the selector and restores active location view
     fireEvent.click(screen.getByRole('button', { name: /Batal/i }));
     expect(screen.getByText(/Lokasi Anda:/i)).toBeInTheDocument();
+  });
+
+  it('renders error state when discovery server action returns failure', async () => {
+    vi.mocked(useUserLocationModule.useUserLocation).mockReturnValue({
+      location: {
+        provinceId: 'jawa-timur',
+        provinceName: 'Jawa Timur',
+        regencyId: 'kab-sidoarjo',
+        regencyName: 'Sidoarjo (Kabupaten)',
+        lastActivityAt: Date.now(),
+      },
+      isLoading: false,
+      setLocation: vi.fn(),
+      clearLocation: vi.fn(),
+      touchActivity: vi.fn(),
+    });
+
+    vi.mocked(salesActions.discoverDealershipsByRegencyAction).mockResolvedValue({
+      success: false,
+      error: 'Terjadi kendala koneksi ke basis data.',
+    });
+
+    render(
+      <LocationDealershipDiscovery
+        provinces={mockProvinces}
+        regencies={mockRegencies}
+        allDealerships={mockDealerships}
+      />
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText('Terjadi kendala koneksi ke basis data.')).toBeInTheDocument();
+    });
+
+    expect(screen.getByRole('button', { name: /Pilih Ulang Lokasi/i })).toBeInTheDocument();
+  });
+
+  it('prevents race conditions when user location changes rapidly', async () => {
+    type DiscoveryActionResponse = Awaited<
+      ReturnType<typeof salesActions.discoverDealershipsByRegencyAction>
+    >;
+    let resolveFirst: (val: DiscoveryActionResponse) => void;
+    const firstPromise = new Promise<DiscoveryActionResponse>((resolve) => {
+      resolveFirst = resolve;
+    });
+
+    let resolveSecond: (val: DiscoveryActionResponse) => void;
+    const secondPromise = new Promise<DiscoveryActionResponse>((resolve) => {
+      resolveSecond = resolve;
+    });
+
+    vi.mocked(salesActions.discoverDealershipsByRegencyAction).mockImplementation(
+      async (regencyId: string) => {
+        if (regencyId === 'kab-sidoarjo') {
+          return await firstPromise;
+        }
+        return await secondPromise;
+      }
+    );
+
+    const { rerender } = render(
+      <LocationDealershipDiscovery
+        provinces={mockProvinces}
+        regencies={mockRegencies}
+        allDealerships={mockDealerships}
+      />
+    );
+
+    // Initial render with Sidoarjo
+    vi.mocked(useUserLocationModule.useUserLocation).mockReturnValue({
+      location: {
+        provinceId: 'jawa-timur',
+        provinceName: 'Jawa Timur',
+        regencyId: 'kab-sidoarjo',
+        regencyName: 'Sidoarjo (Kabupaten)',
+        lastActivityAt: Date.now(),
+      },
+      isLoading: false,
+      setLocation: vi.fn(),
+      clearLocation: vi.fn(),
+      touchActivity: vi.fn(),
+    });
+
+    rerender(
+      <LocationDealershipDiscovery
+        provinces={mockProvinces}
+        regencies={mockRegencies}
+        allDealerships={mockDealerships}
+      />
+    );
+
+    // Rapid change to Pacitan
+    vi.mocked(useUserLocationModule.useUserLocation).mockReturnValue({
+      location: {
+        provinceId: 'jawa-timur',
+        provinceName: 'Jawa Timur',
+        regencyId: 'kab-pacitan',
+        regencyName: 'Pacitan (Kabupaten)',
+        lastActivityAt: Date.now(),
+      },
+      isLoading: false,
+      setLocation: vi.fn(),
+      clearLocation: vi.fn(),
+      touchActivity: vi.fn(),
+    });
+
+    rerender(
+      <LocationDealershipDiscovery
+        provinces={mockProvinces}
+        regencies={mockRegencies}
+        allDealerships={mockDealerships}
+      />
+    );
+
+    // Wait for effect to trigger for Pacitan
+    await waitFor(() => {
+      expect(salesActions.discoverDealershipsByRegencyAction).toHaveBeenCalledWith('kab-pacitan');
+    });
+
+    // Second request (Pacitan) resolves first with empty dealerships
+    await act(async () => {
+      resolveSecond!({
+        success: true,
+        data: [],
+      });
+      await secondPromise;
+    });
+
+    await waitFor(() => {
+      expect(screen.getByText(/Belum Ada Cabang Dealer di Wilayah Ini/i)).toBeInTheDocument();
+    });
+
+    // Older request (Sidoarjo) resolves later with dealerships
+    await act(async () => {
+      resolveFirst!({
+        success: true,
+        data: mockDealerships,
+      });
+      await firstPromise;
+    });
+
+    // Older request should NOT overwrite Pacitan's result
+    expect(screen.queryByText('Honda Satrya — Sidoarjo Sentral')).not.toBeInTheDocument();
+    expect(screen.getByText(/Belum Ada Cabang Dealer di Wilayah Ini/i)).toBeInTheDocument();
   });
 });
